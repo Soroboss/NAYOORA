@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/insforge/server";
 import { normalizeMember, parseCsv } from "@/lib/members";
+import { getPlanLimits } from "@/lib/plan-limits";
 
 const managers = ["organization_admin", "president", "secretaire", "gestionnaire"];
 export async function POST(request: Request) {
@@ -11,7 +12,9 @@ export async function POST(request: Request) {
   if (!(file instanceof File) || !file.name.toLowerCase().endsWith(".csv")) return NextResponse.json({ error: "Choisissez un fichier CSV." }, { status: 400 });
   if (file.size > 2_000_000) return NextResponse.json({ error: "Le fichier CSV ne doit pas dépasser 2 Mo." }, { status: 400 });
   try {
-    const rows = parseCsv(await file.text()); const { data: batch, error: batchError } = await insforge.from("member_imports").insert({ organization_id: membership.organization_id, file_name: file.name, total_rows: rows.length, imported_by: user.id }).select("id").single();
+    const rows = parseCsv(await file.text()); const limits = await getPlanLimits(insforge, membership.organization_id); const { count } = await insforge.from("member_profiles").select("id", { count: "exact", head: true }).eq("organization_id", membership.organization_id).is("deleted_at", null);
+    if (limits.memberLimit !== null && (count ?? 0) + rows.length > limits.memberLimit) return NextResponse.json({ error: `Cet import dépasserait la limite de ${limits.memberLimit} membres de l’offre ${limits.name}.` }, { status: 402 });
+    const { data: batch, error: batchError } = await insforge.from("member_imports").insert({ organization_id: membership.organization_id, file_name: file.name, total_rows: rows.length, imported_by: user.id }).select("id").single();
     if (batchError || !batch) throw batchError ?? new Error("Import non initialisé.");
     const valid: Record<string, unknown>[] = []; const errors: Record<string, unknown>[] = [];
     rows.forEach((row, index) => { try { const item = normalizeMember(row); valid.push({ organization_id: membership.organization_id, first_name: item.firstName, last_name: item.lastName, phone: item.phone, email: item.email, address: item.address, member_number: item.memberNumber, birth_date: item.birthDate, created_by: user.id }); } catch (error) { errors.push({ import_id: batch.id, organization_id: membership.organization_id, row_number: index + 2, message: error instanceof Error ? error.message : "Ligne invalide.", raw_data: row }); } });
