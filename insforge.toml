@@ -1,0 +1,6 @@
+[auth]
+# Replace with the final Vercel production URL before `config apply`.
+allowed_redirect_urls = [
+  "http://localhost:3000/**",
+  "https://nayoora.vercel.app/**"
+]

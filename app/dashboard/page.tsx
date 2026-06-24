@@ -1,0 +1,13 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { organizationTypes } from "@/lib/organization-config";
+import type { Organization, OrganizationType } from "@/lib/types";
+
+export default async function DashboardPage() {
+  const supabase = await createClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user) redirect("/login");
+  const { data: membership } = await supabase.from("organization_members").select("organization:organizations(id,name,slug,organization_type,currency)").eq("user_id", user.id).eq("status", "active").limit(1).maybeSingle();
+  const organization = membership?.organization as unknown as Organization | null; if (!organization) redirect("/onboarding");
+  const config = organizationTypes[organization.organization_type as OrganizationType];
+  return <main className="app-shell"><aside className="sidebar"><Link href="/dashboard" className="brand"><img src="/nayoora-logo.png" alt="" /> NAYOORA</Link><div className="org-switch"><span>{config.icon}</span><div><b>{organization.name}</b><small>{config.label}</small></div></div><nav><Link className="active" href="/dashboard"><i>◈</i>Vue d'ensemble</Link><Link href="/dashboard/members"><i>·</i>Membres</Link><Link href="/dashboard/finance"><i>·</i>Cotisations & Caisse</Link>{config.navigation.slice(2).map(item=><a href="#" key={item}><i>·</i>{item}</a>)}</nav><a className="settings" href="#">⚙ Paramètres</a></aside><section className="dashboard"><header className="dashboard-header"><div><p className="eyebrow">Vue d'ensemble</p><h1>Bonjour 👋</h1><p>Voici la situation de {organization.name} aujourd'hui.</p></div><button className="button button-dark">+ Nouvelle action</button></header><div className="metric-grid">{config.metrics.map((metric) => <article className="metric-card" key={metric.label}><p>{metric.label}</p><strong>{metric.value}</strong>{metric.trend && <small>{metric.trend}</small>}<span className="metric-orbit" /></article>)}</div><div className="dashboard-grid"><article className="panel activity"><div className="panel-heading"><div><p className="eyebrow">Activité</p><h2>À suivre</h2></div><button>Voir tout</button></div><div className="empty-state"><div>⌁</div><h3>Votre espace est prêt.</h3><p>Ajoutez vos premiers membres et vos données commenceront à apparaître ici.</p></div></article><article className="panel quick-actions"><p className="eyebrow">Raccourcis</p><h2>Que souhaitez-vous faire ?</h2>{config.actions.map((action, i) => <button key={action}><span>0{i + 1}</span>{action}<b>→</b></button>)}</article></div></section></main>;
+}

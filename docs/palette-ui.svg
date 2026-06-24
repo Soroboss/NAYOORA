@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820">
+  <rect width="1400" height="820" fill="#F5F4EE"/>
+  <rect x="0" width="1400" height="16" fill="#D8EE62"/>
+  <text x="100" y="118" fill="#15231F" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="4">NAYOORA</text>
+  <text x="100" y="185" fill="#15231F" font-family="Georgia, serif" font-size="59" font-weight="700">Palette de l’interface</text>
+  <text x="100" y="228" fill="#66756F" font-family="Arial, sans-serif" font-size="21">Gérez. Connectez. Développez.</text>
+  <g transform="translate(100 310)">
+    <g><rect width="220" height="265" rx="16" fill="#0B3A6E"/><text x="22" y="45" fill="#0E9F6E" font-family="Arial" font-size="17" font-weight="700">BLEU NAYOORA</text><text x="22" y="78" fill="#FFFFFF" font-family="Arial" font-size="19">#0B3A6E</text><text x="22" y="220" fill="#DCE9F7" font-family="Arial" font-size="15">Navigation · confiance</text></g>
+    <g transform="translate(245)"><rect width="220" height="265" rx="16" fill="#D8EE62"/><text x="22" y="45" fill="#183B32" font-family="Arial" font-size="17" font-weight="700">CITRON VIF</text><text x="22" y="78" fill="#183B32" font-family="Arial" font-size="19">#D8EE62</text><text x="22" y="220" fill="#345044" font-family="Arial" font-size="15">Accent · logo · repères</text></g>
+    <g transform="translate(490)"><rect width="220" height="265" rx="16" fill="#FFFFFF" stroke="#DCE5DF" stroke-width="2"/><text x="22" y="45" fill="#15231F" font-family="Arial" font-size="17" font-weight="700">BLANC</text><text x="22" y="78" fill="#15231F" font-family="Arial" font-size="19">#FFFFFF</text><text x="22" y="220" fill="#66756F" font-family="Arial" font-size="15">Cartes · formulaires</text></g>
+    <g transform="translate(735)"><rect width="220" height="265" rx="16" fill="#F5F4EE" stroke="#DCE5DF" stroke-width="2"/><text x="22" y="45" fill="#15231F" font-family="Arial" font-size="17" font-weight="700">CRÈME</text><text x="22" y="78" fill="#15231F" font-family="Arial" font-size="19">#F5F4EE</text><text x="22" y="220" fill="#66756F" font-family="Arial" font-size="15">Fond principal · respiration</text></g>
+    <g transform="translate(980)"><rect width="220" height="265" rx="16" fill="#66756F"/><text x="22" y="45" fill="#FFFFFF" font-family="Arial" font-size="17" font-weight="700">GRIS SAUGE</text><text x="22" y="78" fill="#FFFFFF" font-family="Arial" font-size="19">#66756F</text><text x="22" y="220" fill="#E9EEEA" font-family="Arial" font-size="15">Texte secondaire · aide</text></g>
+  </g>
+  <g transform="translate(100 650)"><circle cx="15" cy="15" r="15" fill="#E5F5E7"/><text x="42" y="21" fill="#357247" font-family="Arial" font-size="17" font-weight="700">Succès / membre actif</text><circle cx="340" cy="15" r="15" fill="#F7EBD9"/><text x="367" y="21" fill="#896332" font-family="Arial" font-size="17" font-weight="700">Attention / en retard</text><circle cx="650" cy="15" r="15" fill="#F6DEDA"/><text x="677" y="21" fill="#A25A53" font-family="Arial" font-size="17" font-weight="700">Erreur / action sensible</text></g>
+</svg>
