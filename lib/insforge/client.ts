@@ -1,23 +1,19 @@
 import { createClient as createSdkClient } from "@insforge/sdk";
 
 function withLegacyQueryShape(client: any): any {
-  return {
-    ...client,
-    from(table: string) {
-      const query = client.database.from(table);
-      const insert = query.insert.bind(query);
-      query.insert = (values: unknown) => insert(Array.isArray(values) ? values : [values]);
-      return query;
-    },
-    rpc: client.database.rpc.bind(client.database),
-    auth: {
-      ...client.auth,
-      async getUser() {
-        const result = await client.auth.getCurrentUser();
-        return { data: { user: result.data?.user ?? null }, error: result.error };
-      },
-    },
+  const auth = client.auth;
+  auth.getUser = async () => {
+    const result = await client.auth.getCurrentUser();
+    return { data: { user: result.data?.user ?? null }, error: result.error };
   };
+  client.from = (table: string) => {
+    const query = client.database.from(table);
+    const insert = query.insert.bind(query);
+    query.insert = (values: unknown) => insert(Array.isArray(values) ? values : [values]);
+    return query;
+  };
+  client.rpc = client.database.rpc.bind(client.database);
+  return client;
 }
 
 export function createInsforgeClient(): any {
