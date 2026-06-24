@@ -5,9 +5,17 @@ type CookieToSet = { name: string; value: string; options?: any };
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // The public marketing site must remain available while the backend is being
+  // provisioned or migrated to InsForge. Protected routes still enforce auth in
+  // their server components once a backend client is configured.
+  if (!supabaseUrl || !supabaseAnonKey) return response;
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     { cookies: { getAll: () => request.cookies.getAll(), setAll: (items: CookieToSet[]) => { items.forEach(({ name, value }) => request.cookies.set(name, value)); response = NextResponse.next({ request }); items.forEach(({ name, value, options }) => response.cookies.set(name, value, options)); } } }
   );
   await supabase.auth.getUser();
