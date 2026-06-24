@@ -1,8 +1,0 @@
-create table public.access_logs (id uuid primary key default gen_random_uuid(),organization_id uuid references public.organizations(id) on delete cascade,user_id uuid references auth.users(id) on delete set null,event_type text not null,metadata jsonb not null default '{}',created_at timestamptz not null default now());
-alter table public.access_logs enable row level security;
-create policy "admins read access logs" on public.access_logs for select using(public.can_manage_organization(organization_id));
-create or replace function public.accept_organization_invite(p_token uuid) returns uuid language plpgsql security definer set search_path=public as $$ declare v_invite public.organization_invites;v_membership uuid;begin
- if auth.uid() is null then raise exception 'Authentication required';end if;select * into v_invite from public.organization_invites where token=p_token and status='pending' and expires_at>now() for update;if not found then raise exception 'Invitation invalid or expired';end if;
- insert into public.organization_members(organization_id,user_id,role,status) values(v_invite.organization_id,auth.uid(),v_invite.role,'active') on conflict(organization_id,user_id) do update set role=excluded.role,status='active' returning id into v_membership;
- update public.organization_invites set status='accepted' where id=v_invite.id;insert into public.access_logs(organization_id,user_id,event_type,metadata) values(v_invite.organization_id,auth.uid(),'invite_accepted',jsonb_build_object('invite_id',v_invite.id));return v_membership;end $$;
-grant execute on function public.accept_organization_invite(uuid) to authenticated;

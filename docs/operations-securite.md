@@ -22,11 +22,11 @@ Les seules données volontairement globales sont l’identité (`auth.users`, `u
 
 ## Sauvegardes automatiques
 
-À activer avant production dans Supabase :
+À activer avant production dans InsForge :
 
 1. Point-in-Time Recovery et sauvegardes quotidiennes du projet.
 2. Export logique chiffré quotidien de PostgreSQL vers un bucket privé hors projet, conservé au moins 30 jours.
-3. Test mensuel de restauration sur un projet Supabase de préproduction.
+3. Test mensuel de restauration sur un projet InsForge de préproduction.
 4. Alertes en cas d’échec de backup ou de restauration.
 
-Les secrets d’accès au bucket, aux exports et aux prestataires de paiement vivent uniquement dans les secrets Supabase/Vercel, jamais dans le navigateur ni dans les tables applicatives.
+Les secrets d’accès au bucket, aux exports et aux prestataires de paiement vivent uniquement dans les secrets InsForge/Vercel, jamais dans le navigateur ni dans les tables applicatives.

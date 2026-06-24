@@ -1,2 +1,2 @@
-import {createClient}from'@/lib/supabase/server';
+import {createClient}from'@/lib/insforge/server';
 export default async function CardVerify({params}:{params:Promise<{token:string}>}){const{token}=await params;const s=await createClient();const{data}=await s.rpc('verify_member_card',{p_token:token});const card=data?.[0];return <main className="verify-card"><p className="eyebrow">NAYOORA · Vérification</p>{card?<><h1>{card.status==='active'?'Carte valide':'Carte non valide'}</h1><p><b>{card.member_name}</b><br/>{card.organization_name}<br/>N° {card.card_number}</p></>:<><h1>Carte introuvable</h1><p>Le code de vérification est invalide ou la carte a été supprimée.</p></>}</main>}

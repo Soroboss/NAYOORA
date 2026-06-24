@@ -3,11 +3,11 @@
 ## Découpage
 
 - **Web** : Next.js App Router, pages publiques, application authentifiée et Server Components pour les données sensibles.
-- **Identité** : Supabase Auth. Les données de profil restent séparées de `auth.users`.
-- **Données** : PostgreSQL/Supabase. Toute table métier porte `organization_id`; les RLS vérifient l'adhésion active de l'utilisateur.
+- **Identité** : InsForge Auth. Les données de profil restent séparées de `auth.users`.
+- **Données** : PostgreSQL/InsForge. Toute table métier porte `organization_id`; les RLS vérifient l'adhésion active de l'utilisateur.
 - **Domaine** : modules indépendants (`members`, `contributions`, `treasury`, `events`, `loans`, `communications`, `reports`). La configuration par `organization_type` décide quels modules et vocabulaires apparaissent, sans dupliquer les données.
 - **Intégrations** : adaptateurs côté serveur pour paiement, SMS, WhatsApp et email. Les webhooks vérifient signature, idempotence (`provider_reference`) et journalisent chaque transition.
-- **Exploitation** : Vercel (web), Supabase (DB/Auth/Storage), Sentry pour erreurs et sauvegardes Postgres quotidiennes avant la commercialisation.
+- **Exploitation** : Vercel (web), InsForge (DB/Auth/Storage), Sentry pour erreurs et sauvegardes Postgres quotidiennes avant la commercialisation.
 
 ## Organisation du code
 
@@ -16,10 +16,10 @@ app/                  routes Next.js : marketing, auth, onboarding, espace priv�
 components/           composants d'interface sans accès direct aux secrets
 lib/
   domain/             règles métier par module et vocabulaire par type
-  supabase/           clients navigateur et serveur
+  insforge/           clients navigateur et serveur
   payments/           contrats Provider et adaptateurs Mobile Money
   notifications/      contrats SMS, WhatsApp, email et notifications internes
-supabase/migrations/  schéma versionné, fonctions SQL et RLS
+insforge/migrations/  schéma versionné, fonctions SQL et RLS
 ```
 
 Les commandes financières, les imports et les webhooks sont des routes serveur. Elles contrôlent le rôle, valident le payload, exécutent l'écriture atomique et ajoutent un journal d'audit. Les pages clientes ne sont jamais l'autorité métier.
@@ -43,7 +43,7 @@ La migration `00001` crée le noyau d'authentification, de tenant et de trésore
 
 ## Contrat de sécurité
 
-1. L'application cliente utilise uniquement la clé anon Supabase.
+1. L'application cliente utilise uniquement la clé anon InsForge.
 2. La clé service ne vit que dans les routes serveur/webhooks, jamais dans le navigateur.
 3. Les rôles sont vérifiés à la fois dans l'interface et dans les RLS/procédures SQL ; cacher un bouton ne suffit jamais.
 4. Toute opération financière produit une entrée dans `audit_logs`; les écritures confirmées sont immuables et corrigées par contre-écriture.

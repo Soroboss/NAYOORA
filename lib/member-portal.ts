@@ -1,3 +1,3 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/insforge/server";
 export async function memberContext(){const s=await createClient();const{data:{user}}=await s.auth.getUser();if(!user)redirect('/login');const{data:m}=await s.from('organization_members').select('id,organization_id,organization:organizations(name)').eq('user_id',user.id).eq('status','active').limit(1).maybeSingle();if(!m)redirect('/onboarding');const{data:profile}=await s.from('member_profiles').select('id,first_name,last_name').eq('organization_member_id',m.id).eq('organization_id',m.organization_id).is('deleted_at',null).maybeSingle();return{s,m,profile};}

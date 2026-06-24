@@ -36,4 +36,4 @@ Le fournisseur Google est déjà activé dans le projet InsForge. Il faut toutef
 
 ## Point d’intégration actuel
 
-Le nouveau bouton Google est intégré à InsForge. Les parcours historiques par email et les modules métier sont encore reliés au client Supabase présent dans l’application. Avant de diriger un compte Google vers les modules privés, la prochaine étape est de migrer l’authentification de session et les tables multi-tenant vers InsForge, puis de tester le parcours complet création d’organisation → tableau de bord.
+Le nouveau bouton Google est intégré à InsForge. Les parcours historiques par email et les modules métier sont encore reliés au client InsForge présent dans l’application. Avant de diriger un compte Google vers les modules privés, la prochaine étape est de migrer l’authentification de session et les tables multi-tenant vers InsForge, puis de tester le parcours complet création d’organisation → tableau de bord.

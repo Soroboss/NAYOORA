@@ -1,4 +1,4 @@
--- NAYOORA: foundation multi-tenant. Run in Supabase SQL Editor.
+-- NAYOORA: foundation multi-tenant. Run in InsForge database import.
 create extension if not exists "pgcrypto";
 
 create type public.organization_type as enum ('mutuelle','association','cooperative','syndicat','ong','parti_politique');

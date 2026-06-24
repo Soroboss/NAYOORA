@@ -4,8 +4,8 @@ SaaS multi-tenant pour la gestion d'organisations africaines.
 
 ## Démarrer
 
-1. Créez un projet Supabase puis exécutez les migrations dans l'ordre : `00001_initial_schema.sql`, puis `00002_complete_domain_schema.sql`.
-2. Copiez `.env.example` vers `.env.local` et renseignez les clés publiques Supabase.
+1. Créez un projet InsForge puis exécutez les migrations dans l'ordre : `00001_initial_schema.sql`, puis `00002_complete_domain_schema.sql`.
+2. Copiez `.env.example` vers `.env.local` et renseignez les clés publiques InsForge.
 3. Installez les dépendances : `npm install`.
 4. Lancez l'application : `npm run dev`.
 
