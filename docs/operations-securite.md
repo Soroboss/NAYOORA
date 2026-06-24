@@ -14,6 +14,12 @@ Les seules données volontairement globales sont l’identité (`auth.users`, `u
 - `organization_role_permissions` permet des permissions par organisation, sans partager une configuration entre tenants.
 - Les triggers `assert_same_organization` empêchent les références croisées, même lorsqu’un identifiant est connu.
 
+## Validation et limitation de débit
+
+- Les routes API contrôlent le rôle et le tenant côté serveur avant toute écriture.
+- Le middleware limite `/api/*` à 60 requêtes par minute et par IP par instance. Pour la production multi-région, remplacez ce garde-fou local par un store partagé (Vercel KV ou Redis) avant une montée en charge importante.
+- Les routes privées redirigent vers la connexion lorsqu’un backend d’authentification est configuré ; sans backend, elles ne renvoient plus d’erreur 500.
+
 ## Sauvegardes automatiques
 
 À activer avant production dans Supabase :
