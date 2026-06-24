@@ -39,6 +39,18 @@ Le code actuel s’appuie sur `@supabase/ssr` et `@supabase/supabase-js`. Avant 
 
 Ne mélangez pas les deux backends dans une même production. L’authentification, les RLS et les webhooks doivent appartenir à une seule source de vérité.
 
+### Projet InsForge lié
+
+NAYOORA est lié au projet InsForge **Gestion Orga** (`1399c26c-a41f-4b6e-ad41-db935dcf666b`, région `us-west`). L’état initial constaté est volontairement vide : aucune table, bucket ni Edge Function n’est encore déployé.
+
+Avant la première migration :
+
+1. Créer une branche backend InsForge dédiée à la migration.
+2. Importer ou convertir les migrations locales dans le format horodaté géré par `npx @insforge/cli db migrations`.
+3. Vérifier tables, index, RLS, fonctions et triggers avec les commandes `db tables`, `db policies`, `db functions` et `db triggers`.
+4. Remplacer les clients Supabase du frontend par l’adaptateur InsForge dans une branche Git dédiée.
+5. Tester l’onboarding avec deux organisations avant de fusionner vers le backend de production.
+
 ## Ordre de mise en production
 
 1. Créer le dépôt Git privé et pousser le code sans secrets.
