@@ -4,6 +4,8 @@ import { normalizeMember } from "@/lib/members";
 import { getPlanLimits } from "@/lib/plan-limits";
 
 const managers = ["organization_admin", "president", "secretaire", "gestionnaire"];
+const validOfficeRoles = ["member", "president", "vice_president", "secretaire", "tresorier", "commissaire"];
+const validStatuses = ["active", "inactive", "suspended"];
 
 async function context() {
   const insforge = await createClient();
@@ -31,7 +33,17 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const ctx = await context(); if ("error" in ctx) return ctx.error;
   try {
-    const { id, ...input } = await request.json(); if (!id) throw new Error("Membre manquant."); const member = normalizeMember(input);
+    const { id, action, ...input } = await request.json(); if (!id) throw new Error("Membre manquant.");
+    if (action === "office") {
+      const officeRole = validOfficeRoles.includes(input.officeRole) ? input.officeRole : "member";
+      const status = validStatuses.includes(input.status) ? input.status : "active";
+      if (officeRole !== "member") await ctx.insforge.from("member_profiles").update({ is_current_officer: false }).eq("organization_id", ctx.membership.organization_id).eq("office_role", officeRole);
+      const { data, error } = await ctx.insforge.from("member_profiles").update({ status, office_role: officeRole, office_title: input.officeTitle?.trim() || null, role_started_on: input.roleStartedOn || null, elected_until: input.electedUntil || null, is_current_officer: officeRole !== "member", updated_at: new Date().toISOString() }).eq("id", id).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null).select().single();
+      if (error) throw error;
+      await ctx.insforge.from("access_logs").insert({ organization_id: ctx.membership.organization_id, user_id: ctx.user.id, event_type: "member_office_updated", metadata: { member_id: id, office_role: officeRole, status } });
+      return NextResponse.json({ member: data });
+    }
+    const member = normalizeMember(input);
     const { data, error } = await ctx.insforge.from("member_profiles").update({ first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: member.memberNumber, birth_date: member.birthDate, photo_url: member.photoUrl, updated_at: new Date().toISOString() }).eq("id", id).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null).select().single();
     if (error) throw error; return NextResponse.json({ member: data });
   } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Mise à jour impossible." }, { status: 400 }); }
