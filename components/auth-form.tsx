@@ -38,10 +38,40 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     const payload = await result.json(); setLoading(false);
     if (!result.ok) return setError(payload.error ?? "Connexion impossible.");
     if (payload.verificationRequired) { setVerificationEmail(email); return; }
-    const next = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("next");
-    router.push(isSignup ? "/onboarding" : (next === "/platform" ? "/platform" : "/dashboard")); router.refresh();
+    router.push(isSignup ? "/onboarding" : "/dashboard"); router.refresh();
   }
   function signInWithGoogle() { setError(""); setLoading(true); window.location.assign("/api/auth/google"); }
   async function verify(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setLoading(true); setError(""); const otp = String(new FormData(event.currentTarget).get("otp")); const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "verify", email: verificationEmail, otp }) }); const payload = await response.json(); setLoading(false); if (!response.ok) return setError(payload.error ?? "Code invalide."); router.push("/onboarding"); router.refresh(); }
-  return <main className={`auth-page ${isSignup ? "signup-page" : ""}`}><Link href="/" className="brand"><img src="/nayoora-logo.png" alt="" /> NAYOORA</Link><section className="auth-card">{verificationEmail ? <><p className="eyebrow">Vérification email</p><h1>Confirmez votre adresse.</h1><p>Un code à six chiffres a été envoyé à <b>{verificationEmail}</b>.</p><form onSubmit={verify}><label>Code de vérification<input required name="otp" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} placeholder="123456" autoComplete="one-time-code" /></label>{error && <p className="form-error">{error}</p>}<button className="button button-dark full" disabled={loading}>{loading ? "Vérification…" : "Valider mon compte"}</button></form></> : <><p className="eyebrow">{isSignup ? "Bienvenue dans NAYOORA" : "Ravi de vous revoir"}</p><h1>{isSignup ? "Créez votre espace" : "Connectez-vous"}</h1><p>{isSignup ? "Dites-nous ce que vous souhaitez gérer. Nous préparerons un espace utile dès le premier jour." : "Accédez à votre organisation ou à votre console SaaS."}</p><button type="button" className="google-button" onClick={signInWithGoogle} disabled={loading}><span aria-hidden="true">G</span> Continuer avec Google</button><div className="auth-separator"><span>ou avec votre email</span></div><form onSubmit={submit}>{isSignup && <label>Votre nom complet<input required name="name" placeholder="Ex. Aïcha Koné" autoComplete="name" /></label>}{isSignup && <fieldset className="signup-choices"><legend>Quel type d’organisation créez-vous ?</legend><div>{organizationChoices.map(([value, label, description]) => <button type="button" key={value} className={organizationType === value ? "selected" : ""} onClick={() => setOrganizationType(value)}><b>{label}</b><small>{description}</small></button>)}</div></fieldset>}{isSignup && <label className="offer-select">Offre choisie<select value={service} onChange={(event) => setService(event.target.value as (typeof serviceChoices)[number][0])}>{serviceChoices.map(([value, label, description]) => <option key={value} value={value}>{label} — {description}</option>)}</select><small>Vous pourrez changer d’offre à tout moment.</small></label>}<label>Email<input required type="email" name="email" placeholder="vous@organisation.org" autoComplete="email" /></label><label>Mot de passe<input required minLength={8} type="password" name="password" placeholder="8 caractères minimum" autoComplete={isSignup ? "new-password" : "current-password"} /></label>{error && <p className="form-error">{error}</p>}<button className="button button-dark full" disabled={loading}>{loading ? "Patientez…" : isSignup ? "Créer mon compte" : "Se connecter"}</button></form>{isSignup && <p className="auth-note">Les offres payantes démarrent en essai ; le paiement sera activé avant leur renouvellement.</p>}<p className="form-footer">{isSignup ? "Déjà un compte ?" : "Pas encore de compte ?"} <Link href={isSignup ? "/login" : "/offres"}>{isSignup ? "Connexion" : "Voir les offres"}</Link></p>{!isSignup && <p className="owner-link">Vous êtes propriétaire de NAYOORA ? <Link href="/login?next=/platform">Accéder à la console SaaS</Link></p>}</>}</section></main>;
+  return <main className={`auth-page ${isSignup ? "signup-page" : ""}`}>
+    <Link href="/" className="brand"><img src="/nayoora-logo.png" alt="" /> NAYOORA</Link>
+    <section className="auth-card">
+      {verificationEmail ? <>
+        <p className="eyebrow">Vérification email</p>
+        <h1>Confirmez votre adresse.</h1>
+        <p>Un code à six chiffres a été envoyé à <b>{verificationEmail}</b>.</p>
+        <form onSubmit={verify}>
+          <label>Code de vérification<input required name="otp" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} placeholder="123456" autoComplete="one-time-code" /></label>
+          {error && <p className="form-error">{error}</p>}
+          <button className="button button-dark full" disabled={loading}>{loading ? "Vérification…" : "Valider mon compte"}</button>
+        </form>
+      </> : <>
+        <p className="eyebrow">{isSignup ? "Bienvenue dans NAYOORA" : "Ravi de vous revoir"}</p>
+        <h1>{isSignup ? "Créez votre espace" : "Connectez-vous"}</h1>
+        <p>{isSignup ? "Dites-nous ce que vous souhaitez gérer. Nous préparerons un espace utile dès le premier jour." : "Accédez à votre espace de gestion."}</p>
+        <button type="button" className="google-button" onClick={signInWithGoogle} disabled={loading}><span aria-hidden="true">G</span> Continuer avec Google</button>
+        <div className="auth-separator"><span>ou avec votre email</span></div>
+        <form onSubmit={submit}>
+          {isSignup && <label>Votre nom complet<input required name="name" placeholder="Ex. Aïcha Koné" autoComplete="name" /></label>}
+          {isSignup && <fieldset className="signup-choices"><legend>Quel type d’organisation créez-vous ?</legend><div>{organizationChoices.map(([value, label, description]) => <button type="button" key={value} className={organizationType === value ? "selected" : ""} onClick={() => setOrganizationType(value)}><b>{label}</b><small>{description}</small></button>)}</div></fieldset>}
+          {isSignup && <label className="offer-select">Offre choisie<select value={service} onChange={(event) => setService(event.target.value as (typeof serviceChoices)[number][0])}>{serviceChoices.map(([value, label, description]) => <option key={value} value={value}>{label} — {description}</option>)}</select><small>Vous pourrez changer d’offre à tout moment.</small></label>}
+          <label>Email<input required type="email" name="email" placeholder="vous@organisation.org" autoComplete="email" /></label>
+          <label>Mot de passe<input required minLength={8} type="password" name="password" placeholder="8 caractères minimum" autoComplete={isSignup ? "new-password" : "current-password"} /></label>
+          {error && <p className="form-error">{error}</p>}
+          <button className="button button-dark full" disabled={loading}>{loading ? "Patientez…" : isSignup ? "Créer mon compte" : "Se connecter"}</button>
+        </form>
+        {isSignup && <p className="auth-note">Les offres payantes démarrent en essai ; le paiement sera activé avant leur renouvellement.</p>}
+        <p className="form-footer">{isSignup ? "Déjà un compte ?" : "Pas encore de compte ?"} <Link href={isSignup ? "/login" : "/offres"}>{isSignup ? "Connexion" : "Voir les offres"}</Link></p>
+      </>}
+    </section>
+  </main>;
 }
