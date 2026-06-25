@@ -38,10 +38,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     const payload = await result.json(); setLoading(false);
     if (!result.ok) return setError(payload.error ?? "Connexion impossible.");
     if (payload.verificationRequired) { setVerificationEmail(email); return; }
-    router.push(isSignup ? "/onboarding" : "/dashboard"); router.refresh();
+    router.push(payload.redirectTo ?? (isSignup ? "/onboarding" : "/dashboard")); router.refresh();
   }
   function signInWithGoogle() { setError(""); setLoading(true); window.location.assign("/api/auth/google"); }
-  async function verify(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setLoading(true); setError(""); const otp = String(new FormData(event.currentTarget).get("otp")); const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "verify", email: verificationEmail, otp }) }); const payload = await response.json(); setLoading(false); if (!response.ok) return setError(payload.error ?? "Code invalide."); router.push("/onboarding"); router.refresh(); }
+  async function verify(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setLoading(true); setError(""); const otp = String(new FormData(event.currentTarget).get("otp")); const response = await fetch("/api/auth/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "verify", email: verificationEmail, otp }) }); const payload = await response.json(); setLoading(false); if (!response.ok) return setError(payload.error ?? "Code invalide."); router.push(payload.redirectTo ?? "/onboarding"); router.refresh(); }
   return <main className={`auth-page ${isSignup ? "signup-page" : ""}`}>
     <Link href="/" className="brand"><img src="/nayoora-logo.png" alt="" /> NAYOORA</Link>
     <section className="auth-card">

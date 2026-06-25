@@ -6,6 +6,7 @@ import type { Organization, OrganizationType } from "@/lib/types";
 
 export default async function DashboardPage() {
   const insforge = await createClient(); const { data: { user } } = await insforge.auth.getUser(); if (!user) redirect("/login");
+  const { data: platformAdmin } = await insforge.from("platform_admins").select("user_id").eq("user_id", user.id).maybeSingle(); if (platformAdmin) redirect("/platform");
   const { data: membership } = await insforge.from("organization_members").select("organization:organizations(id,name,slug,organization_type,currency)").eq("user_id", user.id).eq("status", "active").limit(1).maybeSingle();
   const organization = membership?.organization as unknown as Organization | null; if (!organization) redirect("/onboarding");
   const config = organizationTypes[organization.organization_type as OrganizationType];

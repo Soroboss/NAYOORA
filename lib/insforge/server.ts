@@ -17,7 +17,7 @@ function withLegacyQueryShape(client: any): any {
   return client;
 }
 
-export async function createClient(): Promise<any> {
+export async function createClient(accessToken?: string): Promise<any> {
   const cookieStore = await cookies();
   const baseUrl = process.env.NEXT_PUBLIC_INSFORGE_URL;
   const anonKey = process.env.NEXT_PUBLIC_INSFORGE_ANON_KEY;
@@ -26,7 +26,7 @@ export async function createClient(): Promise<any> {
     baseUrl,
     anonKey,
     isServerMode: true,
-    edgeFunctionToken: cookieStore.get("insforge_access_token")?.value,
+    edgeFunctionToken: accessToken ?? cookieStore.get("insforge_access_token")?.value,
   }));
 }
 
