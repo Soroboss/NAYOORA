@@ -1,0 +1,149 @@
+.quick-actions > a {
+  width: 100%;
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  font: 600 12px Poppins;
+}
+
+.quick-actions > a:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.quick-actions a span {
+  font: 500 10px Poppins;
+  color: #7e8b84;
+}
+
+.quick-actions a b {
+  margin-left: auto;
+  color: #548070;
+  font-size: 15px;
+}
+
+.logout-button {
+  border: 1px solid #d7e7df;
+  background: #fff;
+  color: #0b3a6e;
+  border-radius: 9px;
+  padding: 11px 13px;
+  font: 800 11px Poppins;
+  cursor: pointer;
+}
+
+.logout-button.compact {
+  margin-top: 10px;
+  width: 100%;
+  background: #ffffff12;
+  color: #fff;
+  border-color: #ffffff28;
+}
+
+.platform-shell .logout-button.compact {
+  width: auto;
+  margin-top: 0;
+  background: #0b3a6e;
+  color: #fff;
+  border-color: #0b3a6e;
+}
+
+.logout-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.platform-console {
+  grid-template-columns: 230px 1fr;
+  align-items: start;
+}
+
+.platform-console > .member-message,
+.platform-console > .platform-grid {
+  grid-column: 2;
+}
+
+.platform-tabs {
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+}
+
+.platform-tabs button {
+  text-align: left;
+}
+
+.request-board textarea {
+  width: 100%;
+  min-height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px;
+  font: 11px Poppins;
+}
+
+.plan-editor form {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f8fbf9;
+}
+
+.plan-editor input {
+  width: 100%;
+  padding: 9px;
+  font-size: 11px;
+}
+
+.users-table > div {
+  grid-template-columns: 1.7fr .6fr .8fr .8fr auto;
+}
+
+.member-avatar img,
+.member-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
+.member-photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.member-photo-preview img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+@media (max-width: 900px) {
+  .platform-console {
+    grid-template-columns: 1fr;
+  }
+
+  .platform-console > .member-message,
+  .platform-console > .platform-grid {
+    grid-column: 1;
+  }
+
+  .platform-tabs {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .platform-tabs button {
+    flex: 1 1 140px;
+  }
+}

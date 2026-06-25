@@ -7,6 +7,7 @@ create or replace function public.is_platform_admin() returns boolean language s
 alter table public.platform_admins enable row level security;alter table public.saas_plans enable row level security;alter table public.saas_subscriptions enable row level security;alter table public.saas_invoices enable row level security;
 create policy "admins read admins" on public.platform_admins for select using(public.is_platform_admin());
 create policy "admins manage plans" on public.saas_plans for all using(public.is_platform_admin()) with check(public.is_platform_admin());
+create policy "public reads active plans" on public.saas_plans for select to anon, authenticated using(active = true or public.is_platform_admin());
 create policy "admins manage subscriptions" on public.saas_subscriptions for all using(public.is_platform_admin()) with check(public.is_platform_admin());
 create policy "admins manage invoices" on public.saas_invoices for all using(public.is_platform_admin()) with check(public.is_platform_admin());
 -- Bootstrap exactly one trusted account after signup: insert into public.platform_admins(user_id) values ('AUTH_USER_UUID');

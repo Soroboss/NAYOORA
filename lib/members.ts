@@ -6,6 +6,7 @@ export type MemberInput = {
   address?: string;
   memberNumber?: string;
   birthDate?: string;
+  photoUrl?: string;
 };
 
 export type CsvRow = Record<string, string>;
@@ -24,7 +25,7 @@ export function normalizeMember(input: Partial<MemberInput>): MemberInput {
   const lastName = input.lastName?.trim() ?? "";
   if (firstName.length < 2 || lastName.length < 2) throw new Error("Le prénom et le nom doivent contenir au moins 2 caractères.");
   if (input.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) throw new Error("L'adresse email est invalide.");
-  return { firstName, lastName, phone: input.phone?.trim() || undefined, email: input.email?.trim().toLowerCase() || undefined, address: input.address?.trim() || undefined, memberNumber: input.memberNumber?.trim() || undefined, birthDate: input.birthDate || undefined };
+  return { firstName, lastName, phone: input.phone?.trim() || undefined, email: input.email?.trim().toLowerCase() || undefined, address: input.address?.trim() || undefined, memberNumber: input.memberNumber?.trim() || undefined, birthDate: input.birthDate || undefined, photoUrl: input.photoUrl?.trim() || undefined };
 }
 
 export function parseCsv(text: string): CsvRow[] {

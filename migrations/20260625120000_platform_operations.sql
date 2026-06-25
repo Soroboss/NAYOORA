@@ -71,6 +71,10 @@ drop policy if exists "platform admins manage requests" on public.platform_reque
 create policy "platform admins manage requests" on public.platform_requests for all
   using (public.is_platform_admin()) with check (public.is_platform_admin());
 
+drop policy if exists "tenant managers create and read requests" on public.platform_requests;
+create policy "tenant managers create and read requests" on public.platform_requests for all
+  using (public.can_manage_organization(organization_id)) with check (public.can_manage_organization(organization_id));
+
 drop policy if exists "platform admins manage tenant notes" on public.platform_tenant_notes;
 create policy "platform admins manage tenant notes" on public.platform_tenant_notes for all
   using (public.is_platform_admin()) with check (public.is_platform_admin());

@@ -21,7 +21,8 @@ export async function POST(request: Request) {
     const limits = await getPlanLimits(ctx.insforge, ctx.membership.organization_id);
     const { count } = await ctx.insforge.from("member_profiles").select("id", { count: "exact", head: true }).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null);
     if (limits.memberLimit !== null && (count ?? 0) >= limits.memberLimit) return NextResponse.json({ error: `Limite de ${limits.memberLimit} membres atteinte pour l’offre ${limits.name}.` }, { status: 402 });
-    const { data, error } = await ctx.insforge.from("member_profiles").insert({ organization_id: ctx.membership.organization_id, first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: member.memberNumber, birth_date: member.birthDate, created_by: ctx.user.id }).select().single();
+    const memberNumber = member.memberNumber || await nextMemberNumber(ctx.insforge, ctx.membership.organization_id, count ?? 0);
+    const { data, error } = await ctx.insforge.from("member_profiles").insert({ organization_id: ctx.membership.organization_id, first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: memberNumber, birth_date: member.birthDate, photo_url: member.photoUrl, created_by: ctx.user.id }).select().single();
     if (error) throw error;
     return NextResponse.json({ member: data }, { status: 201 });
   } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Création impossible." }, { status: 400 }); }
@@ -31,9 +32,15 @@ export async function PATCH(request: Request) {
   const ctx = await context(); if ("error" in ctx) return ctx.error;
   try {
     const { id, ...input } = await request.json(); if (!id) throw new Error("Membre manquant."); const member = normalizeMember(input);
-    const { data, error } = await ctx.insforge.from("member_profiles").update({ first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: member.memberNumber, birth_date: member.birthDate, updated_at: new Date().toISOString() }).eq("id", id).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null).select().single();
+    const { data, error } = await ctx.insforge.from("member_profiles").update({ first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: member.memberNumber, birth_date: member.birthDate, photo_url: member.photoUrl, updated_at: new Date().toISOString() }).eq("id", id).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null).select().single();
     if (error) throw error; return NextResponse.json({ member: data });
   } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Mise à jour impossible." }, { status: 400 }); }
+}
+
+async function nextMemberNumber(insforge: any, organizationId: string, currentCount: number) {
+  const { data: settings } = await insforge.from("settings").select("member_number_prefix").eq("organization_id", organizationId).maybeSingle();
+  const prefix = settings?.member_number_prefix || "NAY";
+  return `${prefix}-${String(currentCount + 1).padStart(5, "0")}`;
 }
 
 export async function DELETE(request: Request) {

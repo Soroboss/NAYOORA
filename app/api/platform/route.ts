@@ -36,6 +36,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
+    if (body.action === "planUpdate") {
+      if (!body.planId || !body.name) throw new Error("Plan et nom requis.");
+      const { error } = await insforge.from("saas_plans").update({
+        name: clean(body.name),
+        price_xof: Number(body.price || 0),
+        member_limit: body.limit ? Number(body.limit) : null,
+        admin_limit: body.adminLimit ? Number(body.adminLimit) : null,
+        active: body.active === "true" || body.active === true,
+      }).eq("id", body.planId);
+      if (error) throw error;
+      await recordActivity(insforge, user.id, null, "plan_updated", "success", `Plan modifié: ${body.name}`);
+      return NextResponse.json({ ok: true });
+    }
+
     if (body.action === "subscription") {
       if (!body.organizationId || !body.planId) throw new Error("Organisation et plan requis.");
       const status = subscriptionStatuses.includes(body.status) ? body.status : "trialing";
@@ -90,6 +104,7 @@ export async function POST(request: Request) {
       if (!body.requestId || !requestStatuses.includes(body.status)) throw new Error("Statut invalide.");
       const { data, error } = await insforge.from("platform_requests").update({
         status: body.status,
+        resolution: body.resolution || null,
         resolved_at: ["resolved", "closed"].includes(body.status) ? new Date().toISOString() : null,
         updated_at: new Date().toISOString(),
       }).eq("id", body.requestId).select("organization_id,title").single();

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/insforge/server";
 import { PlatformManager } from "@/components/platform-manager";
+import { LogoutButton } from "@/components/logout-button";
 
 export default async function Platform() {
   const insforge = await createClient();
@@ -21,6 +22,7 @@ export default async function Platform() {
     settings,
     members,
     logs,
+    users,
   ] = await Promise.all([
     insforge.from("saas_plans").select("*").order("price_xof"),
     insforge.from("organizations").select("id,name,slug,organization_type,currency,country_code,email,phone,created_at,updated_at").order("created_at", { ascending: false }),
@@ -30,8 +32,9 @@ export default async function Platform() {
     insforge.from("platform_tenant_notes").select("id,organization_id,note_type,title,body,next_action,next_action_at,created_at,organization:organizations(id,name)").order("created_at", { ascending: false }).limit(80),
     insforge.from("platform_activity_events").select("id,organization_id,event_type,severity,title,metadata,created_at,organization:organizations(id,name)").order("created_at", { ascending: false }).limit(120),
     insforge.from("platform_settings").select("key,value,description,updated_at").order("key"),
-    insforge.from("organization_members").select("id,organization_id,role,status,created_at").eq("status", "active").limit(500),
+    insforge.from("organization_members").select("id,organization_id,user_id,role,status,created_at").eq("status", "active").limit(500),
     insforge.from("audit_logs").select("id,organization_id,action,entity_type,entity_id,created_at,organization:organizations(id,name)").order("created_at", { ascending: false }).limit(80),
+    insforge.from("platform_registered_users").select("id,email,full_name,phone,avatar_path,created_at,synced_at").order("created_at", { ascending: false }).limit(500),
   ]);
 
   return (
@@ -42,6 +45,7 @@ export default async function Platform() {
           <p>Console propriétaire SaaS</p>
           <small>{user.email}</small>
         </div>
+        <LogoutButton compact />
       </header>
       <PlatformManager
         plans={plans.data ?? []}
@@ -54,6 +58,7 @@ export default async function Platform() {
         settings={settings.data ?? []}
         members={members.data ?? []}
         logs={logs.data ?? []}
+        users={users.data ?? []}
       />
     </main>
   );

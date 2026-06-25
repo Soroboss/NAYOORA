@@ -13,12 +13,14 @@ type PlatformManagerProps = {
   settings: any[];
   members: any[];
   logs: any[];
+  users: any[];
 };
 
 const tabs = [
   ["overview", "Tableau de bord"],
   ["tenants", "Tenants"],
   ["billing", "Abonnements"],
+  ["users", "Utilisateurs"],
   ["requests", "Requêtes"],
   ["activity", "Activité"],
   ["settings", "Paramètres"],
@@ -41,6 +43,7 @@ async function send(payload: object) {
 
 export function PlatformManager(props: PlatformManagerProps) {
   const { plans, organizations, subscriptions, invoices, requests, notes, activity, settings, members, logs } = props;
+  const users = props.users ?? [];
   const [tab, setTab] = useState<(typeof tabs)[number][0]>("overview");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -133,6 +136,30 @@ export function PlatformManager(props: PlatformManagerProps) {
         </article>
       </section>}
 
+      {tab === "users" && <section className="platform-grid">
+        <article className="panel platform-wide">
+          <p className="eyebrow">Comptes inscrits</p>
+          <h2>Tous les utilisateurs connus de la plateforme</h2>
+          <div className="tenant-table users-table">
+            {users.map((item) => {
+              const linkedMemberships = members.filter((member) => member.user_id === item.id);
+              return <div key={item.id}>
+                <span><b>{item.full_name || item.email || short(item.id)}</b><small>{item.email || "Email non disponible"} · {short(item.id)}</small></span>
+                <span><b>{linkedMemberships.length}</b><small>organisation(s)</small></span>
+                <span><b>{date(item.created_at)}</b><small>inscription</small></span>
+                <span><b>{date(item.synced_at)}</b><small>sync</small></span>
+                <button disabled={busy} onClick={() => quick({ action: "activity", eventType: "user_review", severity: "info", title: `Revue utilisateur: ${item.email || item.id}` })}>Tracer revue</button>
+              </div>;
+            })}
+          </div>
+        </article>
+        <article className="panel">
+          <p className="eyebrow">Pourquoi un compte peut manquer ?</p>
+          <h2>Synchronisation</h2>
+          <p className="muted">Les comptes d’authentification sont synchronisés dans une table miroir protégée par RLS pour éviter d’exposer directement `auth.users` à l’application.</p>
+        </article>
+      </section>}
+
       {tab === "tenants" && <section className="platform-grid">
         <article className="panel platform-wide">
           <p className="eyebrow">Tenants</p>
@@ -198,6 +225,18 @@ export function PlatformManager(props: PlatformManagerProps) {
         <article className="panel platform-wide">
           <p className="eyebrow">Suivi revenus</p>
           <h2>Plans, abonnements et factures</h2>
+          <div className="settings-grid plan-editor">
+            {plans.map((plan) => <form key={plan.id} onSubmit={(event) => submit(event, "planUpdate")}>
+              <input type="hidden" name="planId" value={plan.id} />
+              <b>{plan.name}</b>
+              <input name="name" defaultValue={plan.name} />
+              <input name="price" type="number" min="0" defaultValue={Number(plan.price_xof ?? 0)} />
+              <input name="limit" type="number" min="1" defaultValue={plan.member_limit ?? ""} placeholder="Membres" />
+              <input name="adminLimit" type="number" min="1" defaultValue={plan.admin_limit ?? ""} placeholder="Admins" />
+              <label className="check-line"><input name="active" type="checkbox" value="true" defaultChecked={plan.active !== false} /> Active landing</label>
+              <button className="button button-dark" disabled={busy}>Modifier</button>
+            </form>)}
+          </div>
           <div className="tenant-table billing-table">
             {subscriptions.map((item) => <div key={item.id}><span><b>{item.organization?.name}</b><small>{item.status} · depuis {date(item.starts_at)}</small></span><span><b>{item.plan?.name ?? "Sans plan"}</b><small>{money(Number(item.plan?.price_xof ?? 0))}/mois</small></span><span><b>{item.plan?.member_limit ?? "∞"}</b><small>membres max</small></span><button disabled={busy} onClick={() => quick({ action: "subscription", organizationId: item.organization_id, planId: item.plan_id, status: item.status === "active" ? "past_due" : "active" })}>{item.status === "active" ? "Marquer impayé" : "Activer"}</button></div>)}
           </div>
@@ -220,7 +259,7 @@ export function PlatformManager(props: PlatformManagerProps) {
           <p className="eyebrow">Pipeline</p>
           <h2>Requêtes tenant & plateforme</h2>
           <div className="request-board">
-            {["open", "in_progress", "waiting_tenant", "resolved"].map((status) => <div key={status}><h3>{status.replace("_", " ")}</h3>{requests.filter((item) => item.status === status).map((item) => <article key={item.id}><b>{item.title}</b><small>{item.organization?.name ?? "Plateforme"} · {item.request_type}</small><i className={`pill ${item.priority}`}>{item.priority}</i><button disabled={busy} onClick={() => quick({ action: "requestStatus", requestId: item.id, status: status === "resolved" ? "closed" : "resolved" })}>{status === "resolved" ? "Clore" : "Résoudre"}</button></article>)}</div>)}
+            {["open", "in_progress", "waiting_tenant", "resolved"].map((status) => <div key={status}><h3>{status.replace("_", " ")}</h3>{requests.filter((item) => item.status === status).map((item) => <article key={item.id}><b>{item.title}</b><small>{item.organization?.name ?? "Plateforme"} · {item.request_type}</small>{item.description && <small>{item.description}</small>}{item.resolution && <small>Réponse : {item.resolution}</small>}<i className={`pill ${item.priority}`}>{item.priority}</i><form onSubmit={(event) => submit(event, "requestStatus")}><input type="hidden" name="requestId" value={item.id} /><input type="hidden" name="status" value={status === "resolved" ? "closed" : "resolved"} /><textarea name="resolution" placeholder="Réponse au tenant…" /><button disabled={busy}>{status === "resolved" ? "Clore" : "Répondre & résoudre"}</button></form></article>)}</div>)}
           </div>
         </article>
       </section>}
