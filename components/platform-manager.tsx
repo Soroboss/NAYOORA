@@ -12,6 +12,7 @@ type PlatformManagerProps = {
   activity: any[];
   settings: any[];
   members: any[];
+  memberProfiles: any[];
   logs: any[];
   users: any[];
 };
@@ -42,7 +43,7 @@ async function send(payload: object) {
 }
 
 export function PlatformManager(props: PlatformManagerProps) {
-  const { plans, organizations, subscriptions, invoices, requests, notes, activity, settings, members, logs } = props;
+  const { plans, organizations, subscriptions, invoices, requests, notes, activity, settings, members, memberProfiles, logs } = props;
   const users = props.users ?? [];
   const [tab, setTab] = useState<(typeof tabs)[number][0]>("overview");
   const [notice, setNotice] = useState("");
@@ -55,17 +56,19 @@ export function PlatformManager(props: PlatformManagerProps) {
     const openAmount = openInvoices.reduce((sum, item) => sum + Number(item.amount ?? 0), 0);
     const openRequests = requests.filter((item) => !["resolved", "closed"].includes(item.status)).length;
     const urgentRequests = requests.filter((item) => item.priority === "urgent" && !["resolved", "closed"].includes(item.status)).length;
-    return { activeSubscriptions, openInvoices: openInvoices.length, monthlyRecurring, openAmount, openRequests, urgentRequests };
-  }, [subscriptions, invoices, requests]);
+    const activeMemberProfiles = memberProfiles.filter((item) => item.status === "active").length;
+    return { activeSubscriptions, openInvoices: openInvoices.length, monthlyRecurring, openAmount, openRequests, urgentRequests, activeMemberProfiles };
+  }, [subscriptions, invoices, requests, memberProfiles]);
 
   const enrichedOrganizations = useMemo(() => organizations.map((organization) => {
     const subscription = subscriptions.find((item) => item.organization_id === organization.id);
     const tenantInvoices = invoices.filter((item) => item.organization_id === organization.id);
     const tenantRequests = requests.filter((item) => item.organization_id === organization.id);
     const tenantMembers = members.filter((item) => item.organization_id === organization.id);
+    const tenantMemberProfiles = memberProfiles.filter((item) => item.organization_id === organization.id);
     const latestNote = notes.find((item) => item.organization_id === organization.id);
-    return { ...organization, subscription, tenantInvoices, tenantRequests, tenantMembers, latestNote };
-  }), [organizations, subscriptions, invoices, requests, members, notes]);
+    return { ...organization, subscription, tenantInvoices, tenantRequests, tenantMembers, tenantMemberProfiles, latestNote };
+  }), [organizations, subscriptions, invoices, requests, members, memberProfiles, notes]);
 
   async function submit(event: FormEvent<HTMLFormElement>, action: string) {
     event.preventDefault();
@@ -105,10 +108,10 @@ export function PlatformManager(props: PlatformManagerProps) {
 
       {tab === "overview" && <section className="platform-grid">
         <div className="platform-kpis">
-          <article><span>Tenants</span><strong>{organizations.length}</strong><small>{members.length} utilisateurs rattachés</small></article>
+          <article><span>Tenants</span><strong>{organizations.length}</strong><small>{members.length} comptes d’accès</small></article>
+          <article><span>Membres inscrits</span><strong>{stats.activeMemberProfiles}</strong><small>{memberProfiles.length} fiches membres au total</small></article>
           <article><span>MRR estimé</span><strong>{money(stats.monthlyRecurring)}</strong><small>{stats.activeSubscriptions} abonnements actifs</small></article>
           <article><span>Factures ouvertes</span><strong>{money(stats.openAmount)}</strong><small>{stats.openInvoices} factures à suivre</small></article>
-          <article><span>Requêtes ouvertes</span><strong>{stats.openRequests}</strong><small>{stats.urgentRequests} urgentes</small></article>
         </div>
         <article className="panel platform-wide">
           <p className="eyebrow">Santé SaaS</p>
@@ -164,11 +167,12 @@ export function PlatformManager(props: PlatformManagerProps) {
         <article className="panel platform-wide">
           <p className="eyebrow">Tenants</p>
           <h2>Organisations clientes</h2>
-          <div className="tenant-table">
+          <div className="tenant-table tenant-table-six">
             {enrichedOrganizations.map((organization) => <div key={organization.id}>
               <span><b>{organization.name}</b><small>{organization.organization_type} · {organization.country_code ?? "CI"} · {short(organization.id)}</small></span>
               <span><b>{organization.subscription?.plan?.name ?? "Sans offre"}</b><small>{organization.subscription?.status ?? "à configurer"}</small></span>
-              <span><b>{organization.tenantMembers.length}</b><small>utilisateurs</small></span>
+              <span><b>{organization.tenantMemberProfiles.filter((item: any) => item.status === "active").length}</b><small>membres actifs</small></span>
+              <span><b>{organization.tenantMembers.length}</b><small>comptes accès</small></span>
               <span><b>{organization.tenantRequests.length}</b><small>requêtes</small></span>
               <button disabled={busy} onClick={() => quick({ action: "activity", organizationId: organization.id, eventType: "tenant_review", severity: "info", title: `Revue tenant: ${organization.name}` })}>Tracer revue</button>
             </div>)}

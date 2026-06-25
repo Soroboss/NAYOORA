@@ -21,6 +21,7 @@ export default async function Platform() {
     activity,
     settings,
     members,
+    memberProfiles,
     logs,
     users,
   ] = await Promise.all([
@@ -33,6 +34,7 @@ export default async function Platform() {
     insforge.from("platform_activity_events").select("id,organization_id,event_type,severity,title,metadata,created_at,organization:organizations(id,name)").order("created_at", { ascending: false }).limit(120),
     insforge.from("platform_settings").select("key,value,description,updated_at").order("key"),
     insforge.from("organization_members").select("id,organization_id,user_id,role,status,created_at").eq("status", "active").limit(500),
+    insforge.from("member_profiles").select("id,organization_id,status,created_at").is("deleted_at", null).limit(2000),
     insforge.from("audit_logs").select("id,organization_id,action,entity_type,entity_id,created_at,organization:organizations(id,name)").order("created_at", { ascending: false }).limit(80),
     insforge.from("platform_registered_users").select("id,email,full_name,phone,avatar_path,created_at,synced_at").order("created_at", { ascending: false }).limit(500),
   ]);
@@ -57,6 +59,7 @@ export default async function Platform() {
         activity={activity.data ?? []}
         settings={settings.data ?? []}
         members={members.data ?? []}
+        memberProfiles={memberProfiles.data ?? []}
         logs={logs.data ?? []}
         users={users.data ?? []}
       />
