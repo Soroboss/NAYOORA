@@ -2,6 +2,7 @@ export type OrganizationType =
   | "mutuelle"
   | "association"
   | "cooperative"
+  | "tontine"
   | "syndicat"
   | "ong"
   | "parti_politique";

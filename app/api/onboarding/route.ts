@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const membership = await insforge.from("organization_members").insert({ organization_id: organization.id, user_id: user.id, role: "organization_admin", status: "active" });
   if (membership.error) return NextResponse.json({ error: membership.error.message }, { status: 400 });
   const moduleSets: Record<string, string[]> = { free: ["members", "collections", "messages"], standard: ["members", "collections", "finance", "events", "messages", "reports"], unlimited: ["members", "collections", "finance", "events", "messages", "reports", "documents", "governance", "automations", "mobile_money"] };
-  const modules = moduleSets[service] ?? moduleSets.standard;
+  const modules = [...(moduleSets[service] ?? moduleSets.standard), ...(organizationType === "tontine" ? ["tontine", "treasury"] : [])];
   const moduleResult = await insforge.from("organization_modules").insert(modules.map((module_code) => ({ organization_id: organization.id, module_code, active: true })));
   if (moduleResult.error) return NextResponse.json({ error: moduleResult.error.message }, { status: 400 });
   await insforge.from("settings").insert({ organization_id: organization.id, data: { service } });

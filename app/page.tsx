@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const organizationTypes = ["Mutuelles", "Associations", "Coopératives", "Syndicats", "ONG", "Partis politiques"];
+const organizationTypes = ["Mutuelles", "Tontines", "Associations", "Coopératives", "Syndicats", "ONG", "Partis politiques"];
 
 export default function Home() {
   return <main className="nayoora-site">
@@ -8,7 +8,7 @@ export default function Home() {
 
     <section className="original-hero"><div className="hero-editorial"><p className="eyebrow">Gérez. Connectez. Développez.</p><h1>Quand votre collectif avance, <em>tout devient possible.</em></h1><p className="hero-lede">NAYOORA réunit les personnes, les cotisations, les activités et les décisions dans un espace simple à prendre en main.</p><div className="hero-actions"><Link className="button button-primary" href="/offres">Démarrer maintenant <span>→</span></Link><a className="text-link" href="#plateforme">Explorer la plateforme</a></div><div className="hero-stats"><div><b>6</b><span>types d’organisations</span></div><div><b>1</b><span>espace partagé</span></div><div><b>∞</b><span>possibilités de grandir</span></div></div></div><div className="hero-community-art"><img src="/nayoora-hero-community.png" alt="Une équipe africaine pilote son organisation grâce à des outils numériques" /></div></section>
 
-    <section className="organisation-ribbon"><span>Conçue pour les organisations qui font bouger les lignes</span><div>{organizationTypes.map((label, index) => <b key={label}><i>{["◌", "✦", "⌁", "↗", "♡", "◇"][index]}</i>{label}</b>)}</div></section>
+    <section className="organisation-ribbon"><span>Conçue pour les organisations qui font bouger les lignes</span><div>{organizationTypes.map((label, index) => <b key={label}><i>{["◌", "◍", "✦", "⌁", "↗", "♡", "◇"][index]}</i>{label}</b>)}</div></section>
 
     <section id="plateforme" className="platform-intro"><div><p className="eyebrow">Une base solide</p><h2>Ce qui compte, enfin à sa place.</h2></div><p>Chaque équipe travaille avec les informations qui lui sont utiles. Les responsables gardent la vue d’ensemble, les membres restent connectés, et vos données appartiennent à votre organisation.</p></section>
 

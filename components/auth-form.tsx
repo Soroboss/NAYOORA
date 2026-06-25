@@ -8,6 +8,7 @@ const organizationChoices = [
   ["mutuelle", "Mutuelle", "Cotisations, solidarité et services membres"],
   ["association", "Association", "Adhérents, activités et communication"],
   ["cooperative", "Coopérative", "Production, ventes et paiements"],
+  ["tontine", "Tontine", "Tours, encaissements, bénéficiaires et reversements"],
   ["ong", "ONG", "Projets, bénéficiaires et impact"],
   ["syndicat", "Syndicat", "Adhérents et mobilisation"],
   ["parti_politique", "Parti politique", "Sections, campagnes et terrain"],

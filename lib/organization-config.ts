@@ -26,6 +26,12 @@ export const organizationTypes: Record<OrganizationType, {
     metrics: [{ label: "Producteurs actifs", value: "0" }, { label: "Récoltes déclarées", value: "0" }, { label: "Ventes du mois", value: "0 FCFA" }, { label: "Paiements à effectuer", value: "0" }],
     actions: ["Ajouter un producteur", "Déclarer une récolte", "Enregistrer une vente"]
   },
+  tontine: {
+    label: "Tontine", icon: "◍", description: "Gérez les tours, les encaissements, les bénéficiaires et les reversements.",
+    navigation: ["Membres", "Tontine", "Encaissements", "Reversements", "Commissions", "Caisse", "Rapports"],
+    metrics: [{ label: "Participants actifs", value: "0" }, { label: "À encaisser", value: "0 FCFA" }, { label: "Prochain bénéficiaire", value: "À définir" }, { label: "Commissions", value: "0 FCFA" }],
+    actions: ["Créer un groupe tontine", "Ajouter un participant", "Planifier un reversement"]
+  },
   syndicat: {
     label: "Syndicat", icon: "↗", description: "Fédérez les adhérents et portez leurs voix.",
     navigation: ["Adhérents", "Cotisations", "Secteurs", "Revendications", "Réunions", "Documents", "Rapports"],
