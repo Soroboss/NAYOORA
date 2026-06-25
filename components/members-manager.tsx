@@ -1,12 +1,13 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { createClient } from "@/lib/insforge/client";
 
 export type Member = { id: string; first_name: string; last_name: string; phone: string | null; email: string | null; member_number: string | null; status: string; birth_date: string | null; address: string | null; photo_url?: string | null };
 type FormDataState = { firstName: string; lastName: string; phone: string; email: string; memberNumber: string; address: string; birthDate: string; photoUrl: string };
 const blank: FormDataState = { firstName: "", lastName: "", phone: "", email: "", memberNumber: "", address: "", birthDate: "", photoUrl: "" };
 
-export function MembersManager({ members: initialMembers, canManage }: { members: Member[]; canManage: boolean }) {
+export function MembersManager({ organizationId, members: initialMembers, canManage }: { organizationId: string; members: Member[]; canManage: boolean }) {
   const [members, setMembers] = useState(initialMembers);
   const [query, setQuery] = useState("");
   const [form, setForm] = useState<FormDataState>(blank);
@@ -19,10 +20,25 @@ export function MembersManager({ members: initialMembers, canManage }: { members
   async function photo(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (file.size > 450_000) return setMessage("Photo trop lourde. Utilisez une image inférieure à 450 Ko pour cette version.");
-    const reader = new FileReader();
-    reader.onload = () => setForm((current) => ({ ...current, photoUrl: String(reader.result) }));
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith("image/")) return setMessage("Le fichier choisi doit être une image.");
+    if (file.size > 2_000_000) return setMessage("Photo trop lourde. Utilisez une image inférieure à 2 Mo.");
+    setBusy(true);
+    setMessage("Upload de la photo en cours…");
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `organizations/${organizationId}/members/${crypto.randomUUID()}-${safeName}`;
+      const bucket = createClient().storage.from("member-photos");
+      const { data, error } = await bucket.upload(path, file);
+      if (error) throw error;
+      const publicUrl = data?.url ?? bucket.getPublicUrl(path).data?.publicUrl ?? path;
+      setForm((current) => ({ ...current, photoUrl: publicUrl }));
+      setMessage("Photo uploadée. Enregistrez le membre pour l’associer à sa fiche.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Upload de la photo impossible.");
+    } finally {
+      setBusy(false);
+      event.target.value = "";
+    }
   }
 
   async function save(event: FormEvent) {
@@ -71,5 +87,5 @@ export function MembersManager({ members: initialMembers, canManage }: { members
     setMessage(response.ok ? `${body.imported} membre(s) importé(s), ${body.failed} ligne(s) à corriger. Actualisez la page pour voir la liste.` : body.error);
   }
 
-  return <div className="members-workspace">{canManage && <div className="members-tools"><form className="member-form" onSubmit={save}><div className="panel-heading"><div><p className="eyebrow">{editing ? "Modification" : "Nouveau membre"}</p><h2>{editing ? "Mettre à jour" : "Ajouter au répertoire"}</h2></div>{editing && <button type="button" onClick={() => { setEditing(null); setForm(blank); }}>Annuler</button>}</div><div className="form-grid"><label>Prénom<input name="firstName" required value={form.firstName} onChange={update}/></label><label>Nom<input name="lastName" required value={form.lastName} onChange={update}/></label><label>Téléphone<input name="phone" value={form.phone} onChange={update}/></label><label>Email<input type="email" name="email" value={form.email} onChange={update}/></label><label>Matricule<input name="memberNumber" value={form.memberNumber} onChange={update} placeholder="Auto si vide"/></label><label>Date de naissance<input type="date" name="birthDate" value={form.birthDate} onChange={update}/></label><label>Photo<input type="file" accept="image/*" onChange={photo}/></label>{form.photoUrl && <span className="member-photo-preview"><img src={form.photoUrl} alt="" /> Photo prête</span>}</div><button disabled={busy} className="button button-dark">{busy ? "Enregistrement…" : editing ? "Enregistrer" : "Ajouter le membre"}</button></form><label className="csv-import"><span className="eyebrow">Import CSV</span><b>Importer un fichier</b><small>Colonnes : Prénom, Nom, Téléphone, Email, Matricule</small><input disabled={busy} type="file" accept=".csv,text/csv" onChange={importCsv}/></label></div>}{message && <p className="member-message">{message}</p>}<article className="panel directory"><div className="directory-heading"><div><p className="eyebrow">{members.length} membre{members.length > 1 ? "s" : ""}</p><h2>Répertoire</h2></div><input aria-label="Rechercher un membre" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher…" /></div>{filtered.length ? <div className="member-list">{filtered.map((member) => <div className="member-row" key={member.id}><span className="member-avatar">{member.photo_url ? <img src={member.photo_url} alt="" /> : `${member.first_name[0]}${member.last_name[0]}`}</span><div><b>{member.first_name} {member.last_name}</b><small>{member.member_number || member.phone || "Aucun contact"}</small></div><span className={`member-status ${member.status}`}>{member.status === "active" ? "Actif" : "Inactif"}</span>{canManage && <div className="row-actions"><button onClick={() => beginEdit(member)}>Modifier</button><button onClick={() => remove(member)}>Retirer</button></div>}</div>)}</div> : <div className="empty-state"><div>◎</div><h3>Aucun membre trouvé.</h3><p>Ajoutez une personne ou importez votre premier fichier CSV.</p></div>}</article></div>;
+  return <div className="members-workspace">{canManage && <div className="members-tools"><form className="member-form" onSubmit={save}><div className="panel-heading"><div><p className="eyebrow">{editing ? "Modification" : "Nouveau membre"}</p><h2>{editing ? "Mettre à jour" : "Ajouter au répertoire"}</h2></div>{editing && <button type="button" onClick={() => { setEditing(null); setForm(blank); }}>Annuler</button>}</div><div className="form-grid"><label>Prénom<input name="firstName" required value={form.firstName} onChange={update}/></label><label>Nom<input name="lastName" required value={form.lastName} onChange={update}/></label><label>Téléphone<input name="phone" value={form.phone} onChange={update}/></label><label>Email<input type="email" name="email" value={form.email} onChange={update}/></label><label>Matricule<input name="memberNumber" value={form.memberNumber} onChange={update} placeholder="Auto si vide"/></label><label>Date de naissance<input type="date" name="birthDate" value={form.birthDate} onChange={update}/></label><label>Photo du membre<input disabled={busy} type="file" accept="image/*" onChange={photo}/><small>Image uploadée dans InsForge Storage, 2 Mo max.</small></label>{form.photoUrl && <span className="member-photo-preview"><img src={form.photoUrl} alt="" /> Photo uploadée</span>}</div><button disabled={busy} className="button button-dark">{busy ? "Traitement…" : editing ? "Enregistrer" : "Ajouter le membre"}</button></form><label className="csv-import"><span className="eyebrow">Import CSV</span><b>Importer un fichier</b><small>Colonnes : Prénom, Nom, Téléphone, Email, Matricule</small><input disabled={busy} type="file" accept=".csv,text/csv" onChange={importCsv}/></label></div>}{message && <p className="member-message">{message}</p>}<article className="panel directory"><div className="directory-heading"><div><p className="eyebrow">{members.length} membre{members.length > 1 ? "s" : ""}</p><h2>Répertoire</h2></div><input aria-label="Rechercher un membre" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher…" /></div>{filtered.length ? <div className="member-list">{filtered.map((member) => <div className="member-row" key={member.id}><span className="member-avatar">{member.photo_url ? <img src={member.photo_url} alt="" /> : `${member.first_name[0]}${member.last_name[0]}`}</span><div><b>{member.first_name} {member.last_name}</b><small>{member.member_number || member.phone || "Aucun contact"}</small></div><span className={`member-status ${member.status}`}>{member.status === "active" ? "Actif" : "Inactif"}</span>{canManage && <div className="row-actions"><button onClick={() => beginEdit(member)}>Modifier</button><button onClick={() => remove(member)}>Retirer</button></div>}</div>)}</div> : <div className="empty-state"><div>◎</div><h3>Aucun membre trouvé.</h3><p>Ajoutez une personne ou importez votre premier fichier CSV.</p></div>}</article></div>;
 }

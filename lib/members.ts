@@ -25,6 +25,7 @@ export function normalizeMember(input: Partial<MemberInput>): MemberInput {
   const lastName = input.lastName?.trim() ?? "";
   if (firstName.length < 2 || lastName.length < 2) throw new Error("Le prénom et le nom doivent contenir au moins 2 caractères.");
   if (input.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) throw new Error("L'adresse email est invalide.");
+  if (input.photoUrl?.trim().startsWith("data:")) throw new Error("La photo doit être uploadée dans le stockage InsForge, pas envoyée comme lien encodé.");
   return { firstName, lastName, phone: input.phone?.trim() || undefined, email: input.email?.trim().toLowerCase() || undefined, address: input.address?.trim() || undefined, memberNumber: input.memberNumber?.trim() || undefined, birthDate: input.birthDate || undefined, photoUrl: input.photoUrl?.trim() || undefined };
 }
 
