@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/insforge/server";
+import { canManageMembers, getCurrentOrganizationContext } from "@/lib/current-organization";
 
-const managers = ["organization_admin", "president", "secretaire", "gestionnaire"];
 const positions = ["president", "vice_president", "secretaire", "tresorier", "commissaire"];
 
 export async function POST(request: Request) {
-  const insforge = await createClient();
-  const { data: { user } } = await insforge.auth.getUser();
-  const { data: membership } = user ? await insforge.from("organization_members").select("organization_id,role").eq("user_id", user.id).eq("status", "active").limit(1).maybeSingle() : { data: null };
-  if (!user || !membership || !managers.includes(membership.role)) return NextResponse.json({ error: "Droits de gestion requis." }, { status: 403 });
+  const { insforge, user, membership } = await getCurrentOrganizationContext();
+  if (!canManageMembers(membership.role)) return NextResponse.json({ error: "Droits de gestion requis." }, { status: 403 });
   try {
     const body = await request.json();
     if (!body.memberId || !body.title) throw new Error("Membre et titre d'élection requis.");

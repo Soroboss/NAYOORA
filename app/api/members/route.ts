@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/insforge/server";
 import { normalizeMember } from "@/lib/members";
 import { getPlanLimits } from "@/lib/plan-limits";
+import { canManageMembers, getCurrentOrganizationContext } from "@/lib/current-organization";
 
-const managers = ["organization_admin", "president", "secretaire", "gestionnaire"];
 const validOfficeRoles = ["member", "president", "vice_president", "secretaire", "tresorier", "commissaire"];
 const validStatuses = ["active", "inactive", "suspended"];
 
 async function context() {
-  const insforge = await createClient();
-  const { data: { user } } = await insforge.auth.getUser();
-  if (!user) return { error: NextResponse.json({ error: "Non authentifié." }, { status: 401 }) };
-  const { data: membership } = await insforge.from("organization_members").select("organization_id, role").eq("user_id", user.id).eq("status", "active").limit(1).maybeSingle();
-  if (!membership || !managers.includes(membership.role)) return { error: NextResponse.json({ error: "Droits insuffisants." }, { status: 403 }) };
+  const { insforge, user, membership } = await getCurrentOrganizationContext();
+  if (!membership || !canManageMembers(membership.role)) return { error: NextResponse.json({ error: "Droits insuffisants." }, { status: 403 }) };
   return { insforge, user, membership };
 }
 

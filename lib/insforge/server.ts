@@ -36,3 +36,5 @@ export const authCookieOptions = {
   sameSite: "lax" as const,
   path: "/",
 };
+
+export const activeOrganizationCookie = "nayoora_active_organization_id";
