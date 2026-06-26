@@ -19,7 +19,8 @@ export async function POST(request: Request) {
       .eq('id', memberId)
       .single();
 
-    if (memberErr || !member) throw new Error("Member not found");
+    if (memberErr) throw new Error(`Member lookup error: ${memberErr.message}`);
+    if (!member) throw new Error("Member not found");
 
     const { data: settings, error: settingsErr } = await insforge
       .from('organization_card_settings')

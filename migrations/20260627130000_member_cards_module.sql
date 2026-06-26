@@ -34,21 +34,17 @@ to authenticated
 using (
   exists (
     select 1 from public.organization_members om
-    join public.organization_member_roles omr on om.id = omr.organization_member_id
-    join public.roles r on omr.role_id = r.id
     where om.organization_id = organization_card_settings.organization_id
     and om.user_id = auth.uid()
-    and r.code = 'admin'
+    and om.role in ('organization_admin', 'president')
   )
 )
 with check (
   exists (
     select 1 from public.organization_members om
-    join public.organization_member_roles omr on om.id = omr.organization_member_id
-    join public.roles r on omr.role_id = r.id
     where om.organization_id = organization_card_settings.organization_id
     and om.user_id = auth.uid()
-    and r.code = 'admin'
+    and om.role in ('organization_admin', 'president')
   )
 );
 
