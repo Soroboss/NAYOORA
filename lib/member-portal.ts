@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/insforge/server";
+import { createClient, createAdminClient } from "@/lib/insforge/server";
 import { cookies } from "next/headers";
 
 export async function memberContext() {
-  const s = await createClient();
+  const s = await createAdminClient();
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("member_session");
   
@@ -22,7 +22,9 @@ export async function memberContext() {
     }
   }
 
-  const { data: { user } } = await s.auth.getUser();
+  // Fallback for admins/users checking out the member portal
+  const regularClient = await createClient();
+  const { data: { user } } = await regularClient.auth.getUser();
   if (!user) redirect('/member/login');
   
   const { data: m } = await s.from('organization_members').select('id,organization_id,organization:organizations(name)').eq('user_id', user.id).eq('status', 'active').limit(1).maybeSingle();
