@@ -10,7 +10,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ form
     // We fetch the form. We don't rely purely on RLS here since we use AdminClient, we enforce is_active manually.
     const { data: form, error } = await s
       .from('registration_forms')
-      .select('id, title, description, fields, is_active, organization_id, organization:organizations(name)')
+      .select('id, title, description, fields, is_active, organization_id, organization:organizations(name, logo_url)')
       .eq('id', formId)
       .eq('is_active', true)
       .maybeSingle();
