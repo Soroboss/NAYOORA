@@ -33,7 +33,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '32px 48px', backgroundColor: settings.primary_color, color: '#ffffff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           {member.organization?.logo_url && (
-            <img src={member.organization.logo_url} style={{ width: 80, height: 80, borderRadius: '50%' }} />
+            <img width={80} height={80} src={member.organization.logo_url} style={{ width: 80, height: 80, borderRadius: '50%' }} />
           )}
           <h1 style={{ fontSize: '48px', fontWeight: 'bold', margin: 0 }}>{member.organization?.name || 'Organisation'}</h1>
         </div>
@@ -43,7 +43,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       <div style={{ display: 'flex', padding: '48px', flex: 1 }}>
         {settings.show_photo && (
           <div style={{ display: 'flex', width: '250px', marginRight: '48px' }}>
-             <img src={member.photo_url || 'https://api.dicebear.com/7.x/initials/svg?seed=' + member.full_name} style={{ width: '250px', height: '250px', borderRadius: '16px', objectFit: 'cover' }} />
+             <img width={250} height={250} src={member.photo_url || 'https://api.dicebear.com/7.x/initials/svg?seed=' + member.full_name} style={{ width: '250px', height: '250px', borderRadius: '16px', objectFit: 'cover' }} />
           </div>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, color: settings.text_color, gap: '16px' }}>
@@ -72,7 +72,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
 
         {settings.show_qr && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={qrCodeDataUrl} style={{ width: '180px', height: '180px', border: '4px solid #e5e7eb', borderRadius: '16px' }} />
+            <img width={180} height={180} src={qrCodeDataUrl} style={{ width: '180px', height: '180px', border: '4px solid #e5e7eb', borderRadius: '16px' }} />
           </div>
         )}
       </div>
@@ -105,7 +105,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
         {settings.legal_mentions}
       </p>
       {settings.show_qr && (
-        <img src={qrCodeDataUrl} style={{ width: '150px', height: '150px', marginTop: '48px', opacity: 0.8 }} />
+        <img width={150} height={150} src={qrCodeDataUrl} style={{ width: '150px', height: '150px', marginTop: '48px', opacity: 0.8 }} />
       )}
     </div>
   );
