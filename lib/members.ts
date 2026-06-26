@@ -1,17 +1,24 @@
-export type MemberInput = {
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  memberNumber?: string;
-  birthDate?: string;
-  photoUrl?: string;
-};
+import { z } from "zod";
+
+export const memberSchema = z.object({
+  firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères."),
+  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères."),
+  phone: z.string().optional().transform(v => v?.trim() || undefined),
+  email: z.string().email("L'adresse email est invalide.").optional().or(z.literal("")).transform(v => v?.trim().toLowerCase() || undefined),
+  address: z.string().optional().transform(v => v?.trim() || undefined),
+  memberNumber: z.string().optional().transform(v => v?.trim() || undefined),
+  birthDate: z.string().optional().transform(v => v?.trim() || undefined),
+  photoUrl: z.string().optional().transform(v => v?.trim() || undefined)
+}).refine(data => {
+  if (data.photoUrl?.startsWith("data:")) return false;
+  return true;
+}, { message: "La photo doit être uploadée dans le stockage InsForge, pas envoyée comme lien encodé.", path: ["photoUrl"] });
+
+export type MemberInput = z.infer<typeof memberSchema>;
 
 export type CsvRow = Record<string, string>;
 
-const acceptedHeaders: Record<string, keyof MemberInput> = {
+const acceptedHeaders: Record<string, string> = {
   prenom: "firstName", firstname: "firstName", first_name: "firstName",
   nom: "lastName", lastname: "lastName", last_name: "lastName",
   telephone: "phone", phone: "phone", tel: "phone",
@@ -20,13 +27,8 @@ const acceptedHeaders: Record<string, keyof MemberInput> = {
   date_naissance: "birthDate", birth_date: "birthDate"
 };
 
-export function normalizeMember(input: Partial<MemberInput>): MemberInput {
-  const firstName = input.firstName?.trim() ?? "";
-  const lastName = input.lastName?.trim() ?? "";
-  if (firstName.length < 2 || lastName.length < 2) throw new Error("Le prénom et le nom doivent contenir au moins 2 caractères.");
-  if (input.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email.trim())) throw new Error("L'adresse email est invalide.");
-  if (input.photoUrl?.trim().startsWith("data:")) throw new Error("La photo doit être uploadée dans le stockage InsForge, pas envoyée comme lien encodé.");
-  return { firstName, lastName, phone: input.phone?.trim() || undefined, email: input.email?.trim().toLowerCase() || undefined, address: input.address?.trim() || undefined, memberNumber: input.memberNumber?.trim() || undefined, birthDate: input.birthDate || undefined, photoUrl: input.photoUrl?.trim() || undefined };
+export function normalizeMember(input: unknown): MemberInput {
+  return memberSchema.parse(input);
 }
 
 export function parseCsv(text: string): CsvRow[] {

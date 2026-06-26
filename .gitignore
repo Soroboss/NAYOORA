@@ -34,3 +34,4 @@ insforge/exports/
 .trae
 .windsurf
 .vercel
+.env*.local

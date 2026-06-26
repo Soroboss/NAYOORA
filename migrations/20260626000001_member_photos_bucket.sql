@@ -1,7 +1,3 @@
-insert into storage.buckets (id, name, public)
-values ('member-photos', 'member-photos', true)
-on conflict (id) do nothing;
-
 create policy "Photos accessibles à tous"
 on storage.objects for select
 using (bucket_id = 'member-photos');
