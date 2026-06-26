@@ -20,6 +20,10 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
     { name: 'Événements', path: '/member/events', icon: '📅' },
   ];
 
+  if (pathname === '/member/login') {
+    return <>{children}</>;
+  }
+
   return (
     <>
       <style>{`
