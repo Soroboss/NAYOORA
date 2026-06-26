@@ -166,9 +166,11 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   const pathPrefix = `${member.organization_id}/${member.id}`;
   
   const uploadFile = async (path: string, buffer: ArrayBuffer | Uint8Array, contentType: string) => {
+    // Edge environments require a Blob to automatically determine the Content-Length
+    const blob = new Blob([buffer], { type: contentType });
     const { data, error } = await insforge.storage
       .from('member_cards')
-      .upload(path, buffer, { contentType, upsert: true });
+      .upload(path, blob, { contentType, upsert: true });
     
     if (error) throw error;
     
@@ -180,9 +182,9 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   };
 
   const [frontUrl, backUrl, pdfUrl] = await Promise.all([
-    uploadFile(`${pathPrefix}_front.png`, Buffer.from(rectoBuffer), 'image/png'),
-    uploadFile(`${pathPrefix}_back.png`, Buffer.from(versoBuffer), 'image/png'),
-    uploadFile(`${pathPrefix}.pdf`, Buffer.from(pdfBytes), 'application/pdf'),
+    uploadFile(`${pathPrefix}_front.png`, rectoBuffer, 'image/png'),
+    uploadFile(`${pathPrefix}_back.png`, versoBuffer, 'image/png'),
+    uploadFile(`${pathPrefix}.pdf`, pdfBytes, 'application/pdf'),
   ]);
 
   return { frontUrl, backUrl, pdfUrl };
