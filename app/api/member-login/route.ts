@@ -11,16 +11,12 @@ export async function POST(request: Request) {
     
     // If a specific memberId is provided (Step 2 of Smart Login)
     if (memberId) {
-      const { data: member, error } = await s
-        .from("member_profiles")
-        .select("id, organization_id, status")
-        .eq("id", memberId)
-        .eq("phone", phone.trim())
-        .is("deleted_at", null)
-        .single();
-        
-      if (error || !member) return NextResponse.json({ error: "Profil introuvable." }, { status: 404 });
-      if (member.status !== 'active') return NextResponse.json({ error: "Ce compte n'est pas actif." }, { status: 403 });
+      // Step 2 still relies on the RPC because RLS will block even the direct single query for an anon user
+      const { data, error } = await s.rpc("find_member_profiles_by_phone", { phone_number: phone.trim() });
+      if (error || !data || data.length === 0) return NextResponse.json({ error: "Profil introuvable." }, { status: 404 });
+      
+      const member = data.find((m: any) => m.id === memberId);
+      if (!member) return NextResponse.json({ error: "Profil introuvable." }, { status: 404 });
       
       const cookieStore = await cookies();
       cookieStore.set("member_session", JSON.stringify({ memberId: member.id, organizationId: member.organization_id }), {
@@ -30,14 +26,10 @@ export async function POST(request: Request) {
     }
 
     // Step 1: Find all member profiles by phone
-    const { data: members, error } = await s
-      .from("member_profiles")
-      .select(`id, organization_id, status, organizations(name, organization_type)`)
-      .eq("phone", phone.trim())
-      .is("deleted_at", null)
-      .eq("status", "active");
+    const { data: members, error } = await s.rpc("find_member_profiles_by_phone", { phone_number: phone.trim() });
 
     if (error || !members || members.length === 0) {
+      console.error("Member login error:", error, "Phone:", phone);
       return NextResponse.json({ error: "Aucun membre actif trouvé avec ce numéro." }, { status: 404 });
     }
 
