@@ -9,13 +9,40 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
 
   const insforge = await createAdminClient();
 
+  // Helper to fetch image and convert to Base64 (avoids Satori fetch bugs and unsupported formats)
+  async function fetchImageAsBase64(url: string, fallbackUrl: string): Promise<string> {
+    if (!url) return fallbackUrl;
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) return fallbackUrl;
+      const contentType = res.headers.get('content-type') || 'image/png';
+      if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'].includes(contentType)) {
+        console.warn(`Unsupported image type for Satori: ${contentType}`);
+        return fallbackUrl;
+      }
+      const arrayBuffer = await res.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString('base64');
+      return `data:${contentType};base64,${base64}`;
+    } catch (e) {
+      console.error('Failed to fetch image for card:', url, e);
+      return fallbackUrl;
+    }
+  }
+
+  const fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim() || 'Membre';
+  const defaultAvatar = `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(fullName)}`;
+  
+  // Pre-fetch images
+  const safeLogoUrl = member.organization?.logo_url 
+    ? await fetchImageAsBase64(member.organization.logo_url, '') 
+    : '';
+  const safePhotoUrl = await fetchImageAsBase64(member.photo_url, defaultAvatar);
+
   // 1. Generate QR Code Data URI
   const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/verify/${member.qr_token || member.id}`;
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 200, color: { dark: settings.primary_color, light: '#ffffff' } });
 
-    // 2. Generate Recto PNG using ImageResponse (Satori)
-  const fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim() || 'Membre';
-  
+  // 2. Generate Recto PNG using ImageResponse (Satori)
   const Recto = (
     <div
       style={{
@@ -34,8 +61,8 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '32px 48px', backgroundColor: settings.primary_color, color: '#ffffff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          {member.organization?.logo_url && (
-            <img width={80} height={80} src={member.organization.logo_url} style={{ width: 80, height: 80, borderRadius: 40, objectFit: 'cover' }} />
+          {safeLogoUrl && (
+            <img width={80} height={80} src={safeLogoUrl} style={{ width: 80, height: 80, borderRadius: 40 }} />
           )}
           <h1 style={{ fontSize: '48px', fontWeight: 'bold', margin: 0 }}>{member.organization?.name || 'Organisation'}</h1>
         </div>
@@ -45,7 +72,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       <div style={{ display: 'flex', padding: '48px', flex: 1 }}>
         {settings.show_photo && (
           <div style={{ display: 'flex', width: '250px', marginRight: '48px' }}>
-             <img width={250} height={250} src={member.photo_url || `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(fullName)}`} style={{ width: '250px', height: '250px', borderRadius: '16px' }} />
+             <img width={250} height={250} src={safePhotoUrl} style={{ width: '250px', height: '250px', borderRadius: '16px' }} />
           </div>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, color: settings.text_color, gap: '16px' }}>
