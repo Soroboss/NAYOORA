@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/insforge/client';
 
-export default function RegistrationFormsSettings({ params }: { params: { organizationSlug: string } }) {
+export default function RegistrationFormsSettings({ params }: { params: Promise<{ organizationSlug: string }> }) {
+  const unwrappedParams = use(params);
+  const organizationSlug = unwrappedParams.organizationSlug;
+
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<any>(null);
@@ -13,7 +16,7 @@ export default function RegistrationFormsSettings({ params }: { params: { organi
   
   useEffect(() => {
     async function load() {
-      const { data: org } = await s.from('organizations').select('id').eq('slug', params.organizationSlug).single();
+      const { data: org } = await s.from('organizations').select('id').eq('slug', organizationSlug).single();
       if (!org) return;
       setOrgId(org.id);
       
@@ -39,7 +42,7 @@ export default function RegistrationFormsSettings({ params }: { params: { organi
       setLoading(false);
     }
     load();
-  }, [params.organizationSlug, s]);
+  }, [organizationSlug, s]);
 
   const handleSave = async () => {
     if (!orgId) return;

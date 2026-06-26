@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { createClient } from '@/lib/insforge/client';
 import { useRouter } from 'next/navigation';
 
-export default function RegistrationRequests({ params }: { params: { organizationSlug: string } }) {
+export default function RegistrationRequests({ params }: { params: Promise<{ organizationSlug: string }> }) {
+  const unwrappedParams = use(params);
+  const organizationSlug = unwrappedParams.organizationSlug;
+
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<any[]>([]);
@@ -13,7 +16,7 @@ export default function RegistrationRequests({ params }: { params: { organizatio
   
   useEffect(() => {
     async function load() {
-      const { data: org } = await s.from('organizations').select('id').eq('slug', params.organizationSlug).single();
+      const { data: org } = await s.from('organizations').select('id').eq('slug', organizationSlug).single();
       if (!org) return;
       setOrgId(org.id);
       
@@ -28,7 +31,7 @@ export default function RegistrationRequests({ params }: { params: { organizatio
       setLoading(false);
     }
     load();
-  }, [params.organizationSlug, s]);
+  }, [organizationSlug, s]);
 
   const handleApprove = async (request: any) => {
     if (!confirm(`Confirmez-vous l'adhésion de ${request.data.first_name} ${request.data.last_name} ?`)) return;
