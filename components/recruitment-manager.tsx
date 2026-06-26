@@ -7,11 +7,13 @@ export function RecruitmentManager({ form, requests }: { form: any; requests: an
   const [notice, setNotice] = useState('');
   
   const defaultFields = [
-    { name: 'firstName', label: 'Prénom', type: 'text', required: true },
     { name: 'lastName', label: 'Nom', type: 'text', required: true },
+    { name: 'firstName', label: 'Prénom', type: 'text', required: true },
+    { name: 'birthDate', label: 'Date de naissance', type: 'date', required: false },
+    { name: 'address', label: 'Lieu d\\'habitation', type: 'text', required: true },
+    { name: 'phone', label: 'Numéro de téléphone', type: 'text', required: true },
     { name: 'email', label: 'Email', type: 'email', required: false },
-    { name: 'phone', label: 'Téléphone', type: 'text', required: true },
-    { name: 'address', label: 'Adresse', type: 'text', required: false }
+    { name: 'photoUrl', label: 'Photo (pour la carte)', type: 'file', required: false }
   ];
 
   const [isActive, setIsActive] = useState(form?.is_active ?? false);

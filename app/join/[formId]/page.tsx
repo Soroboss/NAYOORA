@@ -38,12 +38,27 @@ export default function JoinFormPage({ params }: { params: Promise<{ formId: str
     setSubmitting(true);
     
     try {
+      const dataToSubmit = { ...formData };
+      
+      // Handle file uploads (Base64 conversion for simplicity on public forms)
+      for (const field of form.fields) {
+        if (field.type === 'file' && dataToSubmit[field.name] instanceof File) {
+          const file = dataToSubmit[field.name];
+          const base64 = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          });
+          dataToSubmit[field.name] = base64; // Store base64 in jsonb
+        }
+      }
+
       const res = await fetch(`/api/public/requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           formId,
-          data: formData
+          data: dataToSubmit
         })
       });
       
@@ -116,14 +131,27 @@ export default function JoinFormPage({ params }: { params: Promise<{ formId: str
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {field.label} {field.required && <span className="text-red-500">*</span>}
                   </label>
-                  <input
-                    type={field.type === 'email' ? 'email' : 'text'}
-                    required={field.required}
-                    className="w-full border-gray-300 rounded-lg shadow-sm focus:border-black focus:ring-black border p-3"
-                    value={formData[field.name] || ''}
-                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                    placeholder={`Votre ${field.label.toLowerCase()}`}
-                  />
+                  {field.type === 'file' ? (
+                    <input
+                      type="file"
+                      accept="image/*"
+                      required={field.required}
+                      className="w-full border-gray-300 rounded-lg shadow-sm focus:border-black focus:ring-black border p-2 text-sm"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setFormData({ ...formData, [field.name]: file });
+                      }}
+                    />
+                  ) : (
+                    <input
+                      type={field.type === 'email' ? 'email' : field.type === 'date' ? 'date' : 'text'}
+                      required={field.required}
+                      className="w-full border-gray-300 rounded-lg shadow-sm focus:border-black focus:ring-black border p-3"
+                      value={formData[field.name] || ''}
+                      onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                      placeholder={`Votre ${field.label.toLowerCase()}`}
+                    />
+                  )}
                 </div>
               ))}
               
