@@ -13,7 +13,9 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/verify/${member.qr_token || member.id}`;
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 200, color: { dark: settings.primary_color, light: '#ffffff' } });
 
-  // 2. Generate Recto PNG using ImageResponse (Satori)
+    // 2. Generate Recto PNG using ImageResponse (Satori)
+  const fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim() || 'Membre';
+  
   const Recto = (
     <div
       style={{
@@ -33,7 +35,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '32px 48px', backgroundColor: settings.primary_color, color: '#ffffff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           {member.organization?.logo_url && (
-            <img width={80} height={80} src={member.organization.logo_url} style={{ width: 80, height: 80, borderRadius: '50%' }} />
+            <img width={80} height={80} src={member.organization.logo_url} style={{ width: 80, height: 80, borderRadius: 40, objectFit: 'cover' }} />
           )}
           <h1 style={{ fontSize: '48px', fontWeight: 'bold', margin: 0 }}>{member.organization?.name || 'Organisation'}</h1>
         </div>
@@ -43,13 +45,13 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       <div style={{ display: 'flex', padding: '48px', flex: 1 }}>
         {settings.show_photo && (
           <div style={{ display: 'flex', width: '250px', marginRight: '48px' }}>
-             <img width={250} height={250} src={member.photo_url || 'https://api.dicebear.com/7.x/initials/png?seed=' + encodeURIComponent(member.full_name)} style={{ width: '250px', height: '250px', borderRadius: '16px', objectFit: 'cover' }} />
+             <img width={250} height={250} src={member.photo_url || `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(fullName)}`} style={{ width: '250px', height: '250px', borderRadius: '16px', objectFit: 'cover' }} />
           </div>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, color: settings.text_color, gap: '16px' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontSize: '24px', color: '#6b7280' }}>Nom Complet</span>
-            <span style={{ fontSize: '42px', fontWeight: 'bold', color: settings.primary_color }}>{member.full_name}</span>
+            <span style={{ fontSize: '42px', fontWeight: 'bold', color: settings.primary_color }}>{fullName}</span>
           </div>
           
           <div style={{ display: 'flex', gap: '48px', marginTop: '16px' }}>
@@ -64,7 +66,9 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
             {expiresAt && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '24px', color: '#6b7280' }}>Expire le</span>
-                <span style={{ fontSize: '32px', fontWeight: '600' }}>{expiresAt.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' })}</span>
+                <span style={{ fontSize: '32px', fontWeight: '600' }}>
+                  {`${expiresAt.getDate().toString().padStart(2, '0')}/${(expiresAt.getMonth() + 1).toString().padStart(2, '0')}/${expiresAt.getFullYear()}`}
+                </span>
               </div>
             )}
           </div>
