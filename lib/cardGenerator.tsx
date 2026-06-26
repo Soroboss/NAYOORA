@@ -32,10 +32,10 @@ export async function generateMemberCardFiles(member: any, settings: any) {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '32px 48px', backgroundColor: settings.primary_color, color: '#ffffff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-          {member.organizations?.logo_url && (
-            <img src={member.organizations.logo_url} style={{ width: 80, height: 80, borderRadius: '50%' }} />
+          {member.organization?.logo_url && (
+            <img src={member.organization.logo_url} style={{ width: 80, height: 80, borderRadius: '50%' }} />
           )}
-          <h1 style={{ fontSize: '48px', fontWeight: 'bold', margin: 0 }}>{member.organizations?.name || 'Organisation'}</h1>
+          <h1 style={{ fontSize: '48px', fontWeight: 'bold', margin: 0 }}>{member.organization?.name || 'Organisation'}</h1>
         </div>
       </div>
 
@@ -94,7 +94,7 @@ export async function generateMemberCardFiles(member: any, settings: any) {
         textAlign: 'center'
       }}
     >
-      <h2 style={{ fontSize: '36px', color: settings.primary_color, marginBottom: '24px', fontWeight: 'bold' }}>{member.organizations?.name}</h2>
+      <h2 style={{ fontSize: '36px', color: settings.primary_color, marginBottom: '24px', fontWeight: 'bold' }}>{member.organization?.name}</h2>
       <p style={{ fontSize: '28px', color: '#4b5563', lineHeight: 1.5, maxWidth: '80%' }}>
         {settings.legal_mentions}
       </p>

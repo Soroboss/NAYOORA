@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     // 1. Fetch member details and organization card settings
     const { data: member, error: memberErr } = await insforge
       .from('member_profiles')
-      .select('*, organizations(name, logo_url), member_cards(*)')
+      .select('*, organization:organizations!organization_id(name, logo_url), member_cards(*)')
       .eq('id', memberId)
       .single();
 
