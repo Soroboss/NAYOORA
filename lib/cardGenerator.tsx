@@ -3,7 +3,7 @@ import { PDFDocument } from 'pdf-lib';
 import QRCode from 'qrcode';
 import { createAdminClient } from '@/lib/insforge/server';
 
-export async function generateMemberCardFiles(member: any, settings: any) {
+export async function generateMemberCardFiles(member: any, settings: any, expiresAt?: Date) {
   const cardWidth = 1016; // Standard CR80 credit card ratio at 300dpi (~3.375" x 2.125")
   const cardHeight = 638;
 
@@ -52,7 +52,7 @@ export async function generateMemberCardFiles(member: any, settings: any) {
             <span style={{ fontSize: '42px', fontWeight: 'bold', color: settings.primary_color }}>{member.full_name}</span>
           </div>
           
-          <div style={{ display: 'flex', gap: '64px', marginTop: '16px' }}>
+          <div style={{ display: 'flex', gap: '48px', marginTop: '16px' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span style={{ fontSize: '24px', color: '#6b7280' }}>N° de Membre</span>
               <span style={{ fontSize: '32px', fontWeight: '600' }}>{member.member_number || 'N/A'}</span>
@@ -61,6 +61,12 @@ export async function generateMemberCardFiles(member: any, settings: any) {
               <span style={{ fontSize: '24px', color: '#6b7280' }}>Statut</span>
               <span style={{ fontSize: '32px', fontWeight: '600' }}>{member.status === 'active' ? 'Actif' : 'Inactif'}</span>
             </div>
+            {expiresAt && (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '24px', color: '#6b7280' }}>Expire le</span>
+                <span style={{ fontSize: '32px', fontWeight: '600' }}>{expiresAt.toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' })}</span>
+              </div>
+            )}
           </div>
         </div>
 

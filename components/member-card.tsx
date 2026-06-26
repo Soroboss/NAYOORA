@@ -6,6 +6,7 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
   const [downloading, setDownloading] = useState(false);
   const [cardData, setCardData] = useState<any>(null);
   const [notice, setNotice] = useState("");
+  const [validityMonths, setValidityMonths] = useState(12);
 
   async function handleGenerate() {
     setDownloading(true);
@@ -16,7 +17,8 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           memberId: member.id, 
-          organizationId: member.organization_id 
+          organizationId: member.organization_id,
+          validityMonths
         })
       });
       
@@ -64,6 +66,22 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
             Générez la carte officielle pour {member.first_name} {member.last_name}. 
             Elle sera calculée selon les couleurs de votre organisation et envoyée dans l'espace du membre.
           </p>
+
+          <div className="mb-6 text-left">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Durée de validité de la carte</label>
+            <select 
+              value={validityMonths} 
+              onChange={(e) => setValidityMonths(Number(e.target.value))}
+              className="w-full border-gray-300 rounded-lg shadow-sm focus:border-black focus:ring-black border p-2 text-sm"
+              disabled={downloading}
+            >
+              <option value={12}>1 an</option>
+              <option value={24}>2 ans</option>
+              <option value={36}>3 ans</option>
+              <option value={60}>5 ans</option>
+            </select>
+          </div>
+
           <button onClick={handleGenerate} disabled={downloading} className="button button-dark w-full">
             {downloading ? "Création..." : "Lancer la génération"}
           </button>

@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/insforge/server';
 // Placeholder for card generation logic
 export async function POST(request: Request) {
   try {
-    const { memberId, organizationId } = await request.json();
+    const { memberId, organizationId, validityMonths = 12 } = await request.json();
     
     if (!memberId || !organizationId) {
       return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
@@ -41,8 +41,11 @@ export async function POST(request: Request) {
       };
     }
 
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + validityMonths);
+
     const { generateMemberCardFiles } = await import('@/lib/cardGenerator');
-    const { frontUrl, backUrl, pdfUrl } = await generateMemberCardFiles(member, finalSettings);
+    const { frontUrl, backUrl, pdfUrl } = await generateMemberCardFiles(member, finalSettings, expiresAt);
 
     // Insert or update member_cards table
     let cardRecord = Array.isArray(member.member_cards) && member.member_cards.length > 0 
@@ -59,6 +62,7 @@ export async function POST(request: Request) {
       .from('member_cards')
       .upsert({
         ...cardRecord,
+        expires_at: expiresAt.toISOString(),
         front_image_url: frontUrl,
         back_image_url: backUrl,
         pdf_url: pdfUrl,
