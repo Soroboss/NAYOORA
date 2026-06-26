@@ -15,7 +15,7 @@ export function RecruitmentManager({ form, requests }: { form: any; requests: an
   ];
 
   const [isActive, setIsActive] = useState(form?.is_active ?? false);
-  const [title, setTitle] = useState(form?.title || 'Formulaire d\\'inscription');
+  const [title, setTitle] = useState(form?.title || "Formulaire d'inscription");
   const [description, setDescription] = useState(form?.description || '');
   const [fields, setFields] = useState<any[]>(form?.fields?.length ? form.fields : defaultFields);
   
