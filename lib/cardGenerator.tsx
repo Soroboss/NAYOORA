@@ -45,7 +45,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       <div style={{ display: 'flex', padding: '48px', flex: 1 }}>
         {settings.show_photo && (
           <div style={{ display: 'flex', width: '250px', marginRight: '48px' }}>
-             <img width={250} height={250} src={member.photo_url || `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(fullName)}`} style={{ width: '250px', height: '250px', borderRadius: '16px', objectFit: 'cover' }} />
+             <img width={250} height={250} src={member.photo_url || `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(fullName)}`} style={{ width: '250px', height: '250px', borderRadius: '16px' }} />
           </div>
         )}
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, color: settings.text_color, gap: '16px' }}>

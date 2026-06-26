@@ -54,9 +54,10 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
           <div className="w-full aspect-[1.58] bg-white rounded-xl shadow-xl overflow-hidden relative">
             <img src={cardData.back_image_url} alt="Verso" className="w-full h-full object-cover" />
           </div>
-          <div className="flex gap-4">
-             <a href={cardData.pdf_url} target="_blank" rel="noreferrer" className="button flex-1 text-center">📄 PDF</a>
-             <a href={cardData.front_image_url} target="_blank" rel="noreferrer" className="button flex-1 text-center">🖼️ Recto</a>
+          <div className="flex gap-4 mt-4">
+             <a href={cardData.pdf_url} target="_blank" rel="noreferrer" className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', borderRadius: '8px', textDecoration: 'none' }}>📄 PDF complet</a>
+             <a href={cardData.front_image_url} target="_blank" rel="noreferrer" className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', borderRadius: '8px', textDecoration: 'none' }}>🖼️ Télécharger Recto</a>
+             <a href={cardData.back_image_url} target="_blank" rel="noreferrer" className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', borderRadius: '8px', textDecoration: 'none' }}>🖼️ Télécharger Verso</a>
           </div>
         </div>
       ) : (
