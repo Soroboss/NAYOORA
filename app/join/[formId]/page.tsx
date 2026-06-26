@@ -109,89 +109,97 @@ export default function JoinFormPage({ params }: { params: Promise<{ formId: str
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 sm:py-12 px-4 sm:px-6 flex flex-col justify-center">
-      <div className="max-w-xl mx-auto w-full">
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-8 sm:p-10 text-center relative">
+    <div className="min-h-screen bg-[#f7f9fc] py-12 px-4 sm:px-6 flex flex-col items-center justify-center font-sans">
+      <div className="max-w-lg mx-auto w-full">
+        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-8 sm:p-12">
+          
+          <div className="flex flex-col items-center text-center mb-10">
             {form.organization.logo_url ? (
-              <img src={form.organization.logo_url} alt="Logo" className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-full object-cover border-4 border-white/10 shadow-2xl mb-4" />
+              <img 
+                src={form.organization.logo_url} 
+                alt="Logo" 
+                className="w-24 h-24 sm:w-28 sm:h-28 object-contain mb-6 rounded-2xl shadow-sm border border-gray-50 bg-white" 
+              />
             ) : (
-              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-full bg-gray-800 border-4 border-gray-700 flex items-center justify-center text-3xl font-bold mb-4 shadow-2xl">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-tr from-gray-100 to-gray-50 border border-gray-200 flex items-center justify-center text-4xl font-bold text-gray-400 mb-6 shadow-sm">
                 {form.organization.name[0]}
               </div>
             )}
-            <h2 className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-gray-400 mb-2">
-              Rejoindre l'organisation
+            <h2 className="text-sm font-semibold tracking-wide text-blue-600 uppercase mb-3">
+              Rejoindre {form.organization.name}
             </h2>
-            <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-white">{form.organization.name}</h1>
-          </div>
-          
-          <div className="p-6 sm:p-10">
-            <h3 className="text-xl sm:text-2xl font-bold mb-3 text-gray-900">{form.title}</h3>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+              {form.title}
+            </h1>
             {form.description && (
-              <p className="text-gray-600 mb-8 whitespace-pre-line text-sm sm:text-base leading-relaxed">{form.description}</p>
+              <p className="mt-4 text-gray-500 text-base sm:text-lg leading-relaxed max-w-sm">
+                {form.description}
+              </p>
             )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {form.fields.map((field: any, index: number) => (
-                <div key={index}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {field.label} {field.required && <span className="text-red-500">*</span>}
-                  </label>
-                  {field.type === 'file' ? (
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-2xl hover:border-gray-400 transition-colors bg-gray-50/50">
-                      <div className="space-y-2 text-center">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <div className="flex text-sm text-gray-600 justify-center">
-                          <label className="relative cursor-pointer bg-transparent rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
-                            <span>{formData[field.name] ? 'Changer de fichier' : 'Télécharger un fichier'}</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              required={field.required && !formData[field.name]}
-                              className="sr-only"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) setFormData({ ...formData, [field.name]: file });
-                              }}
-                            />
-                          </label>
-                        </div>
-                        <p className="text-xs text-gray-500 font-medium">
-                           {formData[field.name] ? formData[field.name].name : 'PNG, JPG (Photo pour la carte)'}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <input
-                      type={field.type === 'email' ? 'email' : field.type === 'date' ? 'date' : 'text'}
-                      required={field.required}
-                      className="w-full border-gray-300 rounded-2xl shadow-sm focus:border-black focus:ring-black border p-4 text-gray-900 bg-gray-50/50 hover:bg-white transition-colors text-base"
-                      value={formData[field.name] || ''}
-                      onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
-                      placeholder={`Saisissez ${field.label.toLowerCase()}`}
-                    />
-                  )}
-                </div>
-              ))}
-              
-              <div className="pt-6">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full bg-black text-white rounded-2xl py-4 font-semibold text-lg hover:bg-gray-800 disabled:opacity-50 transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
-                >
-                  {submitting ? 'Envoi en cours...' : 'Soumettre ma demande'}
-                </button>
-              </div>
-            </form>
           </div>
+
+          <form onSubmit={handleSubmit} className="space-y-7">
+            {form.fields.map((field: any, index: number) => (
+              <div key={index}>
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  {field.label} {field.required && <span className="text-red-500">*</span>}
+                </label>
+                
+                {field.type === 'file' ? (
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 group cursor-pointer">
+                    <div className="space-y-2 text-center">
+                      <svg className="mx-auto h-10 w-10 text-gray-400 group-hover:text-blue-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <div className="flex text-sm text-gray-600 justify-center">
+                        <label className="relative cursor-pointer rounded-md font-medium text-blue-600 hover:text-blue-500">
+                          <span>{formData[field.name] ? 'Changer l\'image' : 'Sélectionner une photo'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            required={field.required && !formData[field.name]}
+                            className="sr-only"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) setFormData({ ...formData, [field.name]: file });
+                            }}
+                          />
+                        </label>
+                      </div>
+                      <p className="text-xs text-gray-500 font-medium">
+                         {formData[field.name] ? formData[field.name].name : 'Format JPG, PNG (Max. 5Mo)'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <input
+                    type={field.type === 'email' ? 'email' : field.type === 'date' ? 'date' : 'text'}
+                    required={field.required}
+                    className="w-full rounded-2xl border-0 ring-1 ring-inset ring-gray-200 bg-gray-50 p-4 text-gray-900 shadow-sm placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 focus:bg-white transition-all text-base sm:text-lg"
+                    value={formData[field.name] || ''}
+                    onChange={(e) => setFormData({ ...formData, [field.name]: e.target.value })}
+                    placeholder={`Votre ${field.label.toLowerCase()}`}
+                  />
+                )}
+              </div>
+            ))}
+            
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-blue-600 text-white rounded-2xl py-4 px-8 font-bold text-lg hover:bg-blue-700 disabled:opacity-50 transition-all shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-0.5 active:translate-y-0"
+              >
+                {submitting ? 'Envoi en cours...' : 'Envoyer ma candidature'}
+              </button>
+            </div>
+          </form>
         </div>
-        <p className="text-center text-xs sm:text-sm text-gray-400 mt-8 mb-4">
-          Propulsé de manière sécurisée par <strong>NAYOORA</strong>
-        </p>
+        
+        <div className="mt-8 text-center flex flex-col items-center justify-center opacity-60">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-1">Sécurisé & Propulsé par</p>
+          <span className="text-sm font-bold text-gray-700 tracking-widest">NAYOORA</span>
+        </div>
       </div>
     </div>
   );
