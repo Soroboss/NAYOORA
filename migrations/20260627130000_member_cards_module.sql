@@ -83,11 +83,4 @@ on public.member_cards
 for select
 using (status != 'deleted');
 
--- Storage buckets
-insert into storage.buckets (id, name, public) 
-values ('member_cards', 'member_cards', true)
-on conflict (id) do nothing;
 
-insert into storage.buckets (id, name, public) 
-values ('organization_assets', 'organization_assets', true)
-on conflict (id) do nothing;
