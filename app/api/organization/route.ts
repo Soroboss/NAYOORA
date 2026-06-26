@@ -23,6 +23,8 @@ export async function POST(request: Request) {
         email: body.email || null,
         country_code: body.country || null,
         currency: body.currency || "XOF",
+        logo_url: body.logoUrl || null,
+        description: body.description || null,
       }).eq("id", organizationId);
       if (error) throw error;
       return NextResponse.json({ ok: true });
