@@ -27,26 +27,47 @@ export async function POST(request: Request) {
       .eq('organization_id', organizationId)
       .single();
 
-    if (settingsErr || !settings) throw new Error("Card settings not found");
+    let finalSettings = settings;
+    if (settingsErr || !settings) {
+      finalSettings = {
+        primary_color: '#1e40af',
+        secondary_color: '#3b82f6',
+        text_color: '#111827',
+        corner_style: 'rounded',
+        show_qr: true,
+        show_photo: true,
+        legal_mentions: "Cette carte demeure la propriété de l'organisation. Elle doit être présentée à toute demande. Toute perte doit être signalée immédiatement."
+      };
+    }
 
     const { generateMemberCardFiles } = await import('@/lib/cardGenerator');
-    const { frontUrl, backUrl, pdfUrl } = await generateMemberCardFiles(member, settings);
+    const { frontUrl, backUrl, pdfUrl } = await generateMemberCardFiles(member, finalSettings);
 
-    // Update member_cards table
+    // Insert or update member_cards table
+    let cardRecord = Array.isArray(member.member_cards) && member.member_cards.length > 0 
+      ? member.member_cards[0] 
+      : { 
+          member_profile_id: memberId,
+          organization_id: organizationId,
+          card_number: member.member_number || `M-${Date.now().toString().slice(-6)}`,
+          qr_token: member.qr_token || memberId,
+          issued_at: new Date().toISOString()
+        };
+
     const { data: updatedCard, error: updateErr } = await insforge
       .from('member_cards')
-      .update({
+      .upsert({
+        ...cardRecord,
         front_image_url: frontUrl,
         back_image_url: backUrl,
         pdf_url: pdfUrl,
-        theme_snapshot: settings,
+        theme_snapshot: finalSettings,
         status: 'active'
-      })
-      .eq('member_profile_id', memberId)
+      }, { onConflict: 'member_profile_id' })
       .select()
       .single();
 
-    if (updateErr) throw new Error("Failed to update member card record");
+    if (updateErr) throw new Error("Failed to save member card record: " + updateErr.message);
     
     return NextResponse.json({ success: true, card: updatedCard });
 
