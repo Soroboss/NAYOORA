@@ -218,6 +218,10 @@
   grid-template-columns: 42px 1fr 80px 170px auto;
 }
 
+.member-row-wide > * {
+  min-width: 0;
+}
+
 .member-avatar img,
 .profile-photo img {
   width: 100%;
