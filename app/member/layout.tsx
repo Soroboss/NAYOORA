@@ -125,16 +125,16 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
             flex-direction: row;
           }
           .member-topbar {
-            display: none;
+            display: none !important;
           }
           .member-bottom-nav {
-            display: none;
+            display: none !important;
           }
           .member-sidebar {
-            width: 250px;
+            display: flex !important;
+            width: 280px;
             background-color: #ffffff;
             border-right: 1px solid #e5e7eb;
-            display: flex;
             flex-direction: column;
             position: sticky;
             top: 0;
@@ -144,6 +144,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
           .member-sidebar .member-brand {
             padding: 0 1.5rem;
             margin-bottom: 2rem;
+            font-size: 1.5rem;
           }
           .sidebar-nav {
             flex: 1;
@@ -155,13 +156,15 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
           .sidebar-item {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
             text-decoration: none;
             color: #4b5563;
             font-weight: 500;
+            font-size: 1rem;
             transition: all 0.2s ease;
+            width: 100%;
           }
           .sidebar-item:hover {
             background-color: #f3f4f6;
@@ -178,7 +181,9 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
           }
           .member-content-area {
             padding: 2.5rem;
-            max-width: 1000px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
           }
         }
       `}</style>
@@ -205,13 +210,13 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
                 href={item.path}
                 className={`sidebar-item ${pathname === item.path ? 'active' : ''}`}
               >
-                <span>{item.icon}</span>
-                {item.name}
+                <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+                <span>{item.name}</span>
               </Link>
             ))}
           </nav>
           <div className="sidebar-logout">
-            <button onClick={handleLogout} className="logout-btn" style={{ padding: '0.75rem 0' }}>
+            <button onClick={handleLogout} className="logout-btn" style={{ padding: '1rem 0', width: '100%', justifyContent: 'flex-start', fontSize: '1rem' }}>
               🚪 Se déconnecter
             </button>
           </div>
@@ -236,15 +241,6 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
           ))}
         </nav>
       </div>
-      
-      {/* Script to override inline styles for desktop via JS if needed, but CSS media queries handle it */}
-      <style>{`
-        @media (min-width: 768px) {
-          .member-sidebar {
-            display: flex !important;
-          }
-        }
-      `}</style>
     </>
   );
 }
