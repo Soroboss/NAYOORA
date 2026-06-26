@@ -1,4 +1,4 @@
-import { ImageResponse } from 'next/server';
+import { ImageResponse } from 'next/og';
 import { PDFDocument } from 'pdf-lib';
 import QRCode from 'qrcode';
 import { createAdminClient } from '@/lib/insforge/server';

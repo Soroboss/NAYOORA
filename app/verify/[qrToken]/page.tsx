@@ -1,8 +1,8 @@
 import { createAdminClient } from '@/lib/insforge/server';
 import { notFound } from 'next/navigation';
 
-export default async function VerifyCardPage({ params }: { params: { qrToken: string } }) {
-  const { qrToken } = params;
+export default async function VerifyCardPage({ params }: { params: Promise<{ qrToken: string }> }) {
+  const { qrToken } = await params;
 
   if (!qrToken) return notFound();
 

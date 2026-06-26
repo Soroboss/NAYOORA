@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/insforge/client';
 import { useRouter } from 'next/navigation';
 
-export default function CardSettingsPage({ params }: { params: { organizationSlug: string } }) {
+import { use } from 'react';
+
+export default function CardSettingsPage({ params }: { params: Promise<{ organizationSlug: string }> }) {
+  const { organizationSlug } = use(params);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -16,7 +19,7 @@ export default function CardSettingsPage({ params }: { params: { organizationSlu
       const { data: org } = await insforge
         .from('organizations')
         .select('id')
-        .eq('slug', params.organizationSlug)
+        .eq('slug', organizationSlug)
         .single();
         
       if (!org) return;
@@ -50,7 +53,7 @@ export default function CardSettingsPage({ params }: { params: { organizationSlu
       setLoading(false);
     }
     fetchSettings();
-  }, [params.organizationSlug]);
+  }, [organizationSlug]);
 
   const saveSettings = async () => {
     setSaving(true);
