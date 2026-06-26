@@ -153,9 +153,9 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   };
 
   const [frontUrl, backUrl, pdfUrl] = await Promise.all([
-    uploadFile(`${pathPrefix}_front.png`, rectoBuffer, 'image/png'),
-    uploadFile(`${pathPrefix}_back.png`, versoBuffer, 'image/png'),
-    uploadFile(`${pathPrefix}.pdf`, pdfBytes, 'application/pdf'),
+    uploadFile(`${pathPrefix}_front.png`, Buffer.from(rectoBuffer), 'image/png'),
+    uploadFile(`${pathPrefix}_back.png`, Buffer.from(versoBuffer), 'image/png'),
+    uploadFile(`${pathPrefix}.pdf`, Buffer.from(pdfBytes), 'application/pdf'),
   ]);
 
   return { frontUrl, backUrl, pdfUrl };
