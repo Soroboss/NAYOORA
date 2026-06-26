@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const limits = await getPlanLimits(ctx.insforge, ctx.membership.organization_id);
     const { count } = await ctx.insforge.from("member_profiles").select("id", { count: "exact", head: true }).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null);
     if (limits.memberLimit !== null && (count ?? 0) >= limits.memberLimit) return NextResponse.json({ error: `Limite de ${limits.memberLimit} membres atteinte pour l’offre ${limits.name}.` }, { status: 402 });
-    const memberNumber = member.memberNumber || await nextMemberNumber(ctx.insforge, ctx.membership.organization_id, count ?? 0);
+    const memberNumber = member.memberNumber || await nextMemberNumber(ctx.insforge, ctx.membership.organization_id, count ?? 0, member.lastName || member.firstName);
     const { data, error } = await ctx.insforge.from("member_profiles").insert({ organization_id: ctx.membership.organization_id, first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: memberNumber, birth_date: member.birthDate, photo_url: member.photoUrl, created_by: ctx.user.id }).select().single();
     if (error) throw error;
     return NextResponse.json({ member: data }, { status: 201 });
@@ -45,10 +45,19 @@ export async function PATCH(request: Request) {
   } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Mise à jour impossible." }, { status: 400 }); }
 }
 
-async function nextMemberNumber(insforge: any, organizationId: string, currentCount: number) {
-  const { data: settings } = await insforge.from("settings").select("member_number_prefix").eq("organization_id", organizationId).maybeSingle();
-  const prefix = settings?.member_number_prefix || "NAY";
-  return `${prefix}-${String(currentCount + 1).padStart(5, "0")}`;
+async function nextMemberNumber(insforge: any, organizationId: string, currentCount: number, memberName: string) {
+  const { data: org } = await insforge.from("organizations").select("name").eq("id", organizationId).maybeSingle();
+  let prefix = "NA";
+  if (org?.name) {
+    const words = org.name.trim().split(/\s+/);
+    if (words.length > 1) {
+      prefix = (words[0][0] + words[1][0]).toUpperCase();
+    } else if (words.length === 1 && words[0].length >= 2) {
+      prefix = org.name.substring(0, 2).toUpperCase();
+    }
+  }
+  const suffix = memberName && memberName.length > 0 ? memberName[0].toUpperCase() : "A";
+  return `${prefix}-${String(currentCount + 1).padStart(5, "0")}${suffix}`;
 }
 
 export async function DELETE(request: Request) {
