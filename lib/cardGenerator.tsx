@@ -167,7 +167,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   
   const uploadFile = async (path: string, buffer: ArrayBuffer | Uint8Array, contentType: string) => {
     // Edge environments require a Blob to automatically determine the Content-Length
-    const blob = new Blob([buffer], { type: contentType });
+    const blob = new Blob([buffer as any], { type: contentType });
     const { data, error } = await insforge.storage
       .from('member_cards')
       .upload(path, blob, { contentType, upsert: true });
