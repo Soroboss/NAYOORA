@@ -14,7 +14,7 @@ export async function memberContext() {
         // Fetch organization details manually since we don't have organization_members record here
         const { data: org } = await s.from("organizations").select("name").eq("id", session.organizationId).maybeSingle();
         const m = { id: session.memberId, organization_id: session.organizationId, organization: org };
-        const { data: profile } = await s.from("member_profiles").select("id, first_name, last_name, photo_url").eq("id", session.memberId).eq("organization_id", session.organizationId).is("deleted_at", null).maybeSingle();
+        const { data: profile } = await s.from("member_profiles").select("id, first_name, last_name, photo_url, member_cards(id, status, front_image_url, back_image_url, pdf_url, expires_at, qr_token)").eq("id", session.memberId).eq("organization_id", session.organizationId).is("deleted_at", null).maybeSingle();
         if (profile) return { s, m, profile };
       }
     } catch (e) {
@@ -30,6 +30,6 @@ export async function memberContext() {
   const { data: m } = await s.from('organization_members').select('id,organization_id,organization:organizations(name)').eq('user_id', user.id).eq('status', 'active').limit(1).maybeSingle();
   if (!m) redirect('/onboarding');
   
-  const { data: profile } = await s.from('member_profiles').select('id,first_name,last_name,photo_url').eq('organization_member_id', m.id).eq('organization_id', m.organization_id).is('deleted_at', null).maybeSingle();
+  const { data: profile } = await s.from('member_profiles').select('id,first_name,last_name,photo_url, member_cards(id, status, front_image_url, back_image_url, pdf_url, expires_at, qr_token)').eq('organization_member_id', m.id).eq('organization_id', m.organization_id).is('deleted_at', null).maybeSingle();
   return { s, m, profile };
 }

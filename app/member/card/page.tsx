@@ -39,6 +39,16 @@ export default function MemberCardPage() {
         </div>
       ) : (
         <div className="space-y-6">
+          {card.status === 'blocked' && (
+            <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl flex items-start shadow-sm mb-4">
+              <span className="text-2xl mr-3">⚠️</span>
+              <div>
+                <h4 className="font-bold">Carte Désactivée</h4>
+                <p className="text-sm">Votre carte de membre est actuellement suspendue ou désactivée. Elle ne sera pas reconnue comme valide lors d'un scan.</p>
+              </div>
+            </div>
+          )}
+
           <div className="relative group perspective">
             {/* Recto */}
             <div className="w-full aspect-[1.58] bg-white rounded-3xl shadow-xl overflow-hidden mb-6 transition-transform duration-500 hover:scale-105 relative">

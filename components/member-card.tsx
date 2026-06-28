@@ -4,9 +4,31 @@ import { useState } from "react";
 
 export function MemberCard({ member, orgName }: { member: any; orgName: string }) {
   const [downloading, setDownloading] = useState(false);
-  const [cardData, setCardData] = useState<any>(null);
+  const [cardData, setCardData] = useState<any>(member.member_cards?.[0] || null);
   const [notice, setNotice] = useState("");
   const [validityMonths, setValidityMonths] = useState(12);
+  const [toggling, setToggling] = useState(false);
+
+  async function handleToggleStatus() {
+    if (!cardData) return;
+    setToggling(true);
+    const newStatus = cardData.status === 'active' ? 'blocked' : 'active';
+    try {
+      const response = await fetch("/api/cards/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId: cardData.id, status: newStatus })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setCardData(data.card);
+      setNotice(`La carte est maintenant ${newStatus === 'active' ? 'active' : 'désactivée'}.`);
+    } catch (err: any) {
+      setNotice("Erreur lors du changement de statut.");
+    } finally {
+      setToggling(false);
+    }
+  }
 
   async function handleGenerate() {
     setDownloading(true);
@@ -41,13 +63,28 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
   return (
     <div className="member-card-container">
       {notice && (
-        <div className={`p-3 mb-4 rounded-lg text-sm w-full text-center ${notice.includes("succès") ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
+        <div className={`p-3 mb-4 rounded-lg text-sm w-full text-center ${notice.includes("succès") || notice.includes("active") ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
           {notice}
         </div>
       )}
 
       {cardData ? (
         <div className="w-full space-y-4">
+          <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200">
+            <div>
+              <span className="text-sm font-medium text-gray-700 mr-2">Statut de la carte :</span>
+              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${cardData.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {cardData.status === 'active' ? 'Active' : 'Désactivée'}
+              </span>
+            </div>
+            <button 
+              onClick={handleToggleStatus} 
+              disabled={toggling}
+              className={`px-3 py-1 text-sm font-medium rounded-md ${cardData.status === 'active' ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}
+            >
+              {toggling ? '...' : (cardData.status === 'active' ? 'Désactiver' : 'Activer')}
+            </button>
+          </div>
           <div className="w-full aspect-[1.58] bg-white rounded-xl shadow-xl overflow-hidden relative">
             <img src={cardData.front_image_url} alt="Recto" className="w-full h-full object-cover" />
           </div>
@@ -56,8 +93,7 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
           </div>
           <div className="flex gap-4 mt-4">
              <a href={cardData.pdf_url} target="_blank" rel="noreferrer" className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', borderRadius: '8px', textDecoration: 'none' }}>📄 PDF complet</a>
-             <a href={cardData.front_image_url} target="_blank" rel="noreferrer" className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', borderRadius: '8px', textDecoration: 'none' }}>🖼️ Télécharger Recto</a>
-             <a href={cardData.back_image_url} target="_blank" rel="noreferrer" className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', borderRadius: '8px', textDecoration: 'none' }}>🖼️ Télécharger Verso</a>
+             <button onClick={handleGenerate} disabled={downloading} className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#0f172a', color: '#ffffff', fontWeight: 'bold', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>{downloading ? '...' : '🔄 Régénérer'}</button>
           </div>
         </div>
       ) : (

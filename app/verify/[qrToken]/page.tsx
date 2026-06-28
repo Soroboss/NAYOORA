@@ -27,6 +27,20 @@ export default async function VerifyCardPage({ params }: { params: Promise<{ qrT
     );
   }
 
+  if (card.status === 'blocked') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-2xl shadow max-w-md text-center border-t-4 border-red-500">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+            ⚠️
+          </div>
+          <h1 className="text-2xl font-bold text-red-700 mb-2">Carte Désactivée</h1>
+          <p className="text-gray-600">Cette carte a été désactivée par l'administration. Elle n'est plus valide pour accéder aux services.</p>
+        </div>
+      </div>
+    );
+  }
+
   const member = card.member_profiles;
   const isExpired = card.expires_at ? new Date(card.expires_at) < new Date() : false;
   const isSuspended = member.status !== 'active';
@@ -38,11 +52,11 @@ export default async function VerifyCardPage({ params }: { params: Promise<{ qrT
     </div>
   );
 
-  if (isSuspended || card.status === 'blocked') {
+  if (isSuspended) {
     statusBadge = (
        <div className="inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm font-medium border border-red-200">
         <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
-        Suspendu
+        Membre Suspendu
       </div>
     );
   } else if (isExpired) {
