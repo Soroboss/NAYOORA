@@ -7,6 +7,8 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
   const [cardData, setCardData] = useState<any>(member.member_cards?.[0] || null);
   const [notice, setNotice] = useState("");
   const [validityMonths, setValidityMonths] = useState(12);
+  const [theme, setTheme] = useState('modern');
+  const [primaryColor, setPrimaryColor] = useState('#1e40af');
   const [toggling, setToggling] = useState(false);
 
   async function handleToggleStatus() {
@@ -40,7 +42,9 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
         body: JSON.stringify({ 
           memberId: member.id, 
           organizationId: member.organization_id,
-          validityMonths
+          validityMonths,
+          theme,
+          primaryColor
         })
       });
       
@@ -93,34 +97,69 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
           </div>
           <div className="flex gap-4 mt-4">
              <a href={cardData.pdf_url} target="_blank" rel="noreferrer" className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', borderRadius: '8px', textDecoration: 'none' }}>📄 PDF complet</a>
-             <button onClick={handleGenerate} disabled={downloading} className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#0f172a', color: '#ffffff', fontWeight: 'bold', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>{downloading ? '...' : '🔄 Régénérer'}</button>
+             <button onClick={() => setCardData(null)} disabled={downloading} className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#0f172a', color: '#ffffff', fontWeight: 'bold', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>🔄 Régénérer</button>
           </div>
         </div>
       ) : (
-        <div className="text-center p-8 bg-gray-50 border border-gray-200 rounded-xl w-full">
+        <div className="text-center p-6 bg-gray-50 border border-gray-200 rounded-xl w-full">
           <div className="text-4xl mb-4">🪪</div>
           <p className="text-gray-600 mb-6 text-sm">
-            Générez la carte officielle pour {member.first_name} {member.last_name}. 
-            Elle sera calculée selon les couleurs de votre organisation et envoyée dans l'espace du membre.
+            Personnalisez la carte pour {member.first_name} {member.last_name}.
           </p>
 
-          <div className="mb-6 text-left">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Durée de validité de la carte</label>
-            <select 
-              value={validityMonths} 
-              onChange={(e) => setValidityMonths(Number(e.target.value))}
-              className="w-full border-gray-300 rounded-lg shadow-sm focus:border-black focus:ring-black border p-2 text-sm"
-              disabled={downloading}
-            >
-              <option value={12}>1 an</option>
-              <option value={24}>2 ans</option>
-              <option value={36}>3 ans</option>
-              <option value={60}>5 ans</option>
-            </select>
+          <div className="mb-4 text-left grid gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Thème de la carte</label>
+              <select 
+                value={theme} 
+                onChange={(e) => setTheme(e.target.value)}
+                className="w-full border-gray-300 rounded-lg shadow-sm p-2 text-sm"
+                disabled={downloading}
+              >
+                <option value="modern">Moderne (Photo à gauche)</option>
+                <option value="classic">Classique (Photo centrée en haut)</option>
+                <option value="elegant">Élégant (Style sombre & épuré)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Couleur principale (ex: Logo)</label>
+              <div className="flex gap-2">
+                <input 
+                  type="color" 
+                  value={primaryColor} 
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="h-9 w-12 rounded border-gray-300 cursor-pointer"
+                  disabled={downloading}
+                />
+                <input 
+                  type="text" 
+                  value={primaryColor} 
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="flex-1 border-gray-300 rounded-lg shadow-sm p-2 text-sm"
+                  disabled={downloading}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Durée de validité</label>
+              <select 
+                value={validityMonths} 
+                onChange={(e) => setValidityMonths(Number(e.target.value))}
+                className="w-full border-gray-300 rounded-lg shadow-sm p-2 text-sm"
+                disabled={downloading}
+              >
+                <option value={12}>1 an</option>
+                <option value={24}>2 ans</option>
+                <option value={36}>3 ans</option>
+                <option value={60}>5 ans</option>
+              </select>
+            </div>
           </div>
 
-          <button onClick={handleGenerate} disabled={downloading} className="button button-dark w-full">
-            {downloading ? "Création..." : "Lancer la génération"}
+          <button onClick={handleGenerate} disabled={downloading} className="button button-dark w-full mt-2">
+            {downloading ? "Création en cours..." : "Lancer la génération"}
           </button>
         </div>
       )}
