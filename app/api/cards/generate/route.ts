@@ -44,8 +44,11 @@ export async function POST(request: Request) {
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + validityMonths);
 
+    let existingCard = Array.isArray(member.member_cards) && member.member_cards.length > 0 ? member.member_cards[0] : null;
+    const qrToken = existingCard?.qr_token || memberId;
+
     const { generateMemberCardFiles } = await import('@/lib/cardGenerator');
-    const { frontUrl, backUrl, pdfUrl } = await generateMemberCardFiles(member, finalSettings, expiresAt);
+    const { frontUrl, backUrl, pdfUrl } = await generateMemberCardFiles(member, finalSettings, expiresAt, qrToken);
 
     // Insert or update member_cards table
     let cardRecord = Array.isArray(member.member_cards) && member.member_cards.length > 0 

@@ -3,7 +3,7 @@ import { PDFDocument } from 'pdf-lib';
 import QRCode from 'qrcode';
 import { createAdminClient } from '@/lib/insforge/server';
 
-export async function generateMemberCardFiles(member: any, settings: any, expiresAt?: Date) {
+export async function generateMemberCardFiles(member: any, settings: any, expiresAt?: Date, qrToken?: string) {
   const cardWidth = 1016; // Standard CR80 credit card ratio at 300dpi (~3.375" x 2.125")
   const cardHeight = 638;
 
@@ -13,12 +13,26 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   async function fetchImageAsBase64(url: string, fallbackUrl: string): Promise<string> {
     if (!url) return fallbackUrl;
     try {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) return fallbackUrl;
-      const contentType = res.headers.get('content-type') || 'image/png';
-      if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'].includes(contentType)) {
-        console.warn(`Unsupported image type for Satori: ${contentType}`);
+      let finalUrl = url;
+      if (url.startsWith('organizations/')) {
+        finalUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/member-photos/${url}`;
+      } else if (!url.startsWith('http')) {
         return fallbackUrl;
+      }
+      
+      const res = await fetch(finalUrl, { cache: 'no-store' });
+      if (!res.ok) {
+        console.warn(`Failed to fetch image for card: ${res.status} ${res.statusText} - ${finalUrl}`);
+        return fallbackUrl;
+      }
+      
+      let contentType = res.headers.get('content-type') || 'image/png';
+      if (contentType === 'application/octet-stream') contentType = 'image/jpeg'; // Guess jpeg if unknown
+      
+      if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'].includes(contentType)) {
+        console.warn(`Unsupported image type for Satori: ${contentType} - URL: ${finalUrl}`);
+        // Let's try to proceed anyway by forcing image/jpeg
+        contentType = 'image/jpeg';
       }
       const arrayBuffer = await res.arrayBuffer();
       const base64 = Buffer.from(arrayBuffer).toString('base64');
@@ -41,7 +55,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
 
   // 1. Generate QR Code Data URI
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://nayoora.com';
-  const verifyUrl = `${baseUrl}/verify/${member.qr_token || member.id}`;
+  const verifyUrl = `${baseUrl}/verify/${qrToken || member.qr_token || member.id}`;
   const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 200, color: { dark: settings.primary_color || '#000000', light: '#ffffff' } });
 
   const memberTitle = member.metadata?.titre || member.metadata?.title || member.metadata?.role || member.metadata?.profession || 'Membre';
