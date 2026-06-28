@@ -30,7 +30,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   }
 
   const fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim() || 'Membre';
-  const defaultAvatar = `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(fullName)}`;
+  const defaultAvatar = `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(fullName)}&backgroundColor=000000`;
   
   // Pre-fetch images
   const safeLogoUrl = member.organization?.logo_url 
@@ -39,8 +39,9 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   const safePhotoUrl = await fetchImageAsBase64(member.photo_url, defaultAvatar);
 
   // 1. Generate QR Code Data URI
-  const verifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/verify/${member.qr_token || member.id}`;
-  const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 200, color: { dark: settings.primary_color, light: '#ffffff' } });
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://nayoora.com';
+  const verifyUrl = `${baseUrl}/verify/${member.qr_token || member.id}`;
+  const qrCodeDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 1, width: 200, color: { dark: settings.primary_color || '#000000', light: '#ffffff' } });
 
   // 2. Generate Recto PNG using ImageResponse (Satori)
   const Recto = (
@@ -51,48 +52,51 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
         width: cardWidth,
         height: cardHeight,
         backgroundColor: '#ffffff',
-        border: `8px solid ${settings.primary_color}`,
-        borderRadius: settings.corner_style === 'rounded' ? '32px' : '0px',
+        border: `4px solid ${settings.primary_color || '#1e3a8a'}`,
+        borderRadius: settings.corner_style === 'rounded' ? '24px' : '0px',
         overflow: 'hidden',
         position: 'relative',
         fontFamily: 'sans-serif',
       }}
     >
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '32px 48px', backgroundColor: settings.primary_color, color: '#ffffff' }}>
+      {/* Top Banner with Logo and Organization Name */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '32px 48px', backgroundColor: settings.primary_color || '#1e3a8a', color: '#ffffff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           {safeLogoUrl && (
-            <img width={80} height={80} src={safeLogoUrl} style={{ width: 80, height: 80, borderRadius: 40 }} />
+            <img src={safeLogoUrl} style={{ width: '80px', height: '80px', borderRadius: '40px', objectFit: 'contain', backgroundColor: '#fff' }} />
           )}
-          <h1 style={{ fontSize: '48px', fontWeight: 'bold', margin: 0 }}>{member.organization?.name || 'Organisation'}</h1>
+          <h1 style={{ fontSize: '42px', fontWeight: 'bold', margin: 0 }}>{member.organization?.name || 'Organisation'}</h1>
         </div>
       </div>
 
-      {/* Body */}
-      <div style={{ display: 'flex', padding: '48px', flex: 1 }}>
-        {settings.show_photo && (
-          <div style={{ display: 'flex', width: '250px', marginRight: '48px' }}>
-             <img width={250} height={250} src={safePhotoUrl} style={{ width: '250px', height: '250px', borderRadius: '16px' }} />
+      {/* Main Content Body */}
+      <div style={{ display: 'flex', padding: '48px', flex: 1, gap: '48px', alignItems: 'flex-start' }}>
+        {/* Photo Section */}
+        {settings.show_photo !== false && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+             <img src={safePhotoUrl} style={{ width: '220px', height: '220px', borderRadius: '110px', objectFit: 'cover', border: `4px solid ${settings.primary_color || '#1e3a8a'}` }} />
           </div>
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, color: settings.text_color, gap: '16px' }}>
+
+        {/* Member Details */}
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, color: settings.text_color || '#1f2937', gap: '24px' }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '24px', color: '#6b7280' }}>Nom Complet</span>
-            <span style={{ fontSize: '42px', fontWeight: 'bold', color: settings.primary_color }}>{fullName}</span>
+            <span style={{ fontSize: '20px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px' }}>Nom Complet</span>
+            <span style={{ fontSize: '42px', fontWeight: 'bold', color: settings.primary_color || '#1e3a8a' }}>{fullName}</span>
           </div>
           
-          <div style={{ display: 'flex', gap: '48px', marginTop: '16px' }}>
+          <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '24px', color: '#6b7280' }}>N° de Membre</span>
+              <span style={{ fontSize: '20px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px' }}>N° de Membre</span>
               <span style={{ fontSize: '32px', fontWeight: '600' }}>{member.member_number || 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '24px', color: '#6b7280' }}>Statut</span>
+              <span style={{ fontSize: '20px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px' }}>Statut</span>
               <span style={{ fontSize: '32px', fontWeight: '600' }}>{member.status === 'active' ? 'Actif' : 'Inactif'}</span>
             </div>
             {expiresAt && (
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '24px', color: '#6b7280' }}>Expire le</span>
+                <span style={{ fontSize: '20px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px' }}>Expire le</span>
                 <span style={{ fontSize: '32px', fontWeight: '600' }}>
                   {`${expiresAt.getDate().toString().padStart(2, '0')}/${(expiresAt.getMonth() + 1).toString().padStart(2, '0')}/${expiresAt.getFullYear()}`}
                 </span>
@@ -101,9 +105,10 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
           </div>
         </div>
 
-        {settings.show_qr && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <img width={180} height={180} src={qrCodeDataUrl} style={{ width: '180px', height: '180px', border: '4px solid #e5e7eb', borderRadius: '16px' }} />
+        {/* QR Code Section */}
+        {settings.show_qr !== false && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb', padding: '16px', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
+            <img src={qrCodeDataUrl} style={{ width: '160px', height: '160px' }} />
           </div>
         )}
       </div>
@@ -122,8 +127,8 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
         width: cardWidth,
         height: cardHeight,
         backgroundColor: '#f9fafb',
-        border: `8px solid ${settings.secondary_color}`,
-        borderRadius: settings.corner_style === 'rounded' ? '32px' : '0px',
+        border: `4px solid ${settings.secondary_color || settings.primary_color || '#1e3a8a'}`,
+        borderRadius: settings.corner_style === 'rounded' ? '24px' : '0px',
         padding: '64px',
         fontFamily: 'sans-serif',
         alignItems: 'center',
@@ -131,12 +136,12 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
         textAlign: 'center'
       }}
     >
-      <h2 style={{ fontSize: '36px', color: settings.primary_color, marginBottom: '24px', fontWeight: 'bold' }}>{member.organization?.name}</h2>
-      <p style={{ fontSize: '28px', color: '#4b5563', lineHeight: 1.5, maxWidth: '80%' }}>
-        {settings.legal_mentions}
+      <h2 style={{ fontSize: '42px', color: settings.primary_color || '#1e3a8a', marginBottom: '24px', fontWeight: 'bold' }}>{member.organization?.name}</h2>
+      <p style={{ fontSize: '26px', color: '#4b5563', lineHeight: 1.6, maxWidth: '85%' }}>
+        {settings.legal_mentions || "Cette carte est la propriété de l'organisation. Veuillez la retourner en cas de perte."}
       </p>
-      {settings.show_qr && (
-        <img width={150} height={150} src={qrCodeDataUrl} style={{ width: '150px', height: '150px', marginTop: '48px', opacity: 0.8 }} />
+      {settings.show_qr !== false && (
+        <img src={qrCodeDataUrl} style={{ width: '150px', height: '150px', marginTop: '48px', mixBlendMode: 'multiply' }} />
       )}
     </div>
   );
