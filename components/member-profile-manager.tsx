@@ -149,7 +149,6 @@ export function MemberProfileManager({ member, elections, canManage, orgName }: 
           <button className="button" onClick={() => setActiveModal("editProfile")}>✏️ Modifier profil</button>
           <button className="button" onClick={() => setActiveModal("editStatus")}>⚙️ Gérer statut</button>
           <button className="button" onClick={() => setActiveModal("addElection")}>🗳️ Ajouter élection</button>
-          <button className="button button-dark" onClick={() => setActiveModal("memberCard")}>🪪 Générer la carte</button>
         </div>
       )}
 
@@ -196,6 +195,14 @@ export function MemberProfileManager({ member, elections, canManage, orgName }: 
                 </span>
               </div>
             )}
+          </div>
+        </article>
+
+        <article className="panel">
+          <p className="eyebrow">Identification</p>
+          <h2>Carte de membre</h2>
+          <div style={{ marginTop: '1rem' }}>
+            <MemberCard member={member} orgName={orgName || "Organisation"} />
           </div>
         </article>
       </div>
@@ -258,13 +265,6 @@ export function MemberProfileManager({ member, elections, canManage, orgName }: 
               </form>
             )}
 
-            {activeModal === "memberCard" && (
-              <div className="compact-form">
-                <p className="eyebrow">Aperçu</p>
-                <h2>Carte de Membre</h2>
-                <MemberCard member={member} orgName={orgName || "Organisation"} />
-              </div>
-            )}
           </div>
         </div>
       )}
