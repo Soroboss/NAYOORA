@@ -81,17 +81,54 @@ export function MemberProfileManager({ member, elections, canManage, orgName }: 
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) return setNotice("Le fichier choisi doit être une image.");
-    if (file.size > 2_000_000) return setNotice("Photo trop lourde. Utilisez une image inférieure à 2 Mo.");
+    
     setBusy(true);
-    setNotice("Upload de la photo en cours…");
+    setNotice("Préparation et upload de la photo en cours…");
     try {
+      // 1. Client-side compression and conversion to JPEG (solves WebP/HEIC issues for PDF)
+      const compressedBlob = await new Promise<Blob>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          // Max dimensions (e.g. 800px)
+          const MAX_SIZE = 800;
+          if (width > height && width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          } else if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return reject(new Error("Erreur de traitement d'image"));
+          // Fill white background for transparent images
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Erreur de compression"));
+          }, "image/jpeg", 0.85); // Convert everything to standard JPEG at 85% quality
+        };
+        img.onerror = () => reject(new Error("Fichier image corrompu ou non supporté"));
+        img.src = URL.createObjectURL(file);
+      });
+
+      if (compressedBlob.size > 2_000_000) return setNotice("La photo est toujours trop lourde après compression.");
+
+      // 2. Upload to Supabase
       const { createClient } = await import("@/lib/insforge/client");
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").split('.')[0] + '.jpg'; // Force .jpg extension
       const path = `organizations/${member.organization_id}/members/${crypto.randomUUID()}-${safeName}`;
       const client = createClient();
       if (!client) throw new Error("Client non configuré (Clés API manquantes).");
       const bucket = client.storage.from("member-photos");
-      const { data, error } = await bucket.upload(path, file);
+      const { data, error } = await bucket.upload(path, compressedBlob, { contentType: 'image/jpeg' });
       if (error) throw error;
       const publicUrl = data?.url ?? bucket.getPublicUrl(path).data?.publicUrl ?? path;
       setForm((current: any) => ({ ...current, photoUrl: publicUrl }));
