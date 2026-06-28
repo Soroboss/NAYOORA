@@ -6,9 +6,6 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
   const [downloading, setDownloading] = useState(false);
   const [cardData, setCardData] = useState<any>(member.member_cards?.[0] || null);
   const [notice, setNotice] = useState("");
-  const [validityMonths, setValidityMonths] = useState(12);
-  const [theme, setTheme] = useState('modern');
-  const [primaryColor, setPrimaryColor] = useState('#1e40af');
   const [toggling, setToggling] = useState(false);
 
   async function handleToggleStatus() {
@@ -41,10 +38,7 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           memberId: member.id, 
-          organizationId: member.organization_id,
-          validityMonths,
-          theme,
-          primaryColor
+          organizationId: member.organization_id
         })
       });
       
@@ -102,61 +96,11 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
         </div>
       ) : (
         <div className="w-full mt-4">
-          <div className="text-left space-y-5">
-            {/* Theme Selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>Modèle visuel</label>
-              <select 
-                value={theme} 
-                onChange={(e) => setTheme(e.target.value)}
-                disabled={downloading}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#fff' }}
-              >
-                <option value="modern">🚀 Moderne (Épuré & Clair)</option>
-                <option value="classic">🏛️ Classique (Traditionnel)</option>
-                <option value="elegant">✨ Élégant (Sombre & Premium)</option>
-              </select>
+            <div style={{ backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '24px' }}>
+              <p style={{ fontSize: '14px', color: '#4b5563', lineHeight: 1.5, margin: 0 }}>
+                <strong>Configuration centralisée :</strong> Le design (modèle, couleurs) et la validité de cette carte seront générés automatiquement à partir des paramètres officiels de l'organisation.
+              </p>
             </div>
-            
-            {/* Color Selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>Couleur principale (ex: Logo)</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <input 
-                  type="color" 
-                  value={primaryColor} 
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  disabled={downloading}
-                  style={{ width: '48px', height: '48px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'transparent' }}
-                  title="Choisir une couleur"
-                />
-                <input 
-                  type="text" 
-                  value={primaryColor.toUpperCase()} 
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  disabled={downloading}
-                  placeholder="#000000"
-                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontFamily: 'monospace', textTransform: 'uppercase' }}
-                />
-              </div>
-            </div>
-
-            {/* Validity Selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>Durée de validité</label>
-              <select 
-                value={validityMonths} 
-                onChange={(e) => setValidityMonths(Number(e.target.value))}
-                disabled={downloading}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', backgroundColor: '#fff' }}
-              >
-                <option value={12}>1 an (Standard)</option>
-                <option value={24}>2 ans</option>
-                <option value={36}>3 ans</option>
-                <option value={60}>5 ans (Longue durée)</option>
-              </select>
-            </div>
-          </div>
 
           <button 
             onClick={handleGenerate} 

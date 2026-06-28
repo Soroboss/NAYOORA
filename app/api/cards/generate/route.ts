@@ -41,12 +41,11 @@ export async function POST(request: Request) {
       };
     }
     
-    // Override with user's specific choices in the modal
-    if (theme) finalSettings.theme = theme;
-    if (primaryColor) finalSettings.primary_color = primaryColor;
+    // Enforce organization settings
+    const finalValidityMonths = finalSettings.validity_months || validityMonths;
 
     const expiresAt = new Date();
-    expiresAt.setMonth(expiresAt.getMonth() + validityMonths);
+    expiresAt.setMonth(expiresAt.getMonth() + finalValidityMonths);
 
     let existingCard = Array.isArray(member.member_cards) && member.member_cards.length > 0 ? member.member_cards[0] : null;
     const qrToken = existingCard?.qr_token || memberId;

@@ -38,7 +38,8 @@ export default function CardSettingsPage({ params }: { params: Promise<{ organiz
           organization_id: org.id,
           is_active: false,
           auto_generate: false,
-          theme: 'corporate-blue',
+          theme: 'modern',
+          validity_months: 12,
           primary_color: '#1e40af',
           secondary_color: '#3b82f6',
           text_color: '#111827',
@@ -113,6 +114,35 @@ export default function CardSettingsPage({ params }: { params: Promise<{ organiz
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
             <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Design & Couleurs</h2>
             
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Modèle visuel</label>
+                <select 
+                  value={settings.theme}
+                  onChange={(e) => setSettings({...settings, theme: e.target.value})}
+                  className="w-full border rounded-lg px-3 py-2 bg-gray-50"
+                >
+                  <option value="modern">🚀 Moderne (Épuré & Clair)</option>
+                  <option value="classic">🏛️ Classique (Traditionnel)</option>
+                  <option value="elegant">✨ Élégant (Sombre & Premium)</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Durée de validité</label>
+                <select 
+                  value={settings.validity_months || 12}
+                  onChange={(e) => setSettings({...settings, validity_months: Number(e.target.value)})}
+                  className="w-full border rounded-lg px-3 py-2 bg-gray-50"
+                >
+                  <option value={12}>1 an (Standard)</option>
+                  <option value={24}>2 ans</option>
+                  <option value={36}>3 ans</option>
+                  <option value={60}>5 ans (Longue durée)</option>
+                </select>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Couleur Principale</label>
@@ -123,12 +153,12 @@ export default function CardSettingsPage({ params }: { params: Promise<{ organiz
                     onChange={(e) => setSettings({...settings, primary_color: e.target.value})}
                     className="h-10 w-10 p-1 border rounded"
                   />
-                  <input type="text" value={settings.primary_color} readOnly className="border rounded px-3 py-2 flex-1" />
+                  <input type="text" value={settings.primary_color} onChange={(e) => setSettings({...settings, primary_color: e.target.value})} className="border rounded px-3 py-2 flex-1 uppercase" />
                 </div>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Couleur Secondaire</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Couleur Secondaire (Optionnelle)</label>
                 <div className="flex items-center space-x-2">
                   <input 
                     type="color" 
@@ -136,7 +166,7 @@ export default function CardSettingsPage({ params }: { params: Promise<{ organiz
                     onChange={(e) => setSettings({...settings, secondary_color: e.target.value})}
                     className="h-10 w-10 p-1 border rounded"
                   />
-                  <input type="text" value={settings.secondary_color} readOnly className="border rounded px-3 py-2 flex-1" />
+                  <input type="text" value={settings.secondary_color} onChange={(e) => setSettings({...settings, secondary_color: e.target.value})} className="border rounded px-3 py-2 flex-1 uppercase" />
                 </div>
               </div>
             </div>
