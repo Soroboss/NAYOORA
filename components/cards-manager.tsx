@@ -24,6 +24,13 @@ export function CardsManager({ template, cards, canManage, logoUrl }: { template
 
   const extractColorFromLogo = () => {
     if (!logoUrl) return alert("Aucun logo défini pour cette organisation.");
+    
+    let resolvedLogoUrl = logoUrl;
+    if (!resolvedLogoUrl.startsWith('http')) {
+      // It's likely a Supabase storage path
+      resolvedLogoUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/organization-logos/${resolvedLogoUrl}`;
+    }
+
     setExtracting(true);
     const img = new Image();
     img.crossOrigin = "Anonymous";
@@ -56,10 +63,10 @@ export function CardsManager({ template, cards, canManage, logoUrl }: { template
       setExtracting(false);
     };
     img.onerror = () => {
-      alert("Erreur lors de l'analyse du logo.");
+      alert("Erreur lors de l'analyse du logo. L'image n'a pas pu être chargée ou a un fond bloquant.");
       setExtracting(false);
     };
-    img.src = logoUrl;
+    img.src = resolvedLogoUrl;
   };
 
   async function sub(e: FormEvent<HTMLFormElement>) {
