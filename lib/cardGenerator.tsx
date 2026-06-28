@@ -9,49 +9,23 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
 
   const insforge = await createAdminClient();
 
-  // Helper to fetch image and convert to Base64 (avoids Satori fetch bugs and unsupported formats)
-  async function fetchImageAsBase64(url: string, fallbackUrl: string): Promise<string> {
-    if (!url) return fallbackUrl;
-    try {
-      let finalUrl = url;
-      if (url.startsWith('organizations/')) {
-        finalUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/member-photos/${url}`;
-      } else if (!url.startsWith('http')) {
-        return fallbackUrl;
-      }
-      
-      const res = await fetch(finalUrl, { cache: 'no-store' });
-      if (!res.ok) {
-        console.warn(`Failed to fetch image for card: ${res.status} ${res.statusText} - ${finalUrl}`);
-        return fallbackUrl;
-      }
-      
-      let contentType = res.headers.get('content-type') || 'image/png';
-      
-      if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'].includes(contentType)) {
-        console.warn(`Unsupported image type for Satori: ${contentType} - URL: ${finalUrl}`);
-        return fallbackUrl;
-      }
-      
-      const arrayBuffer = await res.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString('base64');
-      return `data:${contentType};base64,${base64}`;
-    } catch (e) {
-      console.error('Failed to fetch image for card:', url, e);
-      return fallbackUrl;
+  // Helper to construct absolute public URL for Supabase storage
+  function getAbsoluteUrl(url: string, bucket: string, fallback: string): string {
+    if (!url) return fallback;
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('organizations/')) {
+      return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${url}`;
     }
+    return fallback;
   }
 
   const fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim() || 'Membre';
   const primaryHex = (settings.primary_color || '#1e3a8a').replace('#', '');
   const defaultAvatar = `https://api.dicebear.com/7.x/initials/png?seed=${encodeURIComponent(fullName)}&backgroundColor=${primaryHex}&textColor=ffffff`;
   
-  // Pre-fetch images
-  const safeLogoUrl = member.organization?.logo_url 
-    ? await fetchImageAsBase64(member.organization.logo_url, '') 
-    : '';
-  const safePhotoUrl = await fetchImageAsBase64(member.photo_url, defaultAvatar);
-
+  const safePhotoUrl = getAbsoluteUrl(member.photo_url, 'member-photos', defaultAvatar);
+  const safeLogoUrl = getAbsoluteUrl(member.organization?.logo_url, 'organization-logos', '');
+  
   // 1. Generate QR Code Data URI
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://nayoora.com';
   const verifyUrl = `${baseUrl}/verify/${qrToken || member.qr_token || member.id}`;
