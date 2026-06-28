@@ -22,27 +22,28 @@ export async function POST(request: Request) {
     if (memberErr) throw new Error(`Member lookup error: ${memberErr.message}`);
     if (!member) throw new Error("Member not found");
 
-    const { data: settings, error: settingsErr } = await insforge
-      .from('organization_card_settings')
+    const { data: settingsRow, error: settingsErr } = await insforge
+      .from('settings')
       .select('*')
       .eq('organization_id', organizationId)
       .single();
 
-    let finalSettings = settings;
-    if (settingsErr || !settings) {
-      finalSettings = {
-        primary_color: primaryColor || '#1e40af',
-        secondary_color: '#3b82f6',
-        text_color: '#111827',
-        corner_style: 'rounded',
-        show_qr: true,
-        show_photo: true,
-        legal_mentions: "Cette carte demeure la propriété de l'organisation. Elle doit être présentée à toute demande. Toute perte doit être signalée immédiatement."
-      };
-    }
+    const dataObj = settingsRow?.data || {};
+
+    let finalSettings = {
+      primary_color: dataObj.card_primary_color || primaryColor || '#1e40af',
+      theme: dataObj.card_theme || theme || 'modern',
+      validity_months: dataObj.card_validity_months || validityMonths || 12,
+      secondary_color: '#3b82f6',
+      text_color: '#111827',
+      corner_style: 'rounded',
+      show_qr: true,
+      show_photo: true,
+      legal_mentions: "Cette carte demeure la propriété de l'organisation. Elle doit être présentée à toute demande. Toute perte doit être signalée immédiatement."
+    };
     
     // Enforce organization settings
-    const finalValidityMonths = finalSettings.validity_months || validityMonths;
+    const finalValidityMonths = finalSettings.validity_months;
 
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + finalValidityMonths);
