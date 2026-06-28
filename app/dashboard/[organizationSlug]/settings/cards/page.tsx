@@ -9,20 +9,63 @@ import { use } from 'react';
 export default function CardSettingsPage({ params }: { params: Promise<{ organizationSlug: string }> }) {
   const { organizationSlug } = use(params);
   const [settings, setSettings] = useState<any>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const router = useRouter();
   const insforge = createClient();
+
+  const extractColorFromLogo = () => {
+    if (!logoUrl) return alert("Aucun logo défini pour cette organisation.");
+    setExtracting(true);
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return setExtracting(false);
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      
+      let r = 0, g = 0, b = 0, count = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i+3] > 128) { // Only count non-transparent pixels
+          r += data[i];
+          g += data[i+1];
+          b += data[i+2];
+          count++;
+        }
+      }
+      
+      if (count > 0) {
+        r = Math.floor(r / count);
+        g = Math.floor(g / count);
+        b = Math.floor(b / count);
+        const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        setSettings({ ...settings, primary_color: hex });
+      }
+      setExtracting(false);
+    };
+    img.onerror = () => {
+      alert("Erreur lors de l'analyse du logo.");
+      setExtracting(false);
+    };
+    img.src = logoUrl;
+  };
 
   useEffect(() => {
     async function fetchSettings() {
       const { data: org } = await insforge
         .from('organizations')
-        .select('id')
+        .select('id, logo_url')
         .eq('slug', organizationSlug)
         .single();
         
       if (!org) return;
+      setLogoUrl(org.logo_url);
 
       const { data } = await insforge
         .from('organization_card_settings')
@@ -151,9 +194,19 @@ export default function CardSettingsPage({ params }: { params: Promise<{ organiz
                     type="color" 
                     value={settings.primary_color}
                     onChange={(e) => setSettings({...settings, primary_color: e.target.value})}
-                    className="h-10 w-10 p-1 border rounded"
+                    className="h-10 w-10 p-1 border rounded cursor-pointer"
                   />
-                  <input type="text" value={settings.primary_color} onChange={(e) => setSettings({...settings, primary_color: e.target.value})} className="border rounded px-3 py-2 flex-1 uppercase" />
+                  <input type="text" value={settings.primary_color} onChange={(e) => setSettings({...settings, primary_color: e.target.value})} className="border rounded px-3 py-2 w-24 uppercase font-mono text-sm" />
+                  {logoUrl && (
+                    <button 
+                      type="button" 
+                      onClick={extractColorFromLogo}
+                      disabled={extracting}
+                      className="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-3 py-2 rounded-lg font-medium transition-colors whitespace-nowrap"
+                    >
+                      {extracting ? "Calcul..." : "🪄 Couleur du logo"}
+                    </button>
+                  )}
                 </div>
               </div>
               
