@@ -154,57 +154,61 @@ export function MemberProfileManager({ member, elections, canManage, orgName }: 
 
       {/* Main Profile View */}
       <div className="member-profile-grid">
-        <article className="panel member-profile-card">
-          <div className="profile-photo">
-            {member.photo_url ? (
-              <img src={member.photo_url} alt="Photo" crossOrigin="anonymous" />
-            ) : (
-              `${member.first_name?.[0] ?? ""}${member.last_name?.[0] ?? ""}`
-            )}
-          </div>
-          <p className="eyebrow">Fiche membre</p>
-          <h2>{member.first_name} {member.last_name}</h2>
-          <div className="profile-lines">
-            <p><b>Matricule</b><span>{member.member_number || "Auto non défini"}</span></p>
-            <p><b>Téléphone</b><span>{member.phone || "Non renseigné"}</span></p>
-            <p><b>Email</b><span>{member.email || "Non renseigné"}</span></p>
-            <p><b>Adresse</b><span>{member.address || "Non renseignée"}</span></p>
-            <p><b>Statut</b><span>{member.status}</span></p>
-            <p><b>Fonction</b><span>{roleLabel(member.office_role || "member")}{member.office_title ? ` · ${member.office_title}` : ""}</span></p>
-          </div>
-        </article>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <article className="panel member-profile-card">
+            <div className="profile-photo">
+              {member.photo_url ? (
+                <img src={member.photo_url} alt="Photo" crossOrigin="anonymous" />
+              ) : (
+                `${member.first_name?.[0] ?? ""}${member.last_name?.[0] ?? ""}`
+              )}
+            </div>
+            <p className="eyebrow">Fiche membre</p>
+            <h2>{member.first_name} {member.last_name}</h2>
+            <div className="profile-lines">
+              <p><b>Matricule</b><span>{member.member_number || "Auto non défini"}</span></p>
+              <p><b>Téléphone</b><span>{member.phone || "Non renseigné"}</span></p>
+              <p><b>Email</b><span>{member.email || "Non renseigné"}</span></p>
+              <p><b>Adresse</b><span>{member.address || "Non renseignée"}</span></p>
+              <p><b>Statut</b><span>{member.status}</span></p>
+              <p><b>Fonction</b><span>{roleLabel(member.office_role || "member")}{member.office_title ? ` · ${member.office_title}` : ""}</span></p>
+            </div>
+          </article>
 
-        <article className="panel">
-          <p className="eyebrow">Historique</p>
-          <h2>Élections & nominations</h2>
-          <div className="finance-list">
-            {elections.map((election) => (
-              <div key={election.id}>
-                <span>
-                  <b>{election.title}</b>
-                  <small>{roleLabel(election.position)} · {election.election_date ? new Date(election.election_date).toLocaleDateString("fr-FR") : "Date non précisée"}</small>
-                </span>
-                <b>{election.status}</b>
-              </div>
-            ))}
-            {!elections.length && (
-              <div>
-                <span>
-                  <b>Aucune élection enregistrée</b>
-                  <small>Utilisez "Ajouter élection" pour créer le premier historique.</small>
-                </span>
-              </div>
-            )}
-          </div>
-        </article>
+          <article className="panel">
+            <p className="eyebrow">Identification</p>
+            <h2>Carte de membre</h2>
+            <div style={{ marginTop: '1rem' }}>
+              <MemberCard member={member} orgName={orgName || "Organisation"} />
+            </div>
+          </article>
+        </div>
 
-        <article className="panel">
-          <p className="eyebrow">Identification</p>
-          <h2>Carte de membre</h2>
-          <div style={{ marginTop: '1rem' }}>
-            <MemberCard member={member} orgName={orgName || "Organisation"} />
-          </div>
-        </article>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <article className="panel">
+            <p className="eyebrow">Historique</p>
+            <h2>Élections & nominations</h2>
+            <div className="finance-list">
+              {elections.map((election) => (
+                <div key={election.id}>
+                  <span>
+                    <b>{election.title}</b>
+                    <small>{roleLabel(election.position)} · {election.election_date ? new Date(election.election_date).toLocaleDateString("fr-FR") : "Date non précisée"}</small>
+                  </span>
+                  <b>{election.status}</b>
+                </div>
+              ))}
+              {!elections.length && (
+                <div>
+                  <span>
+                    <b>Aucune élection enregistrée</b>
+                    <small>Utilisez "Ajouter élection" pour créer le premier historique.</small>
+                  </span>
+                </div>
+              )}
+            </div>
+          </article>
+        </div>
       </div>
 
       {/* Modals Overlay */}
