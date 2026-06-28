@@ -183,7 +183,8 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       .from('member_cards')
       .getPublicUrl(path);
       
-    return publicUrlData.publicUrl;
+    // Append timestamp to bypass CDN cache for overwritten files
+    return `${publicUrlData.publicUrl}?t=${Date.now()}`;
   };
 
   const [frontUrl, backUrl, pdfUrl] = await Promise.all([
