@@ -101,65 +101,108 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
           </div>
         </div>
       ) : (
-        <div className="text-center p-6 bg-gray-50 border border-gray-200 rounded-xl w-full">
-          <div className="text-4xl mb-4">🪪</div>
-          <p className="text-gray-600 mb-6 text-sm">
-            Personnalisez la carte pour {member.first_name} {member.last_name}.
+        <div className="text-center p-8 bg-white border border-gray-100 shadow-xl rounded-2xl w-full max-w-md mx-auto">
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="18" height="18" x="3" y="3" rx="4" />
+                <path d="M3 9h18" />
+                <path d="M9 21V9" />
+                <path d="M12 14l2-2 2 2" />
+                <path d="M14 12v5" />
+              </svg>
+            </div>
+          </div>
+          
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Design de la carte</h3>
+          <p className="text-gray-500 mb-8 text-sm">
+            Personnalisez l'apparence de la carte officielle de {member.first_name}.
           </p>
 
-          <div className="mb-4 text-left grid gap-4">
+          <div className="text-left space-y-6">
+            {/* Theme Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Thème de la carte</label>
-              <select 
-                value={theme} 
-                onChange={(e) => setTheme(e.target.value)}
-                className="w-full border-gray-300 rounded-lg shadow-sm p-2 text-sm"
-                disabled={downloading}
-              >
-                <option value="modern">Moderne (Photo à gauche)</option>
-                <option value="classic">Classique (Photo centrée en haut)</option>
-                <option value="elegant">Élégant (Style sombre & épuré)</option>
-              </select>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Modèle visuel</label>
+              <div className="relative">
+                <select 
+                  value={theme} 
+                  onChange={(e) => setTheme(e.target.value)}
+                  className="w-full appearance-none border border-gray-300 rounded-xl shadow-sm px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  disabled={downloading}
+                >
+                  <option value="modern">🚀 Moderne (Épuré & Clair)</option>
+                  <option value="classic">🏛️ Classique (Traditionnel)</option>
+                  <option value="elegant">✨ Élégant (Sombre & Premium)</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
             </div>
             
+            {/* Color Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Couleur principale (ex: Logo)</label>
-              <div className="flex gap-2">
-                <input 
-                  type="color" 
-                  value={primaryColor} 
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="h-9 w-12 rounded border-gray-300 cursor-pointer"
-                  disabled={downloading}
-                />
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Couleur de l'organisation</label>
+              <div className="flex items-center gap-3">
+                <div className="relative w-12 h-12 rounded-xl shadow-inner border border-gray-200 overflow-hidden shrink-0 transition-transform hover:scale-105" style={{ backgroundColor: primaryColor }}>
+                  <input 
+                    type="color" 
+                    value={primaryColor} 
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    disabled={downloading}
+                    title="Choisir une couleur"
+                  />
+                </div>
                 <input 
                   type="text" 
-                  value={primaryColor} 
+                  value={primaryColor.toUpperCase()} 
                   onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="flex-1 border-gray-300 rounded-lg shadow-sm p-2 text-sm"
+                  className="flex-1 border border-gray-300 rounded-xl shadow-sm px-4 py-3 text-sm uppercase tracking-wider font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
                   disabled={downloading}
+                  placeholder="#000000"
                 />
               </div>
             </div>
 
+            {/* Validity Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Durée de validité</label>
-              <select 
-                value={validityMonths} 
-                onChange={(e) => setValidityMonths(Number(e.target.value))}
-                className="w-full border-gray-300 rounded-lg shadow-sm p-2 text-sm"
-                disabled={downloading}
-              >
-                <option value={12}>1 an</option>
-                <option value={24}>2 ans</option>
-                <option value={36}>3 ans</option>
-                <option value={60}>5 ans</option>
-              </select>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Durée de validité</label>
+              <div className="relative">
+                <select 
+                  value={validityMonths} 
+                  onChange={(e) => setValidityMonths(Number(e.target.value))}
+                  className="w-full appearance-none border border-gray-300 rounded-xl shadow-sm px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  disabled={downloading}
+                >
+                  <option value={12}>1 an (Standard)</option>
+                  <option value={24}>2 ans</option>
+                  <option value={36}>3 ans</option>
+                  <option value={60}>5 ans (Longue durée)</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
             </div>
           </div>
 
-          <button onClick={handleGenerate} disabled={downloading} className="button button-dark w-full mt-2">
-            {downloading ? "Création en cours..." : "Lancer la génération"}
+          <button 
+            onClick={handleGenerate} 
+            disabled={downloading} 
+            className="w-full mt-8 bg-gray-900 hover:bg-black text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex justify-center items-center gap-2"
+          >
+            {downloading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Génération en cours...
+              </>
+            ) : (
+              "Créer la carte"
+            )}
           </button>
         </div>
       )}
