@@ -27,13 +27,12 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
       }
       
       let contentType = res.headers.get('content-type') || 'image/png';
-      if (contentType === 'application/octet-stream') contentType = 'image/jpeg'; // Guess jpeg if unknown
       
-      if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'].includes(contentType)) {
+      if (!['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'].includes(contentType)) {
         console.warn(`Unsupported image type for Satori: ${contentType} - URL: ${finalUrl}`);
-        // Let's try to proceed anyway by forcing image/jpeg
-        contentType = 'image/jpeg';
+        return fallbackUrl;
       }
+      
       const arrayBuffer = await res.arrayBuffer();
       const base64 = Buffer.from(arrayBuffer).toString('base64');
       return `data:${contentType};base64,${base64}`;
