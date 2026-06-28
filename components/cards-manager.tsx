@@ -160,10 +160,53 @@ export function CardsManager({ template, cards, canManage, logoUrl }: { template
             <button disabled={busy} className="button button-dark">Enregistrer le modèle</button>
           </form>
 
-          <article className="panel channel-note">
-            <p className="eyebrow">Vérification</p>
-            <h2>QR sécurisé</h2>
-            <p>Chaque carte possède un lien de vérification unique. Il indique uniquement l’identité, l’organisation et le statut de validité.</p>
+          <article className="panel">
+            <p className="eyebrow">Aperçu en direct</p>
+            <h2>Visuel du modèle</h2>
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center', backgroundColor: '#f3f4f6', padding: '24px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              {settings.theme === 'elegant' && (
+                <div style={{ display: 'flex', width: '100%', maxWidth: '340px', backgroundColor: '#111827', borderRadius: '12px', border: `3px solid ${settings.primary_color}`, overflow: 'hidden', color: '#fff', aspectRatio: '1.58', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+                  <div style={{ width: '35%', backgroundColor: settings.primary_color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '40px', height: '40px', backgroundColor: '#fff', borderRadius: '8px' }}></div>
+                  </div>
+                  <div style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{ fontSize: '10px', color: settings.primary_color, textTransform: 'uppercase', fontWeight: 'bold' }}>Organisation</div>
+                    <div style={{ fontSize: '18px', fontWeight: 'bold', marginTop: '4px' }}>Prénom Nom</div>
+                    <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '2px' }}>Titre / Rôle</div>
+                  </div>
+                </div>
+              )}
+              {settings.theme === 'classic' && (
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '340px', backgroundColor: '#f9fafb', borderRadius: '12px', border: `3px solid ${settings.primary_color}`, overflow: 'hidden', color: '#1f2937', aspectRatio: '1.58', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+                  <div style={{ padding: '12px', backgroundColor: settings.primary_color, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '24px', height: '24px', backgroundColor: '#fff', borderRadius: '4px' }}></div>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold' }}>Organisation</div>
+                  </div>
+                  <div style={{ padding: '16px', flex: 1 }}>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: settings.primary_color }}>Prénom Nom</div>
+                    <div style={{ fontSize: '12px', color: '#4b5563', marginTop: '2px' }}>Titre / Rôle</div>
+                  </div>
+                </div>
+              )}
+              {settings.theme === 'modern' && (
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '340px', backgroundColor: '#ffffff', borderRadius: '12px', border: `3px solid ${settings.primary_color}`, overflow: 'hidden', color: '#1f2937', aspectRatio: '1.58', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
+                  <div style={{ padding: '16px', backgroundColor: settings.primary_color, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '32px', height: '32px', backgroundColor: '#fff', borderRadius: '6px' }}></div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold' }}>Organisation</div>
+                  </div>
+                  <div style={{ padding: '16px', flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <div style={{ width: '60px', height: '60px', backgroundColor: '#e5e7eb', borderRadius: '8px', border: `3px solid ${settings.primary_color}`, marginRight: '16px' }}></div>
+                    <div style={{ flex: 1 }}>
+                       <div style={{ fontSize: '18px', fontWeight: 'bold', color: settings.primary_color }}>Prénom Nom</div>
+                       <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>Titre / Rôle</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '12px', textAlign: 'center' }}>
+              Ceci est un aperçu simplifié. La vraie carte contiendra les photos, QR codes et informations complètes.
+            </p>
           </article>
         </div>
       )}
