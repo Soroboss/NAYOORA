@@ -89,13 +89,13 @@ export function MemberCard({ member, orgName }: { member: any; orgName: string }
               {toggling ? '...' : (cardData.status === 'active' ? 'Désactiver' : 'Activer')}
             </button>
           </div>
-          <div className="w-full aspect-[1.58] bg-white rounded-xl shadow-xl overflow-hidden relative">
-            <img src={cardData.front_image_url} alt="Recto" className="w-full h-full object-cover" />
+          <div style={{ width: '100%', paddingBottom: '62.8%', position: 'relative', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', backgroundColor: '#fff' }}>
+            <img src={cardData.front_image_url} alt="Recto" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
-          <div className="w-full aspect-[1.58] bg-white rounded-xl shadow-xl overflow-hidden relative">
-            <img src={cardData.back_image_url} alt="Verso" className="w-full h-full object-cover" />
+          <div style={{ width: '100%', paddingBottom: '62.8%', position: 'relative', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', backgroundColor: '#fff' }}>
+            <img src={cardData.back_image_url} alt="Verso" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
-          <div className="flex gap-4 mt-4">
+          <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
              <a href={cardData.pdf_url} target="_blank" rel="noreferrer" className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#e2e8f0', color: '#0f172a', fontWeight: 'bold', borderRadius: '8px', textDecoration: 'none' }}>📄 PDF complet</a>
              <button onClick={() => setCardData(null)} disabled={downloading} className="button flex-1 text-center" style={{ padding: '10px 15px', backgroundColor: '#0f172a', color: '#ffffff', fontWeight: 'bold', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>🔄 Régénérer</button>
           </div>
