@@ -168,7 +168,7 @@ export async function generateMemberCardFiles(member: any, settings: any, expire
   const pdfBytes = await pdfDoc.save();
 
   // 5. Upload to InsForge Storage
-  const pathPrefix = `${member.organization_id}/${member.id}`;
+  const pathPrefix = `${member.organization_id}/${member.id}_${Date.now()}`;
   
   const uploadFile = async (path: string, buffer: ArrayBuffer | Uint8Array, contentType: string) => {
     // Edge environments require a Blob to automatically determine the Content-Length
