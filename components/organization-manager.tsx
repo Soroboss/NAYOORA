@@ -3,6 +3,7 @@ import { FormEvent, useState, ChangeEvent } from 'react';
 
 const modules = [
   ['members', 'Membres'],
+  ['cards', 'Cartes de membre'],
   ['contributions', 'Cotisations'],
   ['finance', 'Caisse & paiements'],
   ['loans', 'Prêts & créances'],
