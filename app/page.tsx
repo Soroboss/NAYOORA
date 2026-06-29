@@ -32,9 +32,9 @@ export default async function Home() {
 
     <footer className="nayoora-footer premium-footer">
       <Link href="/" className="brand"><img src="/nayoora-logo.png" alt="" /> NAYOORA</Link>
-      <span>Gérez. Connectez. Développez.</span>
+      <span className="footer-slogan">Gérez. Connectez. Développez.</span>
       <span className="support-phone">Support : +225 07 57 22 87 31</span>
-      <span>© {new Date().getFullYear()} NAYOORA</span>
+      <span className="footer-copy">© {new Date().getFullYear()} NAYOORA</span>
     </footer>
   </main>;
 }

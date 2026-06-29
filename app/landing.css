@@ -353,29 +353,41 @@
     padding: 4px;
   }
   
-  /* Footer centered */
+  /* Footer 2 rows */
   .premium-footer {
-    display: flex !important;
-    flex-direction: column;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
-    text-align: center;
-    gap: 14px !important;
+    gap: 12px 10px !important;
     padding: 30px 5vw 40px !important;
+    text-align: left;
   }
   .premium-footer .brand {
-    justify-content: center;
-    margin-bottom: 5px;
-  }
-  .premium-footer span {
-    line-height: 1.6;
+    justify-content: flex-start;
+    margin-bottom: 0;
   }
   .support-phone {
+    justify-self: end;
+    text-align: right;
     font-weight: 800;
     color: var(--deep);
     background: #eef6f3;
-    padding: 6px 14px;
+    padding: 6px 12px;
     border-radius: 20px;
-    margin: 4px 0;
+    margin: 0;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+  .footer-slogan {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 9px;
+  }
+  .footer-copy {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    font-size: 9px;
   }
 }
 
