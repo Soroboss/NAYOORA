@@ -228,7 +228,20 @@ export function MemberProfileManager({ member, allMembers, elections, canManage,
                 <input name="phone" defaultValue={member.phone || ""} placeholder="Téléphone" />
                 <input name="email" type="email" defaultValue={member.email || ""} placeholder="Email" />
                 <input name="address" defaultValue={member.address || ""} placeholder="Adresse" />
-                <input name="title" defaultValue={member.title || ""} placeholder="Fonction (Ex: Secrétaire Général)" />
+                <select name="title" defaultValue={member.title || ""}>
+                  <option value="">Fonction (Sélectionner...)</option>
+                  <option value="Membre">Membre</option>
+                  <option value="Président(e)">Président(e)</option>
+                  <option value="Vice-Président(e)">Vice-Président(e)</option>
+                  <option value="Secrétaire Général(e)">Secrétaire Général(e)</option>
+                  <option value="Secrétaire Adjoint(e)">Secrétaire Adjoint(e)</option>
+                  <option value="Trésorier(e) Général(e)">Trésorier(e) Général(e)</option>
+                  <option value="Trésorier(e) Adjoint(e)">Trésorier(e) Adjoint(e)</option>
+                  <option value="Commissaire aux comptes">Commissaire aux comptes</option>
+                  <option value="Conseiller(ère)">Conseiller(ère)</option>
+                  <option value="Délégué(e)">Délégué(e)</option>
+                  <option value="Autre">Autre</option>
+                </select>
                 <select name="reportsTo" defaultValue={member.reports_to || ""}>
                   <option value="">Aucun supérieur hiérarchique</option>
                   {allMembers.filter(m => m.id !== member.id).map(m => (
