@@ -10,11 +10,21 @@ type Member = {
   title: string | null;
   reports_to: string | null;
   photo_url: string | null;
+  office_role?: string | null;
 };
 
 type TreeNode = Member & {
   children: TreeNode[];
 };
+
+function formatRole(role: string | null | undefined, title: string | null | undefined) {
+  if (role === 'president') return "Président(e)";
+  if (role === 'vice_president') return "Vice-Président(e)";
+  if (role === 'secretaire') return "Secrétaire";
+  if (role === 'tresorier') return "Trésorier(e)";
+  if (role === 'commissaire') return "Commissaire";
+  return title || "Membre";
+}
 
 export function OrganigramChart({ members }: { members: Member[] }) {
   const tree = useMemo(() => {
@@ -36,6 +46,27 @@ export function OrganigramChart({ members }: { members: Member[] }) {
       }
     });
 
+    // Sort children: president first, then vice_president, then others
+    const roleWeight = (role: string | null | undefined) => {
+      if (role === 'president') return 0;
+      if (role === 'vice_president') return 1;
+      if (role === 'secretaire') return 2;
+      if (role === 'tresorier') return 3;
+      if (role === 'commissaire') return 4;
+      return 5;
+    };
+    
+    const sortNodes = (nodes: TreeNode[]) => {
+      nodes.sort((a, b) => {
+        const wA = roleWeight(a.office_role);
+        const wB = roleWeight(b.office_role);
+        if (wA !== wB) return wA - wB;
+        return a.last_name.localeCompare(b.last_name);
+      });
+      nodes.forEach(n => sortNodes(n.children));
+    };
+    
+    sortNodes(roots);
     return roots;
   }, [members]);
 
@@ -242,7 +273,7 @@ function TreeNodeComponent({ node }: { node: TreeNode }) {
         )}
         <div className="node-info">
           <div className="node-name">{node.first_name} {node.last_name}</div>
-          <div className="node-title">{node.title || "Membre"}</div>
+          <div className="node-title">{formatRole(node.office_role, node.title)}</div>
         </div>
       </div>
       {node.children.length > 0 && (
