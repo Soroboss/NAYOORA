@@ -40,7 +40,8 @@ export default async function AutomationsPage() {
           <Link href="/dashboard">◈ Vue d'ensemble</Link>
           <Link href="/dashboard/settings">· Paramètres</Link>
           <Link className="active" href="/dashboard/automations">· Automatisations</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
 
       <section className="dashboard">

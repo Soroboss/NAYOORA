@@ -46,7 +46,8 @@ export default async function MobileMoneyPage() {
           <Link href="/dashboard/finance">· Cotisations & Caisse</Link>
           <Link className="active" href="/dashboard/mobile-money">· Mobile Money</Link>
           <Link href="/dashboard/administration">· Paramètres</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
 
       <section className="dashboard">

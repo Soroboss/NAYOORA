@@ -63,7 +63,8 @@ export default async function RemindersPage() {
           <Link href="/dashboard/finance">· Cotisations & Caisse</Link>
           <Link className="active" href="/dashboard/messages/reminders">· Relances</Link>
           <Link href="/dashboard/collections">· États & Retards</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
 
       <section className="dashboard">

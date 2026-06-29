@@ -32,7 +32,7 @@ export default async function OrganigramDashboardPage() {
           <Link href="/dashboard/members/new">· Créer un membre</Link>
           <Link className="active" href="/dashboard/organigramme">· Organigramme</Link>
           <Link href="/dashboard/finance">· Cotisations</Link>
-        </nav>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
       
       <section className="dashboard">

@@ -42,7 +42,8 @@ export default async function PoliticalPage() {
           <Link href="/dashboard/members">· Militants & Électeurs</Link>
           <Link className="active" href="/dashboard/political">· Cartographie Terrain</Link>
           <Link href="/dashboard/events">· Meetings</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
       
       <section className="dashboard">

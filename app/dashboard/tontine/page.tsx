@@ -60,7 +60,8 @@ export default async function TontinePage({ searchParams }: { searchParams: Prom
           <Link href="/dashboard/finance">· Cotisations & Caisse</Link>
           <Link href="/dashboard/treasury">· Trésorerie</Link>
           <Link href="/dashboard/reports">· Rapports</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
       <section className="dashboard">
         <header className="dashboard-header">

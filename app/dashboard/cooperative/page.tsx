@@ -47,7 +47,8 @@ export default async function CooperativePage({ searchParams }: { searchParams: 
           <Link href="/dashboard/members">· Producteurs</Link>
           <Link className="active" href="/dashboard/cooperative">· Récoltes & Intrants</Link>
           <Link href="/dashboard/finance">· Caisse</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
 
       <section className="dashboard">

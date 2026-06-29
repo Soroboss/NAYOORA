@@ -47,7 +47,8 @@ export default async function RecruitmentPage() {
           <Link href="/dashboard/members">· Liste des membres</Link>
           <Link className="active" href="/dashboard/recruitment">· Formulaire & Adhésion</Link>
           <Link href="/dashboard/organization">· Gestion Orga</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
       
       <section className="dashboard">

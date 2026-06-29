@@ -43,7 +43,8 @@ export default async function ProjectsPage() {
           <Link href="/dashboard/events">· Événements</Link>
           <Link href="/dashboard/messages">· Messages</Link>
           <Link className="active" href="/dashboard/projects">· Projets</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
       <section className="dashboard">
         <header className="dashboard-header">

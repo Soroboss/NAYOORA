@@ -48,7 +48,8 @@ export default async function GovernancePage({ searchParams }: { searchParams: P
           <Link href="/dashboard/members">· Membres</Link>
           <Link href="/dashboard/messages">· Messages</Link>
           <Link className="active" href="/dashboard/governance">· Assemblée & Élections</Link>
-        </nav>
+          <Link href="/dashboard/organigramme">· Organigramme</Link>
+          <Link href="/portal/chat">· Chat interne</Link></nav>
       </aside>
 
       <section className="dashboard">
