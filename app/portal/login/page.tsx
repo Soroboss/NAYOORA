@@ -59,7 +59,7 @@ export default function PortalLoginPage() {
           <span style={{ fontSize: "14px", fontWeight: "500", display: "block", marginBottom: "4px" }}>Code PIN (4 à 6 chiffres)</span>
           <input 
             type="password" 
-            placeholder="****" 
+            placeholder="Ex: 0000 (PIN par défaut)" 
             value={pin} 
             onChange={e => setPin(e.target.value)}
             required

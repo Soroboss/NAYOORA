@@ -57,166 +57,173 @@ export function OrganigramChart({ members }: { members: Member[] }) {
         .organigram-wrapper {
           overflow: auto;
           padding: 40px;
-          background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+          background: #f8fafc;
           border-radius: 16px;
           border: 1px solid #e2e8f0;
           min-height: 500px;
-          display: flex;
-          justify-content: center;
         }
 
+        /* Horizontal Tree Layout */
         .tree ul {
-          padding-top: 20px;
+          padding-left: 30px;
           position: relative;
           display: flex;
-          justify-content: center;
-          gap: 24px;
+          flex-direction: column;
+          gap: 16px;
           margin: 0;
+          list-style: none;
+        }
+
+        .tree > ul {
           padding-left: 0;
         }
 
         .tree li {
           display: flex;
-          flex-direction: column;
           align-items: center;
-          text-align: center;
-          list-style-type: none;
           position: relative;
-          padding: 20px 5px 0 5px;
+          padding-left: 30px;
+        }
+
+        .tree > ul > li {
+          padding-left: 0;
         }
 
         /* Connecting lines */
-        .tree li::before,
-        .tree li::after {
+        .tree li::before, .tree li::after {
           content: '';
           position: absolute;
-          top: 0;
-          right: 50%;
-          border-top: 2px solid #94a3b8;
-          width: 50%;
-          height: 20px;
+          left: 0;
         }
 
+        /* Horizontal line to the node */
+        .tree li::before {
+          border-top: 2px solid #cbd5e1;
+          top: 50%;
+          width: 30px;
+          height: 0;
+        }
+
+        /* Vertical line connecting siblings */
         .tree li::after {
-          right: auto;
-          left: 50%;
-          border-left: 2px solid #94a3b8;
+          border-left: 2px solid #cbd5e1;
+          height: 100%;
+          top: 0;
+          width: 0;
         }
 
-        /* Only one child or root */
-        .tree li:only-child::after,
-        .tree li:only-child::before {
+        /* Adjust first and last child vertical lines */
+        .tree li:first-child::after {
+          height: 50%;
+          top: 50%;
+        }
+        .tree li:last-child::after {
+          height: 50%;
+          bottom: 50%;
+          top: auto;
+        }
+        .tree li:only-child::after {
           display: none;
         }
-        .tree li:only-child {
-          padding-top: 0;
+
+        /* Hide lines for root node */
+        .tree > ul > li::before, .tree > ul > li::after {
+          display: none;
         }
 
-        /* First and last child borders */
-        .tree li:first-child::before,
-        .tree li:last-child::after {
-          border: 0 none;
-        }
-        .tree li:last-child::before {
-          border-right: 2px solid #94a3b8;
-          border-radius: 0 6px 0 0;
-        }
-        .tree li:first-child::after {
-          border-radius: 6px 0 0 0;
-        }
-
-        /* Line down from parent */
-        .tree ul ul::before {
+        /* Line from parent to children group */
+        .tree ul::before {
           content: '';
           position: absolute;
-          top: 0;
-          left: 50%;
-          border-left: 2px solid #94a3b8;
+          left: 0;
+          top: 50%;
+          border-top: 2px solid #cbd5e1;
           width: 0;
-          height: 20px;
-          transform: translateX(-50%);
+        }
+        .tree > ul::before {
+          display: none;
         }
 
+        /* Card Styling to match the image */
         .node-card {
-          border: 1px solid #e2e8f0;
-          padding: 16px 20px;
-          border-radius: 12px;
           display: flex;
-          flex-direction: column;
           align-items: center;
-          background: white;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-          min-width: 160px;
-          max-width: 220px;
-          position: relative;
+          background: #333333; /* Dark background like in the image */
+          color: white;
+          padding: 12px;
+          border-radius: 8px;
+          border: 3px solid #cbd5e1; /* Light border */
+          min-width: 250px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
           z-index: 1;
-          transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        /* Alternating colors for depth or branches could be added, but we stick to dark for root and slightly lighter for others */
+        .tree > ul > li > .node-card {
+          background: #222222; /* Root is darker */
+          border-color: #94a3b8;
         }
         
-        .node-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
-          border-color: #cbd5e1;
+        .tree > ul > li > ul > li > .node-card {
+          background: #d4a373; /* Orange/Brownish like in the image for level 2 */
+          border-color: #faedcd;
+          color: #333;
         }
 
-        .node-card img {
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
+        .tree > ul > li > ul > li > ul > li > .node-card {
+          background: #4a4036; /* Darker brown for level 3 */
+          border-color: #e2e8f0;
+        }
+
+        .node-photo {
+          width: 60px;
+          height: 60px;
+          border-radius: 4px;
           object-fit: cover;
-          margin-bottom: 12px;
-          border: 3px solid #f1f5f9;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          margin-right: 16px;
+          background: #e2e8f0;
         }
 
         .node-initials {
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+          width: 60px;
+          height: 60px;
+          border-radius: 4px;
+          background: #64748b;
           color: white;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: 700;
-          font-size: 18px;
-          margin-bottom: 12px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          font-size: 20px;
+          margin-right: 16px;
+        }
+
+        .node-info {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          flex: 1;
         }
 
         .node-name {
-          font-weight: 600;
+          font-weight: bold;
           font-size: 15px;
-          color: #0f172a;
-          line-height: 1.2;
+          margin-bottom: 4px;
         }
 
         .node-title {
-          font-size: 13px;
-          color: #64748b;
-          margin-top: 6px;
-          background: #f1f5f9;
-          padding: 4px 8px;
-          border-radius: 20px;
-          font-weight: 500;
+          font-size: 12px;
+          opacity: 0.9;
+        }
+        
+        .node-action {
+          margin-top: 4px;
+          font-size: 12px;
+          color: #3b82f6;
+          text-decoration: none;
+          font-weight: bold;
         }
 
-        @media (max-width: 768px) {
-          .organigram-wrapper {
-            padding: 20px 10px;
-            justify-content: flex-start;
-          }
-          
-          /* On mobile, collapse horizontal tree to vertical list if it gets too complex, 
-             or just let them scroll horizontally. We let them scroll horizontally. */
-          .node-card {
-            min-width: 140px;
-            padding: 12px;
-          }
-          .node-name {
-            font-size: 14px;
-          }
-        }
       `}</style>
     </div>
   );
@@ -227,14 +234,16 @@ function TreeNodeComponent({ node }: { node: TreeNode }) {
     <li>
       <div className="node-card">
         {node.photo_url ? (
-          <img src={node.photo_url} alt="" crossOrigin="anonymous" />
+          <img src={node.photo_url} alt="" className="node-photo" crossOrigin="anonymous" />
         ) : (
           <div className="node-initials">
             {node.first_name?.[0]}{node.last_name?.[0]}
           </div>
         )}
-        <div className="node-name">{node.first_name} {node.last_name}</div>
-        <div className="node-title">{node.title || "Membre"}</div>
+        <div className="node-info">
+          <div className="node-name">{node.first_name} {node.last_name}</div>
+          <div className="node-title">{node.title || "Membre"}</div>
+        </div>
       </div>
       {node.children.length > 0 && (
         <ul>
