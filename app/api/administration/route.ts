@@ -3,7 +3,7 @@ import { createClient } from "@/lib/insforge/server";
 import { administratorRoles, getPlanLimits } from "@/lib/plan-limits";
 
 const admins = ["organization_admin", "president"];
-const validRoles = ["organization_admin", "president", "secretaire", "tresorier", "gestionnaire", "membre"];
+const validRoles = ["organization_admin", "president", "secretaire", "tresorier", "gestionnaire", "membre", "auditeur"];
 const validAccessLevels = ["viewer", "standard", "finance", "operations", "admin", "owner"];
 
 function permissionsFor(role: string, accessLevel: string) {

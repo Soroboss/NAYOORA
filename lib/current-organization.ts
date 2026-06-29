@@ -59,3 +59,11 @@ export async function getCurrentOrganizationContext() {
 export function canManageMembers(role: string) {
   return ["organization_admin", "president", "secretaire", "gestionnaire"].includes(role);
 }
+
+export function canManageFinance(role: string) {
+  return ["organization_admin", "president", "tresorier"].includes(role);
+}
+
+export function canReadFinance(role: string) {
+  return ["organization_admin", "president", "tresorier", "auditeur"].includes(role);
+}

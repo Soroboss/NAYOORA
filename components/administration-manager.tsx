@@ -7,6 +7,7 @@ const roles = [
   ["president", "Président / Responsable"],
   ["secretaire", "Secrétaire"],
   ["tresorier", "Trésorier"],
+  ["auditeur", "Auditeur (Lecture seule)"],
   ["gestionnaire", "Gestionnaire"],
   ["membre", "Membre simple"],
 ] as const;
