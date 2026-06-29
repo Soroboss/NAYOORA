@@ -9,14 +9,23 @@ export async function POST(request: Request) {
 
     const insforge = await createClient();
     
-    // Clean phone number (remove spaces)
+    // Find the member by phone (handle various formats like +225, spaces, etc.)
     const cleanPhone = phone.replace(/\s/g, "");
+    
+    // Remove +225 if it exists to get the local 10-digit format
+    let localPhone = cleanPhone;
+    if (localPhone.startsWith("+225")) localPhone = localPhone.substring(4);
+    if (localPhone.startsWith("225") && localPhone.length === 13) localPhone = localPhone.substring(3); // handles 22507...
+    
+    const withPrefix = `+225${localPhone}`;
+    // Common space format: 07 57 22 87 31
+    const spacedLocal = localPhone.replace(/(\d{2})(?=\d)/g, "$1 ").trim();
+    const spacedPrefix = `+225 ${spacedLocal}`;
 
-    // Find the member by phone
     const { data: member, error } = await insforge
       .from("member_profiles")
       .select("id, organization_id, pin_hash")
-      .eq("phone", cleanPhone)
+      .or(`phone.eq.${cleanPhone},phone.eq.${localPhone},phone.eq.${withPrefix},phone.eq.${spacedLocal},phone.eq.${spacedPrefix}`)
       .eq("status", "active")
       .is("deleted_at", null)
       .limit(1)
