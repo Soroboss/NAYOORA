@@ -53,7 +53,7 @@ export function OrganigramChart({ members }: { members: Member[] }) {
         </ul>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         .organigram-wrapper {
           overflow: auto;
           padding: 40px;
