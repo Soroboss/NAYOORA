@@ -70,7 +70,7 @@ export default async function PortalHomePage(props: { params: Promise<{ orgSlug:
         {/* Quick Links */}
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <Link href={`/portal/${params.orgSlug}/finance`} style={{ textDecoration: "none" }}>
-            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
+            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>💰</div>
               <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Mes Cotisations</h3>
               <p style={{ color: "#6b7280", fontSize: "14px" }}>Consultez votre historique et payez vos arriérés par Mobile Money.</p>
@@ -79,7 +79,7 @@ export default async function PortalHomePage(props: { params: Promise<{ orgSlug:
           
           {(member.organization as any)?.organization_type === "tontine" || (member.organization as any)?.organization_type === "cooperative" ? (
             <Link href={`/portal/${params.orgSlug}/tontine`} style={{ textDecoration: "none" }}>
-              <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
+              <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }}>
                 <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔄</div>
                 <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Ma Tontine</h3>
                 <p style={{ color: "#6b7280", fontSize: "14px" }}>Suivez vos versements et consultez votre date de réception.</p>
@@ -87,14 +87,14 @@ export default async function PortalHomePage(props: { params: Promise<{ orgSlug:
             </Link>
           ) : null}
           <Link href={`/portal/${params.orgSlug}/chat`} style={{ textDecoration: "none" }}>
-            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
+            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>💬</div>
               <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Messagerie</h3>
               <p style={{ color: "#6b7280", fontSize: "14px" }}>Discutez avec les autres membres de votre organisation.</p>
             </div>
           </Link>
           <Link href={`/portal/${params.orgSlug}/governance`} style={{ textDecoration: "none" }}>
-            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
+            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>🗳️</div>
               <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Élections & Votes</h3>
               <p style={{ color: "#6b7280", fontSize: "14px" }}>Participez aux décisions de l'organisation.</p>
