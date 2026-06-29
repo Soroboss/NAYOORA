@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createAdminClient as createClient } from "@/lib/insforge/server";
 import { DeclarePaymentButton } from "./declare-payment";
+import { WavePaymentButton } from "@/components/wave-payment-button";
 
 export default async function PortalFinancePage() {
   const cookieStore = await cookies();
@@ -52,38 +53,28 @@ export default async function PortalFinancePage() {
             const isPending = !isPaid && pendingPlanIds.includes(c.contribution_plan_id);
 
             return (
-              <div key={c.id} style={{ padding: "16px", borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div key={c.id} style={{ padding: "20px", borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <b style={{ display: "block" }}>{(c.plan as any)?.name || "Cotisation"}</b>
-                  <small style={{ color: "#6b7280" }}>Échéance : {new Date(c.due_date).toLocaleDateString("fr-FR")}</small>
-                  <div style={{ marginTop: "4px" }}>
+                  <b style={{ display: "block", fontSize: "16px" }}>{(c.plan as any)?.name || "Cotisation"}</b>
+                  <small style={{ color: "#6b7280", display: "block", marginTop: "4px" }}>Échéance : {new Date(c.due_date).toLocaleDateString("fr-FR")}</small>
+                  <div style={{ marginTop: "8px" }}>
                     <span style={{ 
                       fontSize: "12px", 
-                      padding: "2px 8px", 
+                      padding: "4px 10px", 
                       borderRadius: "12px", 
                       background: isPaid ? "#dcfce7" : isPending ? "#fef08a" : "#fee2e2", 
-                      color: isPaid ? "#166534" : isPending ? "#854d0e" : "#991b1b" 
+                      color: isPaid ? "#166534" : isPending ? "#854d0e" : "#991b1b",
+                      fontWeight: "600"
                     }}>
                       {isPaid ? "Payé" : isPending ? "En cours de validation" : "En attente"}
                     </span>
                   </div>
                 </div>
                 <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                  <b style={{ display: "block", fontSize: "16px" }}>{formatMoney(c.amount_due)}</b>
+                  <b style={{ display: "block", fontSize: "18px", color: "#111827", marginBottom: "12px" }}>{formatMoney(c.amount_due)}</b>
                   {!isPaid && !isPending && (
-                    <div style={{ display: "flex", marginTop: "8px" }}>
-                      <button style={{ 
-                        padding: "6px 12px", 
-                        background: "#ff9900", 
-                        color: "white", 
-                        border: "none", 
-                        borderRadius: "6px", 
-                        cursor: "pointer",
-                        fontSize: "12px",
-                        fontWeight: "600"
-                      }}>
-                        Payer en ligne
-                      </button>
+                    <div style={{ display: "flex", marginTop: "4px", gap: "8px" }}>
+                      <WavePaymentButton amountDue={c.amount_due} />
                       <DeclarePaymentButton 
                         contributionId={c.id} 
                         planId={c.contribution_plan_id} 

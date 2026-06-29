@@ -111,20 +111,33 @@ export function OrganigramChart({ members }: { members: Member[] }) {
       <style jsx global>{`
         .organigram-wrapper {
           overflow: auto;
-          padding: 40px;
-          background: #f8fafc;
-          border-radius: 16px;
-          border: 1px solid #e2e8f0;
+          padding: 60px 40px;
+          background: #ffffff;
+          border-radius: 20px;
+          border: 1px solid #e5e7eb;
           min-height: 500px;
+          box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03);
+          position: relative;
+        }
+
+        /* Subtle background pattern */
+        .organigram-wrapper::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+          background-size: 20px 20px;
+          opacity: 0.5;
+          pointer-events: none;
         }
 
         /* Horizontal Tree Layout */
         .tree ul {
-          padding-left: 30px;
+          padding-left: 40px;
           position: relative;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 24px;
           margin: 0;
           list-style: none;
         }
@@ -137,7 +150,7 @@ export function OrganigramChart({ members }: { members: Member[] }) {
           display: flex;
           align-items: center;
           position: relative;
-          padding-left: 30px;
+          padding-left: 40px;
         }
 
         .tree > ul > li {
@@ -155,7 +168,7 @@ export function OrganigramChart({ members }: { members: Member[] }) {
         .tree li::before {
           border-top: 2px solid #cbd5e1;
           top: 50%;
-          width: 30px;
+          width: 40px;
           height: 0;
         }
 
@@ -171,11 +184,13 @@ export function OrganigramChart({ members }: { members: Member[] }) {
         .tree li:first-child::after {
           height: 50%;
           top: 50%;
+          border-top-left-radius: 12px;
         }
         .tree li:last-child::after {
           height: 50%;
           bottom: 50%;
           top: auto;
+          border-bottom-left-radius: 12px;
         }
         .tree li:only-child::after {
           display: none;
@@ -193,57 +208,64 @@ export function OrganigramChart({ members }: { members: Member[] }) {
           left: 0;
           top: 50%;
           border-top: 2px solid #cbd5e1;
-          width: 30px;
+          width: 40px;
         }
         .tree > ul::before {
           display: none;
         }
 
-        /* Card Styling to match the image */
+        /* Card Styling */
         .node-card {
           display: flex;
           align-items: center;
-          background: #333333; /* Dark background like in the image */
-          color: white;
-          padding: 12px;
-          border-radius: 8px;
-          border: 3px solid #cbd5e1; /* Light border */
-          min-width: 250px;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(8px);
+          color: #1f2937;
+          padding: 12px 16px;
+          border-radius: 16px;
+          border: 1px solid #e5e7eb;
+          min-width: 280px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
           z-index: 1;
+          transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+        
+        .node-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+          border-color: #3b82f6;
         }
 
-        /* Alternating colors for depth or branches could be added, but we stick to dark for root and slightly lighter for others */
+        /* Hierarchical Colors via borders */
         .tree > ul > li > .node-card {
-          background: #222222; /* Root is darker */
-          border-color: #94a3b8;
+          border-left: 6px solid #2563eb; /* President */
+          background: #ffffff;
         }
         
         .tree > ul > li > ul > li > .node-card {
-          background: #d4a373; /* Orange/Brownish like in the image for level 2 */
-          border-color: #faedcd;
-          color: #333;
+          border-left: 6px solid #10b981; /* Vice President / Bureau */
         }
 
         .tree > ul > li > ul > li > ul > li > .node-card {
-          background: #4a4036; /* Darker brown for level 3 */
-          border-color: #e2e8f0;
+          border-left: 6px solid #f59e0b; /* Third level */
         }
 
         .node-photo {
-          width: 60px;
-          height: 60px;
-          border-radius: 4px;
+          width: 56px;
+          height: 56px;
+          border-radius: 28px;
           object-fit: cover;
           margin-right: 16px;
           background: #e2e8f0;
+          border: 2px solid #fff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .node-initials {
-          width: 60px;
-          height: 60px;
-          border-radius: 4px;
-          background: #64748b;
+          width: 56px;
+          height: 56px;
+          border-radius: 28px;
+          background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
           color: white;
           display: flex;
           align-items: center;
@@ -251,6 +273,9 @@ export function OrganigramChart({ members }: { members: Member[] }) {
           font-weight: 700;
           font-size: 20px;
           margin-right: 16px;
+          border: 2px solid #fff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          letter-spacing: 1px;
         }
 
         .node-info {
@@ -261,22 +286,16 @@ export function OrganigramChart({ members }: { members: Member[] }) {
         }
 
         .node-name {
-          font-weight: bold;
+          font-weight: 700;
           font-size: 15px;
-          margin-bottom: 4px;
+          color: #111827;
+          margin-bottom: 2px;
         }
 
         .node-title {
-          font-size: 12px;
-          opacity: 0.9;
-        }
-        
-        .node-action {
-          margin-top: 4px;
-          font-size: 12px;
-          color: #3b82f6;
-          text-decoration: none;
-          font-weight: bold;
+          font-size: 13px;
+          color: #6b7280;
+          font-weight: 500;
         }
 
       `}</style>
