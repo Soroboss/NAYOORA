@@ -1,2 +1,201 @@
-"use client";import{ChangeEvent,useState}from'react';import{createClient}from'@/lib/insforge/client';async function send(x:object){const r=await fetch('/api/governance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(x)}),d=await r.json();if(!r.ok)throw Error(d.error);return d}
-export function GovernanceManager({organizationId,documents,reports,logs,canManage}:{organizationId:string;documents:any[];reports:any[];logs:any[];canManage:boolean}){const[n,setN]=useState(''),[busy,setBusy]=useState(false);async function upload(e:ChangeEvent<HTMLInputElement>){const file=e.target.files?.[0];if(!file)return;setBusy(true);try{const path=`${organizationId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const{error}=await createClient().storage.from('organization-documents').upload(path,file,{upsert:false});if(error)throw error;await send({action:'document',title:file.name,path,mimeType:file.type,size:file.size,visibility:'members'});setN('Document ajouté dans l’espace privé. Actualisez la page pour le voir.')}catch(e){setN(e instanceof Error?e.message:'Téléversement impossible.')}finally{setBusy(false);e.target.value=''}}async function report(){setBusy(true);try{await send({action:'report'});setN('Instantané financier généré. Actualisez la page pour le consulter.')}catch(e){setN(e instanceof Error?e.message:'Rapport impossible.')}finally{setBusy(false)}}return <div className="finance-workspace">{canManage&&<div className="finance-forms"><label className="csv-import"><span className="eyebrow">Documents</span><b>Ajouter un document</b><small>Stockage privé, isolé par organisation.</small><input disabled={busy} type="file" onChange={upload}/></label><article className="panel channel-note"><p className="eyebrow">Rapports</p><h2>Situation financière</h2><p>Crée un instantané des membres, de la caisse et des impayés, prêt pour l’export PDF.</p><button disabled={busy} className="button button-dark" onClick={report}>Générer le rapport</button></article></div>}{n&&<p className="member-message">{n}</p>}<div className="finance-lists"><article className="panel"><p className="eyebrow">Documents</p><h2>Bibliothèque</h2><div className="finance-list">{documents.map(d=><div key={d.id}><span><b>{d.title}</b><small>{d.mime_type||'Fichier'} · {new Date(d.created_at).toLocaleDateString('fr-FR')}</small></span><b>{d.visibility}</b></div>)}</div></article><article className="panel"><p className="eyebrow">Rapports</p><h2>Historique</h2><div className="finance-list">{reports.map(r=><div key={r.id}><span><b>{r.title}</b><small>{r.report_type} · {new Date(r.generated_at).toLocaleDateString('fr-FR')}</small></span><b>Voir</b></div>)}</div></article></div><article className="panel"><p className="eyebrow">Traçabilité</p><h2>Dernières actions</h2><div className="finance-list">{logs.map(l=><div key={l.id}><span><b>{l.action} · {l.entity_type}</b><small>{new Date(l.created_at).toLocaleString('fr-FR')}</small></span></div>)}</div></article></div>}
+"use client";
+
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/insforge/client";
+
+export function GovernanceManager({
+  tab,
+  organizationId,
+  documents,
+  reports,
+  logs,
+  elections,
+  candidates,
+  members,
+  canManage
+}: {
+  tab: string;
+  organizationId: string;
+  documents: any[];
+  reports: any[];
+  logs: any[];
+  elections: any[];
+  candidates: any[];
+  members: any[];
+  canManage: boolean;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  async function createElection(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setNotice("");
+    try {
+      const formData = new FormData(e.currentTarget);
+      const insforge = createClient();
+      const { error } = await insforge.from("elections").insert({
+        organization_id: organizationId,
+        title: formData.get("title"),
+        description: formData.get("description"),
+        status: formData.get("status"),
+        starts_at: formData.get("startsAt"),
+        ends_at: formData.get("endsAt")
+      });
+      if (error) throw error;
+      setNotice("✅ Élection créée. Vous pouvez maintenant ajouter des candidats.");
+      e.currentTarget.reset();
+      router.refresh();
+    } catch (err: any) {
+      setNotice(`❌ Erreur: ${err.message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addCandidate(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setNotice("");
+    try {
+      const formData = new FormData(e.currentTarget);
+      const insforge = createClient();
+      const { error } = await insforge.from("election_candidates").insert({
+        election_id: formData.get("electionId"),
+        member_profile_id: formData.get("memberId"),
+        position: formData.get("position"),
+        manifesto: formData.get("manifesto")
+      });
+      if (error) throw error;
+      setNotice("✅ Candidat ajouté à l'élection.");
+      e.currentTarget.reset();
+      router.refresh();
+    } catch (err: any) {
+      setNotice(`❌ Erreur: ${err.message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="finance-workspace">
+      {tab === "documents" ? (
+        <>
+          <div className="finance-stats">
+            <article><p>Documents</p><strong>{documents.length}</strong></article>
+            <article><p>Rapports générés</p><strong>{reports.length}</strong></article>
+            <article><p>Actions auditées</p><strong>{logs.length}</strong></article>
+          </div>
+          <div className="finance-lists">
+            <article className="panel">
+              <p className="eyebrow">Stockage</p>
+              <h2>Documents & PV Récents</h2>
+              <table className="data-table">
+                <thead><tr><th>Date</th><th>Titre</th><th>Taille</th></tr></thead>
+                <tbody>
+                  {documents.map(d => (
+                    <tr key={d.id}>
+                      <td>{new Date(d.created_at).toLocaleDateString("fr-FR")}</td>
+                      <td>{d.title}</td>
+                      <td>{(d.size_bytes / 1024).toFixed(0)} KB</td>
+                    </tr>
+                  ))}
+                  {documents.length === 0 && <tr><td colSpan={3} style={{textAlign: "center", color: "#6b7280"}}>Aucun document téléversé.</td></tr>}
+                </tbody>
+              </table>
+            </article>
+          </div>
+        </>
+      ) : (
+        <>
+          {canManage && (
+            <div className="finance-forms">
+              <form className="panel compact-form" onSubmit={createElection}>
+                <p className="eyebrow">Démocratie</p>
+                <h2>Nouvelle Élection</h2>
+                <input required name="title" placeholder="Titre de l'élection (ex: Élection du Bureau Exécutif)" />
+                <textarea name="description" placeholder="Description courte" rows={2} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <label style={{ fontSize: "12px", color: "#6b7280" }}>Début<input name="startsAt" type="datetime-local" style={{ marginTop: "4px" }} /></label>
+                  <label style={{ fontSize: "12px", color: "#6b7280" }}>Fin<input name="endsAt" type="datetime-local" style={{ marginTop: "4px" }} /></label>
+                </div>
+                <select name="status" required defaultValue="draft">
+                  <option value="draft">Brouillon (Non visible)</option>
+                  <option value="active">Active (Votes ouverts)</option>
+                  <option value="closed">Clôturée</option>
+                </select>
+                <button disabled={busy} className="button button-dark">Créer l'élection</button>
+              </form>
+
+              <form className="panel compact-form" onSubmit={addCandidate}>
+                <p className="eyebrow">Candidatures</p>
+                <h2>Ajouter un candidat</h2>
+                <select name="electionId" required>
+                  <option value="">Choisir une élection...</option>
+                  {elections.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
+                </select>
+                <select name="memberId" required>
+                  <option value="">Sélectionner un membre...</option>
+                  {members.map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
+                </select>
+                <input required name="position" placeholder="Poste visé (ex: Président, Secrétaire Général)" />
+                <textarea name="manifesto" placeholder="Mot d'ordre / Slogan" rows={2} />
+                <button disabled={busy} className="button button-dark">Ajouter le candidat</button>
+              </form>
+
+              {notice && <p style={{ fontSize: "14px", marginTop: "8px", color: notice.startsWith("✅") ? "#059669" : "#ef4444" }}>{notice}</p>}
+            </div>
+          )}
+
+          <div className="finance-lists">
+            <article className="panel">
+              <p className="eyebrow">Suivi</p>
+              <h2>Élections en cours</h2>
+              <div className="finance-list">
+                {elections.map(e => {
+                  const electionCands = candidates.filter(c => c.election_id === e.id);
+                  return (
+                    <div key={e.id} style={{ display: "flex", flexDirection: "column", gap: "12px", padding: "16px", borderBottom: "1px solid #f3f4f6" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <b style={{ fontSize: "16px" }}>{e.title}</b>
+                          <span style={{ 
+                            marginLeft: "8px", 
+                            fontSize: "12px", 
+                            padding: "2px 8px", 
+                            borderRadius: "12px", 
+                            background: e.status === "active" ? "#dcfce7" : e.status === "draft" ? "#f3f4f6" : "#fee2e2", 
+                            color: e.status === "active" ? "#166534" : e.status === "draft" ? "#4b5563" : "#991b1b" 
+                          }}>
+                            {e.status === "active" ? "Votes en cours" : e.status === "draft" ? "Brouillon" : "Clôturée"}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {electionCands.length > 0 ? (
+                        <div style={{ background: "#f9fafb", padding: "12px", borderRadius: "8px" }}>
+                          <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "8px", textTransform: "uppercase" }}>Candidats en lice</p>
+                          {electionCands.map(c => (
+                            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+                              <span>{c.member?.first_name} {c.member?.last_name}</span>
+                              <span style={{ color: "#4b5563", fontSize: "14px" }}>Pour: <b>{c.position}</b></span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: "14px", color: "#9ca3af" }}>Aucun candidat enregistré.</p>
+                      )}
+                    </div>
+                  );
+                })}
+                {elections.length === 0 && <p style={{ padding: "24px", textAlign: "center", color: "#6b7280" }}>Aucune élection trouvée.</p>}
+              </div>
+            </article>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

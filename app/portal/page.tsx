@@ -76,6 +76,13 @@ export default async function PortalHomePage() {
               <p style={{ color: "#6b7280", fontSize: "14px" }}>Suivez vos versements et consultez votre date de réception.</p>
             </div>
           </Link>
+          <Link href="/portal/governance" style={{ textDecoration: "none" }}>
+            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
+              <div style={{ fontSize: "32px", marginBottom: "12px" }}>🗳️</div>
+              <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Élections & Votes</h3>
+              <p style={{ color: "#6b7280", fontSize: "14px" }}>Participez aux décisions de l'organisation.</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
