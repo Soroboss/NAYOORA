@@ -14,13 +14,14 @@ export default async function PortalLayout(props: { children: React.ReactNode, p
   // Fetch organization details for the header
   const { data: org } = await insforge
     .from("organizations")
-    .select("name, logo_url")
+    .select("name, logo_url, organization_type")
     .eq("slug", params.orgSlug)
     .single();
 
   const orgName = org?.name || "Espace Membre";
   // The logo_url could be a full URL, a path, or null
   const logoUrl = org?.logo_url ? org.logo_url : "/nayoora-logo.png";
+  const hasTontine = org?.organization_type === "tontine" || org?.organization_type === "cooperative";
 
   return (
     <div className="portal-shell">
@@ -32,7 +33,7 @@ export default async function PortalLayout(props: { children: React.ReactNode, p
           <div className="portal-nav-links">
             <Link href={`/portal/${params.orgSlug}`}>Mon Profil</Link>
             <Link href={`/portal/${params.orgSlug}/finance`}>Mes Cotisations</Link>
-            <Link href={`/portal/${params.orgSlug}/tontine`}>Ma Tontine</Link>
+            {hasTontine && <Link href={`/portal/${params.orgSlug}/tontine`}>Ma Tontine</Link>}
             <Link href={`/portal/${params.orgSlug}/chat`}>Messagerie</Link>
             <Link href={`/portal/${params.orgSlug}/organigramme`}>Organigramme</Link>
             <Link href="/api/portal/auth/logout" style={{ color: "#ef4444" }}>Déconnexion</Link>

@@ -22,7 +22,7 @@ export default async function PortalHomePage(props: { params: Promise<{ orgSlug:
   // Fetch member profile
   const { data: member, error } = await insforge
     .from("member_profiles")
-    .select("*, organization:organizations(name)")
+    .select("*, organization:organizations(name, organization_type)")
     .eq("id", session.memberId)
     .single();
 
@@ -77,13 +77,15 @@ export default async function PortalHomePage(props: { params: Promise<{ orgSlug:
             </div>
           </Link>
           
-          <Link href={`/portal/${params.orgSlug}/tontine`} style={{ textDecoration: "none" }}>
-            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
-              <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔄</div>
-              <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Ma Tontine</h3>
-              <p style={{ color: "#6b7280", fontSize: "14px" }}>Suivez vos versements et consultez votre date de réception.</p>
-            </div>
-          </Link>
+          {(member.organization as any)?.organization_type === "tontine" || (member.organization as any)?.organization_type === "cooperative" ? (
+            <Link href={`/portal/${params.orgSlug}/tontine`} style={{ textDecoration: "none" }}>
+              <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
+                <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔄</div>
+                <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Ma Tontine</h3>
+                <p style={{ color: "#6b7280", fontSize: "14px" }}>Suivez vos versements et consultez votre date de réception.</p>
+              </div>
+            </Link>
+          ) : null}
           <Link href={`/portal/${params.orgSlug}/chat`} style={{ textDecoration: "none" }}>
             <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>💬</div>
