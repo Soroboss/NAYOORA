@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function AccessManager({ memberships, profiles, invites, logs, canManage }: { memberships: any[]; profiles: any[]; invites: any[]; logs: any[]; canManage: boolean }) {
   const [notice, setNotice] = useState("");

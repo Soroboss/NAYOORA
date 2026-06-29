@@ -1,5 +1,6 @@
 "use client";
 import { FormEvent, useState, ChangeEvent } from 'react';
+import { toast } from "sonner";
 
 const modules = [
   ['members', 'Membres', '👥', 'Gestion des membres et profils'],
@@ -39,9 +40,11 @@ export function OrganizationManager({ organization, modules: initial, settings, 
       if (action === 'profile') payload.logoUrl = logoUrl;
       
       await send(payload);
-      setN('Paramètres enregistrés avec succès.');
+      toast.success('Paramètres enregistrés avec succès.');
     } catch (e) {
-      setN(e instanceof Error ? e.message : 'Une erreur est survenue.');
+      const msg = e instanceof Error ? e.message : 'Une erreur est survenue.';
+      setN(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
       setTimeout(() => setN(''), 4000);
@@ -54,8 +57,11 @@ export function OrganizationManager({ organization, modules: initial, settings, 
     try {
       await send({ action: 'module', code, active });
       setMods({ ...mods, [code]: active });
+      toast.success(`Module ${active ? 'activé' : 'désactivé'} avec succès.`);
     } catch (e) {
-      setN(e instanceof Error ? e.message : 'Erreur de mise à jour.');
+      const msg = e instanceof Error ? e.message : 'Erreur de mise à jour.';
+      setN(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
@@ -64,8 +70,14 @@ export function OrganizationManager({ organization, modules: initial, settings, 
   async function uploadLogo(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) return setN("Le fichier doit être une image.");
-    if (file.size > 2_000_000) return setN("Logo trop lourd (max 2 Mo).");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Le fichier doit être une image.");
+      return setN("Le fichier doit être une image.");
+    }
+    if (file.size > 2_000_000) {
+      toast.error("Logo trop lourd (max 2 Mo).");
+      return setN("Logo trop lourd (max 2 Mo).");
+    }
     
     setBusy(true);
     setN("Téléchargement du logo...");
@@ -82,9 +94,12 @@ export function OrganizationManager({ organization, modules: initial, settings, 
       
       const publicUrl = data?.url ?? bucket.getPublicUrl(path).data?.publicUrl ?? path;
       setLogoUrl(publicUrl);
+      toast.success("Logo téléchargé. Cliquez sur Enregistrer.");
       setN("Logo téléchargé. Cliquez sur Enregistrer.");
     } catch (error) {
-      setN(error instanceof Error ? error.message : "Upload impossible.");
+      const msg = error instanceof Error ? error.message : "Upload impossible.";
+      setN(msg);
+      toast.error(msg);
     } finally {
       setBusy(false);
       event.target.value = "";

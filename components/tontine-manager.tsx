@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type Row = Record<string, any>;
 const money = (value: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", maximumFractionDigits: 0 }).format(value || 0);
@@ -21,7 +22,17 @@ export function TontineManager({ groups, participants, cycles, collections, payo
   async function submit(event: FormEvent<HTMLFormElement>, action: string) {
     event.preventDefault(); setError(""); setLoading(action);
     const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-    try { await send({ action, ...data }); location.reload(); } catch (e) { setError(e instanceof Error ? e.message : "Erreur inconnue."); setLoading(""); }
+    try {
+      await send({ action, ...data });
+      toast.success("Opération enregistrée avec succès.");
+      location.reload();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erreur inconnue.";
+      toast.error(msg);
+      setError(msg);
+    } finally {
+      setLoading("");
+    }
   }
 
   const inTotal = collections.reduce((t, c) => t + Number(c.amount_paid || 0), 0);

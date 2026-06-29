@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 
 async function send(x: object) {
   const r = await fetch("/api/projects", {
@@ -26,7 +27,7 @@ export function ProjectsManager({ projects, canManage }: { projects: any[]; canM
       setNotice("Projet enregistré avec succès.");
       e.currentTarget.reset();
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : "Erreur.");
+      const __msg = err instanceof Error ? err.message : "Erreur."; toast.error(__msg); setNotice(__msg);
     } finally {
       setBusy(false);
     }

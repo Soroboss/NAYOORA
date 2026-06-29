@@ -1,5 +1,6 @@
 "use client";
 import { FormEvent, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const money = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
 
@@ -53,10 +54,13 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
       const f = new FormData(e.currentTarget);
       const d = Object.fromEntries(f);
       await send({ action, ...d });
+      toast.success('Opération enregistrée avec succès.');
       setNotice('Opération enregistrée. Actualisez la page pour voir les données à jour.');
       e.currentTarget.reset();
     } catch (e) {
-      setNotice(e instanceof Error ? e.message : 'Erreur.')
+      const msg = e instanceof Error ? e.message : 'Erreur.';
+      toast.error(msg);
+      setNotice(msg);
     } finally {
       setBusy(false)
     }

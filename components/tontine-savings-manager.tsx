@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type Row = Record<string, any>;
 const money = (value: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", maximumFractionDigits: 0 }).format(value || 0);
@@ -39,7 +40,7 @@ export function TontineSavingsManager({
       await send({ action, ...data }); 
       location.reload(); 
     } catch (e) { 
-      setError(e instanceof Error ? e.message : "Erreur inconnue."); 
+      const __msg = e instanceof Error ? e.message : "Erreur inconnue."; toast.error(__msg); setError(__msg); 
       setLoading(""); 
     }
   }

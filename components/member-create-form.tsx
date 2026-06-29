@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/insforge/client";
+import { toast } from "sonner";
 
 type FormState = { firstName: string; lastName: string; phone: string; email: string; memberNumber: string; address: string; birthDate: string; photoUrl: string; title: string; reportsTo: string };
 const blank: FormState = { firstName: "", lastName: "", phone: "", email: "", memberNumber: "", address: "", birthDate: "", photoUrl: "", title: "", reportsTo: "" };
@@ -29,8 +30,11 @@ export function MemberCreateForm({ organizationId }: { organizationId: string })
       if (error) throw error;
       setForm((current) => ({ ...current, photoUrl: data?.url ?? bucket.getPublicUrl(path).data?.publicUrl ?? path }));
       setMessage("Photo uploadée.");
+      toast.success("Photo uploadée avec succès.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Upload impossible.");
+      const errMessage = error instanceof Error ? error.message : "Upload impossible.";
+      setMessage(errMessage);
+      toast.error(errMessage);
     } finally {
       setBusy(false);
       event.target.value = "";
@@ -44,7 +48,12 @@ export function MemberCreateForm({ organizationId }: { organizationId: string })
     const response = await fetch("/api/members", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
     const body = await response.json();
     setBusy(false);
-    if (!response.ok) return setMessage(body.error);
+    if (!response.ok) {
+      setMessage(body.error);
+      toast.error(body.error || "Erreur lors de la création.");
+      return;
+    }
+    toast.success("Membre créé avec succès !");
     router.push(`/dashboard/members/${body.member.id}`);
     router.refresh();
   }

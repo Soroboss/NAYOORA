@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState, useMemo, FormEvent } from "react";
+import { toast } from "sonner";
 
 const roles = [
   ["organization_admin", "Administrateur organisation"],
@@ -56,12 +57,20 @@ export function AdministrationManager({
   async function submit(event: FormEvent<HTMLFormElement>, action: string) {
     event.preventDefault();
     setBusy(true);
+    setNotice("");
+    const payload = Object.fromEntries(new FormData(event.currentTarget));
     try {
-      await send({ action, ...Object.fromEntries(new FormData(event.currentTarget)) });
-      setNotice(action === "invite" ? "Collaborateur invité. Copiez le lien dans la liste des invitations si besoin." : "Mise à jour enregistrée.");
-      if (action !== "role") event.currentTarget.reset();
+      const response = await fetch("/api/organization/team", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, ...payload }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      const msg = action === "invite" ? "Collaborateur invité. Copiez le lien dans la liste des invitations si besoin." : "Mise à jour enregistrée.";
+      toast.success(msg);
+      setNotice(msg);
+      window.location.reload();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Erreur");
+      const msg = error instanceof Error ? error.message : "Erreur";
+      toast.error(msg);
+      setNotice(msg);
     } finally {
       setBusy(false);
     }

@@ -3,6 +3,7 @@
 import { FormEvent, useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { MemberCard } from "./member-card";
+import { toast } from "sonner";
 
 const officeRoles = [
   ["member", "Membre"],
@@ -38,10 +39,12 @@ export function MemberProfileManager({ member, allMembers, elections, canManage,
     const data = await response.json();
     setBusy(false);
     if (response.ok) {
+      toast.success("Statut mis à jour avec succès.");
       closeModal();
       router.refresh();
     } else {
       setNotice(data.error);
+      toast.error(data.error || "Erreur de mise à jour.");
     }
   }
 
@@ -53,10 +56,12 @@ export function MemberProfileManager({ member, allMembers, elections, canManage,
     const data = await response.json();
     setBusy(false);
     if (response.ok) {
+      toast.success("Élection ajoutée avec succès.");
       closeModal();
       router.refresh();
     } else {
       setNotice(data.error);
+      toast.error(data.error || "Erreur lors de l'ajout de l'élection.");
     }
   }
 
@@ -70,10 +75,12 @@ export function MemberProfileManager({ member, allMembers, elections, canManage,
     const data = await response.json();
     setBusy(false);
     if (response.ok) {
+      toast.success("Profil mis à jour avec succès.");
       closeModal();
       router.refresh();
     } else {
       setNotice(data.error);
+      toast.error(data.error || "Erreur lors de la mise à jour du profil.");
     }
   }
 

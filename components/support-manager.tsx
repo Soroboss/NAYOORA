@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 
 async function send(payload: object) {
   const response = await fetch("/api/support", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -22,7 +23,7 @@ export function SupportManager({ requests, canManage }: { requests: any[]; canMa
       setNotice("Requête envoyée aux propriétaires NAYOORA.");
       event.currentTarget.reset();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Erreur inconnue.");
+      const __msg = error instanceof Error ? error.message : "Erreur inconnue."; toast.error(__msg); setNotice(__msg);
     } finally {
       setBusy(false);
     }

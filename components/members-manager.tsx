@@ -2,6 +2,7 @@
 
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { createClient } from "@/lib/insforge/client";
+import { toast } from "sonner";
 
 export type Member = { id: string; first_name: string; last_name: string; phone: string | null; email: string | null; member_number: string | null; status: string; birth_date: string | null; address: string | null; photo_url?: string | null; title?: string | null; reports_to?: string | null };
 type FormDataState = { firstName: string; lastName: string; phone: string; email: string; memberNumber: string; address: string; birthDate: string; photoUrl: string; title: string; reportsTo: string };
@@ -22,8 +23,14 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
   async function photo(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) return setMessage("Le fichier choisi doit être une image.");
-    if (file.size > 2_000_000) return setMessage("Photo trop lourde. Utilisez une image inférieure à 2 Mo.");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Le fichier choisi doit être une image.");
+      return setMessage("Le fichier choisi doit être une image.");
+    }
+    if (file.size > 2_000_000) {
+      toast.error("Photo trop lourde (max 2 Mo).");
+      return setMessage("Photo trop lourde. Utilisez une image inférieure à 2 Mo.");
+    }
     setBusy(true);
     setMessage("Upload de la photo en cours…");
     try {
@@ -34,9 +41,12 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
       if (error) throw error;
       const publicUrl = data?.url ?? bucket.getPublicUrl(path).data?.publicUrl ?? path;
       setForm((current) => ({ ...current, photoUrl: publicUrl }));
+      toast.success("Photo uploadée avec succès.");
       setMessage("Photo uploadée. Enregistrez le membre pour l’associer à sa fiche.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Upload de la photo impossible.");
+      const msg = error instanceof Error ? error.message : "Upload de la photo impossible.";
+      toast.error(msg);
+      setMessage(msg);
     } finally {
       setBusy(false);
       event.target.value = "";
@@ -54,10 +64,14 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
     });
     const body = await response.json();
     setBusy(false);
-    if (!response.ok) return setMessage(body.error);
+    if (!response.ok) {
+      toast.error(body.error || "Erreur d'enregistrement.");
+      return setMessage(body.error);
+    }
     setMembers(editing ? members.map((member) => member.id === editing.id ? body.member : member) : [body.member, ...members]);
     setForm(blank);
     setEditing(null);
+    toast.success(editing ? "Membre mis à jour avec succès." : "Membre ajouté avec succès.");
     setMessage(editing ? "Membre mis à jour." : "Membre ajouté avec matricule automatique si non renseigné.");
     setActiveTab("repertoire");
   }
@@ -72,8 +86,12 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
   async function remove(member: Member) {
     if (!confirm(`Retirer ${member.first_name} ${member.last_name} du répertoire ?`)) return;
     const response = await fetch(`/api/members?id=${member.id}`, { method: "DELETE" });
-    if (!response.ok) return setMessage("Suppression impossible.");
+    if (!response.ok) {
+      toast.error("Suppression impossible.");
+      return setMessage("Suppression impossible.");
+    }
     setMembers(members.filter((item) => item.id !== member.id));
+    toast.success("Membre retiré du répertoire.");
     setMessage("Membre retiré du répertoire.");
   }
 
@@ -88,8 +106,15 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
     const body = await response.json();
     setBusy(false);
     event.target.value = "";
-    setMessage(response.ok ? `${body.imported} membre(s) importé(s), ${body.failed} ligne(s) à corriger. Actualisez la page pour voir la liste.` : body.error);
-    if (response.ok) setActiveTab("repertoire");
+    if (response.ok) {
+      toast.success(`${body.imported} membre(s) importé(s)`);
+      if (body.failed > 0) toast.warning(`${body.failed} ligne(s) à corriger.`);
+      setMessage(`${body.imported} membre(s) importé(s), ${body.failed} ligne(s) à corriger. Actualisez la page pour voir la liste.`);
+      setActiveTab("repertoire");
+    } else {
+      toast.error(body.error || "Erreur d'importation.");
+      setMessage(body.error);
+    }
   }
 
   return (

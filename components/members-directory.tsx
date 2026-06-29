@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { toast } from "sonner";
 import { useMemo, useState } from "react";
 
 export type DirectoryMember = { id: string; first_name: string; last_name: string; phone: string | null; email: string | null; member_number: string | null; status: string; office_role?: string | null; office_title?: string | null; photo_url?: string | null };

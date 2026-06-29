@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type PlatformManagerProps = {
   plans: any[];
@@ -79,7 +80,7 @@ export function PlatformManager(props: PlatformManagerProps) {
       setNotice("Opération enregistrée. Les données seront visibles après actualisation.");
       event.currentTarget.reset();
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Erreur inconnue.");
+      const __msg = error instanceof Error ? error.message : "Erreur inconnue."; toast.error(__msg); setNotice(__msg);
     } finally {
       setBusy(false);
     }
@@ -92,7 +93,7 @@ export function PlatformManager(props: PlatformManagerProps) {
       await send(payload);
       setNotice("Mise à jour enregistrée. Actualisez si nécessaire.");
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Erreur inconnue.");
+      const __msg = error instanceof Error ? error.message : "Erreur inconnue."; toast.error(__msg); setNotice(__msg);
     } finally {
       setBusy(false);
     }

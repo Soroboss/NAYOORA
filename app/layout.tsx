@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./overrides.css";
+import { Toaster } from "sonner";
 
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         {children}
         <PwaInstallPrompt />
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );
