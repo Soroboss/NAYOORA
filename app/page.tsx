@@ -30,6 +30,11 @@ export default async function Home() {
 
     <section className="trust-cta premium-cta"><div className="cta-content"><p className="eyebrow text-gradient-light">Vos données, vos règles</p><h2>Une plateforme qui respecte la confiance que l’on vous accorde.</h2><p>Isolation par organisation, accès selon les rôles, historique d’activité et sécurité intégrée dès le départ.</p></div><Link className="button premium-button-light" href="/offres">Commencer avec NAYOORA <span>→</span></Link></section>
 
-    <footer className="nayoora-footer premium-footer"><Link href="/" className="brand"><img src="/nayoora-logo.png" alt="" /> NAYOORA</Link><span>Gérez. Connectez. Développez.</span><span>© {new Date().getFullYear()} NAYOORA</span></footer>
+    <footer className="nayoora-footer premium-footer">
+      <Link href="/" className="brand"><img src="/nayoora-logo.png" alt="" /> NAYOORA</Link>
+      <span>Gérez. Connectez. Développez.</span>
+      <span className="support-phone">Support : +225 07 57 22 87 31</span>
+      <span>© {new Date().getFullYear()} NAYOORA</span>
+    </footer>
   </main>;
 }
