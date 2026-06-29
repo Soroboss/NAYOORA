@@ -1,99 +1,48 @@
-'use client';
+import Link from "next/link";
+import { memberContext } from "@/lib/member-portal";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
-export default function MemberCardPage() {
-  const [card, setCard] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchCard() {
-      // Stub: in reality, fetch from API or Context
-      const response = await fetch('/api/member/my-card');
-      if (response.ok) {
-        const data = await response.json();
-        setCard(data.card);
-      }
-      setLoading(false);
-    }
-    fetchCard();
-  }, []);
-
-  if (loading) return <div className="p-4 text-center">Chargement de votre carte...</div>;
+export default async function MemberCardPage() {
+  const { profile } = await memberContext();
+  const cards = (profile as any)?.member_cards;
+  const card = Array.isArray(cards) ? cards[0] : cards;
 
   return (
-    <div className="max-w-md mx-auto space-y-8">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Ma Carte de Membre</h1>
-        <p className="text-gray-500 text-sm">
-          Présentez cette carte lors de nos événements ou pour bénéficier de vos avantages.
-        </p>
-      </div>
+    <section style={{ maxWidth: 760, margin: "0 auto" }}>
+      <header style={{ textAlign: "center", marginBottom: "1.75rem" }}>
+        <Link href="/member" style={{ color: "#64748b", textDecoration: "none", fontSize: ".88rem" }}>← Retour à l’accueil</Link>
+        <h1 style={{ fontSize: "1.8rem", color: "#0b3a6e", margin: ".75rem 0 .35rem" }}>Ma carte de membre</h1>
+        <p style={{ color: "#64748b", margin: 0 }}>Présentez-la lors des activités ou pour vérifier votre appartenance.</p>
+      </header>
 
       {!card ? (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-6 rounded-2xl text-center shadow-sm">
-          <div className="text-4xl mb-4">💳</div>
-          <h3 className="font-bold mb-2">Carte non disponible</h3>
-          <p className="text-sm">Votre carte n'a pas encore été générée par l'administration. Veuillez patienter ou contacter le secrétariat.</p>
+        <div style={{ padding: "2.5rem 1.25rem", textAlign: "center", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "1.25rem", color: "#92400e" }}>
+          <div style={{ fontSize: "2.5rem" }}>💳</div>
+          <h2 style={{ margin: ".75rem 0 .4rem" }}>Carte en préparation</h2>
+          <p style={{ margin: 0 }}>L’administration de votre organisation n’a pas encore généré votre carte.</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {card.status === 'blocked' && (
-            <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl flex items-start shadow-sm mb-4">
-              <span className="text-2xl mr-3">⚠️</span>
-              <div>
-                <h4 className="font-bold">Carte Désactivée</h4>
-                <p className="text-sm">Votre carte de membre est actuellement suspendue ou désactivée. Elle ne sera pas reconnue comme valide lors d'un scan.</p>
+        <>
+          {card.status === "blocked" && <div style={{ padding: "1rem", marginBottom: "1rem", borderRadius: ".9rem", background: "#fee2e2", color: "#991b1b", fontWeight: 600 }}>⚠️ Cette carte est actuellement désactivée.</div>}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
+            {[
+              { label: "Recto", url: card.front_image_url },
+              { label: "Verso", url: card.back_image_url },
+            ].map((side) => (
+              <div key={side.label}>
+                <strong style={{ display: "block", color: "#334155", marginBottom: ".5rem" }}>{side.label}</strong>
+                <div style={{ width: "100%", aspectRatio: "1.58", borderRadius: "1rem", overflow: "hidden", background: "linear-gradient(135deg,#071f4b,#0e9f6e)", boxShadow: "0 14px 35px rgba(15,23,42,.18)" }}>
+                  {side.url ? <img src={side.url} alt={`${side.label} de la carte`} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ height: "100%", display: "grid", placeItems: "center", color: "white" }}>{side.label} indisponible</div>}
+                </div>
               </div>
-            </div>
-          )}
-
-          <div className="relative group perspective">
-            {/* Recto */}
-            <div className="w-full aspect-[1.58] bg-white rounded-3xl shadow-xl overflow-hidden mb-6 transition-transform duration-500 hover:scale-105 relative">
-              {card.front_image_url ? (
-                 <img src={card.front_image_url} alt="Recto Carte" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">Recto (Aperçu indisponible)</div>
-              )}
-            </div>
-
-            {/* Verso */}
-            <div className="w-full aspect-[1.58] bg-white rounded-3xl shadow-xl overflow-hidden transition-transform duration-500 hover:scale-105 relative">
-              {card.back_image_url ? (
-                 <img src={card.back_image_url} alt="Verso Carte" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">Verso (Aperçu indisponible)</div>
-              )}
-            </div>
+            ))}
           </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {card.pdf_url && (
-              <a 
-                href={card.pdf_url} 
-                download="Ma_Carte_Membre.pdf"
-                className="w-full py-3 bg-gray-900 text-white rounded-xl font-medium text-center flex items-center justify-center gap-2 hover:bg-gray-800 transition"
-              >
-                📄 Télécharger PDF HD
-              </a>
-            )}
-            
-            <a 
-              href={card.front_image_url} 
-              download="Recto_Carte.png"
-              className="w-full py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-medium text-center flex items-center justify-center gap-2 hover:border-gray-300 hover:bg-gray-50 transition"
-            >
-              🖼️ Télécharger Image (Recto)
-            </a>
+          <div style={{ display: "grid", gap: ".75rem", marginTop: "1.5rem" }}>
+            {card.pdf_url && <a href={card.pdf_url} target="_blank" rel="noreferrer" style={{ padding: ".85rem 1rem", borderRadius: ".8rem", background: "#0b3a6e", color: "white", textDecoration: "none", textAlign: "center", fontWeight: 700 }}>📄 Ouvrir la carte PDF</a>}
+            {card.front_image_url && <a href={card.front_image_url} target="_blank" rel="noreferrer" style={{ padding: ".85rem 1rem", borderRadius: ".8rem", background: "white", color: "#0b3a6e", border: "1px solid #bfdbfe", textDecoration: "none", textAlign: "center", fontWeight: 700 }}>🖼️ Ouvrir l’image recto</a>}
           </div>
-          
-          <div className="text-center pt-4 border-t">
-            <p className="text-xs text-gray-400">Valable jusqu'au : {card.expires_at ? new Date(card.expires_at).toLocaleDateString() : 'Illimité'}</p>
-          </div>
-        </div>
+          <p style={{ textAlign: "center", color: "#94a3b8", fontSize: ".78rem", marginTop: "1rem" }}>Valable jusqu’au : {card.expires_at ? new Date(card.expires_at).toLocaleDateString("fr-FR") : "sans expiration"}</p>
+        </>
       )}
-    </div>
+    </section>
   );
 }

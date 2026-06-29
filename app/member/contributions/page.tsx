@@ -1,7 +1,9 @@
 import { memberContext } from '@/lib/member-portal';
 import Link from 'next/link';
+import { MemberWavePaymentButton } from '@/components/member-wave-payment-button';
 
-export default async function Contributions() {
+export default async function Contributions({ searchParams }: { searchParams: Promise<{ payment?: string }> }) {
+  const { payment } = await searchParams;
   const { s, m, profile } = await memberContext();
   
   if (!profile) return (
@@ -12,7 +14,7 @@ export default async function Contributions() {
 
   const { data } = await s
     .from('contributions')
-    .select('due_date, amount_due, amount_paid, status, plan:contribution_plans(name)')
+    .select('id,due_date,amount_due,amount_paid,status,plan:contribution_plans(name)')
     .eq('organization_id', m.organization_id)
     .eq('member_profile_id', profile.id)
     .order('due_date', { ascending: false });
@@ -31,6 +33,9 @@ export default async function Contributions() {
         </p>
       </header>
 
+      {payment === 'succeeded' && <div style={{ marginBottom: '1rem', padding: '1rem', borderRadius: '0.9rem', background: '#dcfce7', color: '#166534', fontWeight: 600 }}>Paiement Wave confirmé. Votre cotisation a été mise à jour.</div>}
+      {payment && payment !== 'succeeded' && <div style={{ marginBottom: '1rem', padding: '1rem', borderRadius: '0.9rem', background: '#fef3c7', color: '#92400e', fontWeight: 600 }}>Le paiement n’a pas été confirmé. Vous pouvez réessayer sans risque de double paiement.</div>}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {data && data.length > 0 ? data.map((c, i) => {
           const isPaid = c.status === 'paid';
@@ -41,7 +46,7 @@ export default async function Contributions() {
           const statusText = isPaid ? 'Payé' : isPartial ? 'Partiel' : 'En attente';
 
           return (
-            <div key={i} style={{ backgroundColor: '#ffffff', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+            <div key={c.id} style={{ backgroundColor: '#ffffff', borderRadius: '1rem', padding: '1.25rem', border: '1px solid #e5e7eb', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1rem' }}>
               <div>
                 <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', margin: '0 0 0.25rem 0' }}>
                   {(c.plan as any)?.name || 'Cotisation'}
@@ -58,6 +63,9 @@ export default async function Contributions() {
                   {c.amount_paid.toLocaleString('fr-FR')} / {c.amount_due.toLocaleString('fr-FR')} FCFA
                 </p>
               </div>
+              {!isPaid && Number(c.amount_due) > Number(c.amount_paid) && (
+                <MemberWavePaymentButton contributionId={c.id} amount={Number(c.amount_due) - Number(c.amount_paid)} />
+              )}
             </div>
           );
         }) : (

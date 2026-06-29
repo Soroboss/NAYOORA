@@ -74,7 +74,7 @@ export default async function PortalFinancePage() {
                   <b className="amount-text">{formatMoney(c.amount_due)}</b>
                   {!isPaid && !isPending && (
                     <div className="action-buttons">
-                      <WavePaymentButton amountDue={c.amount_due} />
+                      <WavePaymentButton contributionId={c.id} amountDue={Number(c.amount_due) - Number(c.amount_paid || 0)} />
                       <DeclarePaymentButton 
                         contributionId={c.id} 
                         planId={c.contribution_plan_id} 

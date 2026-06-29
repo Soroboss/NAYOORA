@@ -64,6 +64,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
           border-radius: 0.5rem;
           font-size: 1rem;
         }
+        .member-brand img { width: 2rem; height: 2rem; object-fit: contain; }
         .logout-btn {
           background: none;
           border: none;
@@ -191,7 +192,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
         {/* Mobile Topbar */}
         <header className="member-topbar">
           <Link href="/member" className="member-brand">
-            <span>O</span> Espace Membre
+            <img src="/icon.png" alt="" /> Espace Membre
           </Link>
           <button onClick={handleLogout} className="logout-btn">
             Quitter
@@ -201,7 +202,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
         {/* Desktop Sidebar */}
         <aside className="member-sidebar" style={{ display: 'none' }}>
           <Link href="/member" className="member-brand">
-            <span>O</span> NAYOORA
+            <img src="/icon.png" alt="" /> NAYOORA
           </Link>
           <nav className="sidebar-nav">
             {navItems.map((item) => (

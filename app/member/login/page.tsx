@@ -38,7 +38,7 @@ export default function MemberLogin() {
       if (data.multiple) {
         setProfiles(data.profiles);
       } else {
-        router.push(`/portal/${data.orgSlug}`);
+        router.push("/member");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur de connexion.");

@@ -22,6 +22,8 @@ export default async function MemberHome() {
   ]);
 
   const due = (contributions ?? []).reduce((x, c) => x + Number(c.amount_due) - Number(c.amount_paid), 0);
+  const cards = (profile as any).member_cards;
+  const memberCard = Array.isArray(cards) ? cards[0] : cards;
 
   return (
     <section>
@@ -81,14 +83,19 @@ export default async function MemberHome() {
         </div>
       </div>
 
-      <div style={{ backgroundColor: '#111827', borderRadius: '1rem', padding: '2rem', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '1rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Ma Carte de Membre</h2>
-        <p style={{ color: '#9ca3af', margin: 0, maxWidth: '400px', lineHeight: 1.5 }}>
-          Présentez votre carte numérique lors de nos rencontres pour marquer votre présence ou bénéficier de vos avantages.
-        </p>
-        <Link href="/member/card" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'white', color: '#111827', padding: '0.75rem 1.25rem', borderRadius: '0.5rem', fontWeight: 600, textDecoration: 'none', marginTop: '0.5rem' }}>
-          💳 Afficher ma carte
-        </Link>
+      <div style={{ background: 'linear-gradient(135deg, #071f4b, #0b3a6e 62%, #0e9f6e)', borderRadius: '1.25rem', padding: '1.25rem', color: 'white', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1.25rem', overflow: 'hidden' }}>
+        {memberCard?.front_image_url ? (
+          <img src={memberCard.front_image_url} alt="Carte de membre" style={{ width: '100%', maxWidth: '430px', borderRadius: '1rem', boxShadow: '0 18px 40px rgba(0,0,0,.28)' }} />
+        ) : (
+          <div style={{ width: '100%', maxWidth: '430px', aspectRatio: '1.58', borderRadius: '1rem', background: 'rgba(255,255,255,.12)', display: 'grid', placeItems: 'center', border: '1px solid rgba(255,255,255,.22)' }}>
+            <div style={{ textAlign: 'center' }}><img src="/icon.png" alt="" style={{ width: 56, height: 56 }} /><strong style={{ display: 'block', marginTop: 8 }}>{profile.first_name} {profile.last_name}</strong><small>Carte en préparation</small></div>
+          </div>
+        )}
+        <div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Ma carte de membre</h2>
+          <p style={{ color: '#dbeafe', margin: '0.6rem 0 1rem', maxWidth: '520px', lineHeight: 1.5 }}>Retrouvez ici votre carte numérique, son statut, son recto-verso et sa version téléchargeable.</p>
+          <Link href="/member/card" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'white', color: '#0b3a6e', padding: '0.75rem 1.25rem', borderRadius: '0.7rem', fontWeight: 700, textDecoration: 'none' }}>💳 Ouvrir ma carte</Link>
+        </div>
       </div>
     </section>
   );
