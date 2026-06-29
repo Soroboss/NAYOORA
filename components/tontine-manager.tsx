@@ -186,7 +186,7 @@ export function TontineManager({ groups, participants, cycles, collections, payo
                 <input name="cycleNumber" type="number" min="1" placeholder="N° cycle" required />
                 <select name="beneficiaryId">
                   <option value="">Bénéficiaire</option>
-                  {groupParticipants.map((p) => <option key={p.id} value={p.id}>Rang {p.payout_rank} · {p.display_name}</option>)}
+                  {participants.map((p) => <option key={p.id} value={p.id}>Rang {p.payout_rank} · {p.display_name}</option>)}
                 </select>
                 <input name="expectedAmount" type="number" min="0" placeholder="Montant attendu" />
                 <input name="collectionDueOn" type="date" />
