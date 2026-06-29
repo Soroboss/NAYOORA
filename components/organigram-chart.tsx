@@ -31,16 +31,40 @@ export function OrganigramChart({ members }: { members: Member[] }) {
     const map = new Map<string, TreeNode>();
     const roots: TreeNode[] = [];
 
+    const president = members.find(m => m.office_role === 'president' || m.title?.toLowerCase().includes('président'));
+    const vicePresident = members.find(m => m.office_role === 'vice_president' || m.title?.toLowerCase().includes('vice'));
+    const secretaire = members.find(m => m.office_role === 'secretaire' || m.title?.toLowerCase().includes('secrétaire'));
+
+    const enrichedMembers = members.map(m => {
+      let reportsTo = m.reports_to;
+      
+      if (!reportsTo && m.id !== president?.id) {
+        if (m.id === vicePresident?.id) {
+          reportsTo = president?.id || null;
+        } else if (m.office_role === 'secretaire' || m.office_role === 'tresorier' || m.office_role === 'commissaire' || ['secrétaire', 'trésorier', 'commissaire', 'organisation', 'communication', 'délégué'].some(t => m.title?.toLowerCase().includes(t))) {
+          reportsTo = vicePresident?.id || president?.id || null;
+        } else {
+          reportsTo = secretaire?.id || vicePresident?.id || president?.id || null;
+        }
+      }
+      return { ...m, inferred_reports_to: reportsTo };
+    });
+
     // Initialize all nodes
-    members.forEach((m) => {
-      map.set(m.id, { ...m, children: [] });
+    enrichedMembers.forEach((m) => {
+      map.set(m.id, { ...m, reports_to: m.inferred_reports_to, children: [] });
     });
 
     // Build the tree
-    members.forEach((m) => {
+    enrichedMembers.forEach((m) => {
       const node = map.get(m.id)!;
-      if (m.reports_to && map.has(m.reports_to)) {
-        map.get(m.reports_to)!.children.push(node);
+      if (m.inferred_reports_to && map.has(m.inferred_reports_to)) {
+        // Prevent infinite loops just in case
+        if (m.inferred_reports_to !== m.id) {
+          map.get(m.inferred_reports_to)!.children.push(node);
+        } else {
+          roots.push(node);
+        }
       } else {
         roots.push(node);
       }
