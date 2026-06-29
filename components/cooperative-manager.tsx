@@ -1,2 +1,190 @@
-"use client";import{FormEvent,useMemo,useState}from'react';const f=(n:number)=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'XOF',maximumFractionDigits:0}).format(n);async function send(x:object){const r=await fetch('/api/cooperative',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(x)}),d=await r.json();if(!r.ok)throw Error(d.error);return d}
-export function CooperativeManager({members,plots,harvests,sales,canManage}:{members:any[];plots:any[];harvests:any[];sales:any[];canManage:boolean}){const[n,setN]=useState(''),[busy,setBusy]=useState(false);const revenue=useMemo(()=>sales.reduce((s,x)=>s+Number(x.quantity)*Number(x.unit_price),0),[sales]);async function sub(e:FormEvent<HTMLFormElement>,action:string){e.preventDefault();setBusy(true);try{await send({action,...Object.fromEntries(new FormData(e.currentTarget))});setN('Enregistrement effectué. Actualisez la page pour voir les données à jour.');e.currentTarget.reset()}catch(e){setN(e instanceof Error?e.message:'Erreur')}finally{setBusy(false)}}return <div className="finance-workspace"><div className="finance-stats"><article><p>Parcelles</p><strong>{plots.length}</strong></article><article><p>Récoltes déclarées</p><strong>{harvests.length}</strong></article><article><p>Ventes enregistrées</p><strong>{f(revenue)}</strong></article></div>{canManage&&<div className="finance-forms"><form className="panel compact-form" onSubmit={e=>sub(e,'plot')}><p className="eyebrow">Parcelles</p><h2>Ajouter une parcelle</h2><select name="memberId" required><option value="">Choisir un producteur</option>{members.map(m=><option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}</select><input required name="name" placeholder="Nom de la parcelle"/><input name="area" type="number" min="0" step="0.01" placeholder="Surface (ha)"/><input name="crop" placeholder="Culture principale"/><button disabled={busy} className="button button-dark">Ajouter</button></form><form className="panel compact-form" onSubmit={e=>sub(e,'harvest')}><p className="eyebrow">Récoltes</p><h2>Déclarer une récolte</h2><select name="plotId" required><option value="">Choisir une parcelle</option>{plots.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><input required name="product" placeholder="Produit"/><input required name="quantity" type="number" min="0.01" step="0.01" placeholder="Quantité"/><input name="unit" placeholder="Unité (kg)"/><button disabled={busy} className="button button-dark">Déclarer</button></form><form className="panel compact-form" onSubmit={e=>sub(e,'sale')}><p className="eyebrow">Ventes</p><h2>Enregistrer une vente</h2><input required name="product" placeholder="Produit"/><input required name="quantity" type="number" min="0.01" step="0.01" placeholder="Quantité"/><input required name="price" type="number" min="0" placeholder="Prix unitaire FCFA"/><input name="buyer" placeholder="Acheteur"/><button disabled={busy} className="button button-dark">Encaisser la vente</button></form></div>}{n&&<p className="member-message">{n}</p>}<div className="finance-lists"><article className="panel"><p className="eyebrow">Récoltes</p><h2>Dernières déclarations</h2><div className="finance-list">{harvests.map(h=><div key={h.id}><span><b>{h.product}</b><small>{h.plot?.name} · {h.harvested_at}</small></span><b>{h.quantity} {h.unit}</b></div>)}</div></article><article className="panel"><p className="eyebrow">Ventes</p><h2>Historique</h2><div className="finance-list">{sales.map(s=><div key={s.id}><span><b>{s.product}</b><small>{s.buyer_name||'Sans acheteur'} · {s.sold_at}</small></span><b>{f(Number(s.quantity)*Number(s.unit_price))}</b></div>)}</div></article></div></div>}
+"use client";
+
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/insforge/client";
+
+export function CooperativeManager({
+  tab,
+  members,
+  plots,
+  harvests,
+  sales,
+  inputs,
+  canManage,
+  organizationId
+}: {
+  tab: string;
+  members: any[];
+  plots: any[];
+  harvests: any[];
+  sales: any[];
+  inputs: any[];
+  canManage: boolean;
+  organizationId: string;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+
+  async function submitHarvest(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setMessage("");
+    try {
+      const formData = new FormData(e.currentTarget);
+      const insforge = createClient();
+      const { error } = await insforge.from("harvests").insert({
+        organization_id: organizationId,
+        plot_id: formData.get("plotId"),
+        product: formData.get("product"),
+        quantity: Number(formData.get("quantity")),
+        unit: formData.get("unit"),
+        harvested_at: formData.get("harvestedAt")
+      });
+      if (error) throw error;
+      setMessage("✅ Récolte enregistrée avec succès.");
+      e.currentTarget.reset();
+      router.refresh();
+    } catch (err: any) {
+      setMessage(`❌ Erreur: ${err.message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitInput(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setBusy(true);
+    setMessage("");
+    try {
+      const formData = new FormData(e.currentTarget);
+      const insforge = createClient();
+      const { error } = await insforge.from("inputs").insert({
+        organization_id: organizationId,
+        name: formData.get("name"),
+        quantity: Number(formData.get("quantity")),
+        unit: formData.get("unit"),
+        unit_cost: Number(formData.get("unitCost")),
+        received_at: formData.get("receivedAt")
+      });
+      if (error) throw error;
+      setMessage("✅ Entrée de stock enregistrée.");
+      e.currentTarget.reset();
+      router.refresh();
+    } catch (err: any) {
+      setMessage(`❌ Erreur: ${err.message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="finance-workspace">
+      {tab === "harvests" ? (
+        <>
+          {canManage && (
+            <div className="finance-forms">
+              <form className="panel compact-form" onSubmit={submitHarvest}>
+                <p className="eyebrow">Nouvelle pesée</p>
+                <h2>Enregistrer une récolte</h2>
+                
+                <select name="plotId" required>
+                  <option value="">Sélectionner une parcelle</option>
+                  {plots.map(p => <option key={p.id} value={p.id}>{p.name} ({p.member?.first_name} {p.member?.last_name})</option>)}
+                </select>
+
+                <input type="text" name="product" required placeholder="Produit (ex: Cacao, Café)" defaultValue="Cacao" />
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <input type="number" name="quantity" required placeholder="Quantité" min="0" step="0.01" />
+                  <select name="unit" required defaultValue="kg">
+                    <option value="kg">Kilogrammes (kg)</option>
+                    <option value="ton">Tonnes</option>
+                    <option value="sac">Sacs</option>
+                  </select>
+                </div>
+
+                <input type="date" name="harvestedAt" required defaultValue={new Date().toISOString().split("T")[0]} />
+
+                <button disabled={busy} className="button button-dark">Enregistrer la pesée</button>
+                {message && <p style={{ fontSize: "14px", marginTop: "8px", color: message.startsWith("✅") ? "#059669" : "#ef4444" }}>{message}</p>}
+              </form>
+            </div>
+          )}
+
+          <div className="finance-lists">
+            <article className="panel">
+              <p className="eyebrow">Historique</p>
+              <h2>Dernières pesées / récoltes</h2>
+              <table className="data-table">
+                <thead><tr><th>Date</th><th>Parcelle</th><th>Produit</th><th style={{textAlign: "right"}}>Quantité</th></tr></thead>
+                <tbody>
+                  {harvests.map(h => (
+                    <tr key={h.id}>
+                      <td>{new Date(h.harvested_at).toLocaleDateString("fr-FR")}</td>
+                      <td>{h.plot?.name}</td>
+                      <td>{h.product}</td>
+                      <td style={{textAlign: "right"}}><b>{h.quantity} {h.unit}</b></td>
+                    </tr>
+                  ))}
+                  {harvests.length === 0 && <tr><td colSpan={4} style={{textAlign: "center", color: "#6b7280"}}>Aucune récolte enregistrée.</td></tr>}
+                </tbody>
+              </table>
+            </article>
+          </div>
+        </>
+      ) : (
+        <>
+          {canManage && (
+            <div className="finance-forms">
+              <form className="panel compact-form" onSubmit={submitInput}>
+                <p className="eyebrow">Magasin & Stocks</p>
+                <h2>Entrée d'intrants</h2>
+                
+                <input type="text" name="name" required placeholder="Nom de l'intrant (Engrais, Semence, etc.)" />
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  <input type="number" name="quantity" required placeholder="Quantité" min="0" step="0.01" />
+                  <select name="unit" required defaultValue="sac">
+                    <option value="sac">Sacs</option>
+                    <option value="kg">Kilogrammes (kg)</option>
+                    <option value="l">Litres (L)</option>
+                    <option value="unite">Unités</option>
+                  </select>
+                </div>
+
+                <input type="number" name="unitCost" placeholder="Coût unitaire (Optionnel)" min="0" step="0.01" />
+                <input type="date" name="receivedAt" required defaultValue={new Date().toISOString().split("T")[0]} />
+
+                <button disabled={busy} className="button button-dark">Enregistrer l'entrée</button>
+                {message && <p style={{ fontSize: "14px", marginTop: "8px", color: message.startsWith("✅") ? "#059669" : "#ef4444" }}>{message}</p>}
+              </form>
+            </div>
+          )}
+
+          <div className="finance-lists">
+            <article className="panel">
+              <p className="eyebrow">État des stocks</p>
+              <h2>Intrants reçus</h2>
+              <table className="data-table">
+                <thead><tr><th>Date</th><th>Nom de l'intrant</th><th style={{textAlign: "right"}}>Quantité</th><th style={{textAlign: "right"}}>Coût Unit.</th></tr></thead>
+                <tbody>
+                  {inputs.map(i => (
+                    <tr key={i.id}>
+                      <td>{new Date(i.received_at).toLocaleDateString("fr-FR")}</td>
+                      <td>{i.name}</td>
+                      <td style={{textAlign: "right"}}><b>{i.quantity} {i.unit}</b></td>
+                      <td style={{textAlign: "right"}}>{i.unit_cost ? `${i.unit_cost} XOF` : "-"}</td>
+                    </tr>
+                  ))}
+                  {inputs.length === 0 && <tr><td colSpan={4} style={{textAlign: "center", color: "#6b7280"}}>Aucun intrant en stock.</td></tr>}
+                </tbody>
+              </table>
+            </article>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
