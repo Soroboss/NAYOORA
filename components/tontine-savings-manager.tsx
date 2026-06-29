@@ -92,15 +92,34 @@ export function TontineSavingsManager({
           const progress = c.expected_amount > 0 ? Math.min(100, Math.round((collectedAmount / c.expected_amount) * 100)) : 0;
           
           return (
-            <button key={c.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                <span>{c.member?.first_name} {c.member?.last_name}</span>
-                <b>{money(collectedAmount)} / {money(c.expected_amount)}</b>
-              </div>
-              <div style={{ width: '100%', height: '4px', backgroundColor: '#e5e7eb', marginTop: '8px', borderRadius: '2px' }}>
-                <div style={{ width: `${progress}%`, height: '100%', backgroundColor: progress >= 100 ? '#10b981' : '#3b82f6', borderRadius: '2px' }}></div>
-              </div>
-            </button>
+            <div key={c.id} style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+              <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <span>{c.member?.first_name} {c.member?.last_name}</span>
+                  <b>{money(collectedAmount)} / {money(c.expected_amount)}</b>
+                </div>
+                <div style={{ width: '100%', height: '4px', backgroundColor: '#e5e7eb', marginTop: '8px', borderRadius: '2px' }}>
+                  <div style={{ width: `${progress}%`, height: '100%', backgroundColor: progress >= 100 ? '#10b981' : '#3b82f6', borderRadius: '2px' }}></div>
+                </div>
+              </button>
+              <a 
+                href={`/api/tontine/savings/pdf-card?cardId=${c.id}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                title="Télécharger le carnet PDF"
+                style={{
+                  padding: '8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#f3f4f6',
+                  color: '#4b5563',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                📄
+              </a>
+            </div>
           );
         }) : (
           <p style={{ fontSize: '14px', color: '#6b7280' }}>Aucune carte active.</p>
