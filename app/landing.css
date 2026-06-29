@@ -300,19 +300,29 @@
   }
   
   .nayoora-nav .nav-links {
-    display: flex !important;
+    display: flex;
     order: 3;
     width: 100%;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
     overflow-x: auto;
-    padding: 15px 0 5px;
-    gap: 20px;
-    font-size: 13px;
-    white-space: nowrap;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+    margin-top: 15px;
+    padding-bottom: 2px;
+    gap: 10px;
+    scrollbar-width: none; /* Firefox */
   }
-  
   .nayoora-nav .nav-links::-webkit-scrollbar {
-    display: none;
+    display: none; /* Chrome/Safari */
+  }
+  .nayoora-nav .nav-links a {
+    white-space: nowrap;
+    background: rgba(11, 58, 110, 0.05);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 11px;
+    border: 1px solid rgba(11, 58, 110, 0.1);
   }
   
   .nayoora-nav .nav-actions {
