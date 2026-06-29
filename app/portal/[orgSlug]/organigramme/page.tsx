@@ -16,7 +16,7 @@ export default async function OrganigramPortalPage(props: { params: Promise<{ or
 
   const { data: member } = await insforge
     .from("member_profiles")
-    .select("organization_id, organization:organizations(name)")
+    .select("organization_id, organization:organizations!member_profiles_organization_id_fkey(name)")
     .eq("id", session.memberId)
     .single();
 

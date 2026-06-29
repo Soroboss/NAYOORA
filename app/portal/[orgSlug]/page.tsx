@@ -22,7 +22,7 @@ export default async function PortalHomePage(props: { params: Promise<{ orgSlug:
   // Fetch member profile
   const { data: member, error } = await insforge
     .from("member_profiles")
-    .select("*, organization:organizations(name, organization_type)")
+    .select("*, organization:organizations!member_profiles_organization_id_fkey(name, organization_type)")
     .eq("id", session.memberId)
     .single();
 
