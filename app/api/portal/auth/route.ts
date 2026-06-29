@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const { data: member, error } = await insforge
       .from("member_profiles")
-      .select("id, organization_id, organization:organizations(slug)")
+      .select("id, organization_id")
       .or(`phone.eq.${cleanPhone},phone.eq.${localPhone},phone.eq.${withPrefix},phone.eq.${spacedLocal},phone.eq.${spacedPrefix}`)
       .eq("status", "active")
       .is("deleted_at", null)
@@ -59,15 +59,24 @@ export async function POST(request: Request) {
     cookieStore.set("portal_session", JSON.stringify(sessionData), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7 // 1 week
     });
 
-    const orgSlug = (member.organization as any)?.slug || "nayoora";
+    const headers = new Headers();
+    headers.append("Set-Cookie", cookieStore.toString());
 
-    return NextResponse.json({ success: true, orgSlug });
+    // Fetch the organization slug
+    const { data: org } = await insforge
+      .from("organizations")
+      .select("slug")
+      .eq("id", member.organization_id)
+      .single();
 
-  } catch (err: any) {
+    const orgSlug = org?.slug || "login";
+
+    return NextResponse.json({ success: true, orgSlug }, { status: 200, headers });
+  } catch (error: any) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
