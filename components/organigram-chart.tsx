@@ -138,7 +138,7 @@ export function OrganigramChart({ members }: { members: Member[] }) {
           left: 0;
           top: 50%;
           border-top: 2px solid #cbd5e1;
-          width: 0;
+          width: 30px;
         }
         .tree > ul::before {
           display: none;
