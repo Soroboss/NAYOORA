@@ -3,6 +3,7 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { createClient } from "@/lib/insforge/client";
 import { toast } from "sonner";
+import { PlanLimitModal, type PlanLimitInfo } from "@/components/plan-limit-modal";
 
 export type Member = { id: string; first_name: string; last_name: string; phone: string | null; email: string | null; member_number: string | null; status: string; birth_date: string | null; address: string | null; photo_url?: string | null; title?: string | null; reports_to?: string | null };
 type FormDataState = { firstName: string; lastName: string; phone: string; email: string; memberNumber: string; address: string; birthDate: string; photoUrl: string; title: string; reportsTo: string };
@@ -15,6 +16,7 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
   const [editing, setEditing] = useState<Member | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<PlanLimitInfo | null>(null);
   const filtered = useMemo(() => members.filter((member) => `${member.first_name} ${member.last_name} ${member.phone ?? ""} ${member.member_number ?? ""}`.toLowerCase().includes(query.toLowerCase())), [members, query]);
   const update = (event: ChangeEvent<HTMLInputElement>) => setForm({ ...form, [event.target.name]: event.target.value });
 
@@ -65,6 +67,7 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
     const body = await response.json();
     setBusy(false);
     if (!response.ok) {
+      if (response.status === 402 && body.code === "PLAN_LIMIT_REACHED") setLimitInfo(body);
       toast.error(body.error || "Erreur d'enregistrement.");
       return setMessage(body.error);
     }
@@ -112,6 +115,7 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
       setMessage(`${body.imported} membre(s) importé(s), ${body.failed} ligne(s) à corriger. Actualisez la page pour voir la liste.`);
       setActiveTab("repertoire");
     } else {
+      if (response.status === 402 && body.code === "PLAN_LIMIT_REACHED") setLimitInfo(body);
       toast.error(body.error || "Erreur d'importation.");
       setMessage(body.error);
     }
@@ -119,6 +123,7 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
 
   return (
     <div className="finance-workspace">
+      <PlanLimitModal info={limitInfo} onClose={() => setLimitInfo(null)} />
       
       <div className="finance-stats">
         <article>

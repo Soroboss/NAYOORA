@@ -16,6 +16,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
     { name: 'Accueil', path: '/member', icon: '🏠' },
     { name: 'Cotisations', path: '/member/contributions', icon: '💰' },
     { name: 'Carte', path: '/member/card', icon: '💳' },
+    { name: 'Chat', path: '/member/chat', icon: '💬' },
     { name: 'Messages', path: '/member/messages', icon: '✉️' },
     { name: 'Événements', path: '/member/events', icon: '📅' },
   ];
@@ -108,8 +109,9 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
           color: #6b7280;
           font-size: 0.75rem;
           font-weight: 500;
-          padding: 0.5rem;
-          min-width: 4rem;
+          padding: 0.4rem 0.15rem;
+          min-width: 0;
+          flex: 1;
         }
         .nav-item.active {
           color: #111827;

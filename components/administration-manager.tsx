@@ -2,6 +2,7 @@
 
 import { useState, useMemo, FormEvent } from "react";
 import { toast } from "sonner";
+import { PlanLimitModal, type PlanLimitInfo } from "@/components/plan-limit-modal";
 
 const roles = [
   ["organization_admin", "Administrateur organisation"],
@@ -53,6 +54,7 @@ export function AdministrationManager({
 }) {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [limitInfo, setLimitInfo] = useState<PlanLimitInfo | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>, action: string) {
     event.preventDefault();
@@ -60,8 +62,13 @@ export function AdministrationManager({
     setNotice("");
     const payload = Object.fromEntries(new FormData(event.currentTarget));
     try {
-      const response = await fetch("/api/organization/team", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, ...payload }) });
+      const response = await fetch("/api/administration", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, ...payload }) });
       const data = await response.json();
+      if (response.status === 402 && data.code === "PLAN_LIMIT_REACHED") {
+        setLimitInfo(data);
+        setNotice(data.error);
+        return;
+      }
       if (!response.ok) throw new Error(data.error);
       const msg = action === "invite" ? "Collaborateur invité. Copiez le lien dans la liste des invitations si besoin." : "Mise à jour enregistrée.";
       toast.success(msg);
@@ -83,6 +90,7 @@ export function AdministrationManager({
 
   return (
     <div className="finance-workspace">
+      <PlanLimitModal info={limitInfo} onClose={() => setLimitInfo(null)} />
       {canManage && (
         <div className="finance-forms">
           <form className="panel compact-form" onSubmit={(event) => submit(event, "invite")}>

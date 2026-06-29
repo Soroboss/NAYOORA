@@ -31,10 +31,10 @@ export async function POST(request: Request) {
       .limit(1)
       .maybeSingle();
 
-    const hasServiceKey = !!(process.env.INSFORGE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const hasServiceKey = !!process.env.INSFORGE_SERVICE_KEY;
 
     if (error || !member) {
-      const debugInfo = JSON.stringify({ hasServiceKey, supabaseError: error?.message, memberFound: !!member });
+      const debugInfo = JSON.stringify({ hasServiceKey, databaseError: error?.message, memberFound: !!member });
       return NextResponse.json({ 
         error: `Numéro de téléphone introuvable ou compte inactif. [Debug: ${debugInfo}]`
       }, { status: 404 });

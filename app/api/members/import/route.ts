@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   if (file.size > 2_000_000) return NextResponse.json({ error: "Le fichier CSV ne doit pas dépasser 2 Mo." }, { status: 400 });
   try {
     const rows = parseCsv(await file.text()); const limits = await getPlanLimits(insforge, membership.organization_id); const { count } = await insforge.from("member_profiles").select("id", { count: "exact", head: true }).eq("organization_id", membership.organization_id).is("deleted_at", null);
-    if (limits.memberLimit !== null && (count ?? 0) + rows.length > limits.memberLimit) return NextResponse.json({ error: `Cet import dépasserait la limite de ${limits.memberLimit} membres de l’offre ${limits.name}.` }, { status: 402 });
+    if (limits.memberLimit !== null && (count ?? 0) + rows.length > limits.memberLimit) return NextResponse.json({ error: `Cet import dépasserait la limite de ${limits.memberLimit} membres de l’offre ${limits.name}.`, code: "PLAN_LIMIT_REACHED", limitType: "members", currentPlan: limits.name, limit: limits.memberLimit }, { status: 402 });
     const { data: batch, error: batchError } = await insforge.from("member_imports").insert({ organization_id: membership.organization_id, file_name: file.name, total_rows: rows.length, imported_by: user.id }).select("id").single();
     if (batchError || !batch) throw batchError ?? new Error("Import non initialisé.");
     const valid: Record<string, unknown>[] = []; const errors: Record<string, unknown>[] = [];

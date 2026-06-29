@@ -15,8 +15,8 @@ export async function POST(request: Request) {
     const admin = await createAdminClient();
     const { data: invoice } = await admin.from("saas_invoices").select("id,organization_id,tenant_id,subscription_id,amount,status").eq("id", body.invoiceId).maybeSingle();
     if (!invoice) return NextResponse.json({ error: "Facture introuvable." }, { status: 404 });
-    const { data: organization } = await client.from("organizations").select("id").eq("id", invoice.organization_id).eq("created_by", user.id).maybeSingle();
-    if (!organization) return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+    const { data: membership } = await client.from("organization_members").select("id").eq("organization_id", invoice.organization_id).eq("user_id", user.id).eq("status", "active").in("role", ["organization_admin", "president"]).maybeSingle();
+    if (!membership) return NextResponse.json({ error: "Accès responsable requis." }, { status: 403 });
 
     const { error } = await admin.from("saas_payment_transactions").insert({
       organization_id: invoice.organization_id,

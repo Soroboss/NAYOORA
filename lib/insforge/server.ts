@@ -32,7 +32,7 @@ export async function createClient(accessToken?: string): Promise<any> {
 
 export async function createAdminClient(): Promise<any> {
   const baseUrl = process.env.NEXT_PUBLIC_INSFORGE_URL;
-  const serviceKey = process.env.INSFORGE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = process.env.INSFORGE_SERVICE_KEY;
   
   if (!baseUrl || !serviceKey) {
     console.warn("WARNING: createAdminClient used but no service key found in environment variables. Falling back to anon key.");

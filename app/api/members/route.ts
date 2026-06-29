@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const member = normalizeMember(await request.json());
     const limits = await getPlanLimits(ctx.insforge, ctx.membership.organization_id);
     const { count } = await ctx.insforge.from("member_profiles").select("id", { count: "exact", head: true }).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null);
-    if (limits.memberLimit !== null && (count ?? 0) >= limits.memberLimit) return NextResponse.json({ error: `Limite de ${limits.memberLimit} membres atteinte pour l’offre ${limits.name}.` }, { status: 402 });
+    if (limits.memberLimit !== null && (count ?? 0) >= limits.memberLimit) return NextResponse.json({ error: `Limite de ${limits.memberLimit} membres atteinte pour l’offre ${limits.name}.`, code: "PLAN_LIMIT_REACHED", limitType: "members", currentPlan: limits.name, limit: limits.memberLimit }, { status: 402 });
     const memberNumber = member.memberNumber || await nextMemberNumber(ctx.insforge, ctx.membership.organization_id, count ?? 0, member.lastName || member.firstName);
     const { data, error } = await ctx.insforge.from("member_profiles").insert({ organization_id: ctx.membership.organization_id, first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: memberNumber, birth_date: member.birthDate, photo_url: member.photoUrl, created_by: ctx.user.id }).select().single();
     if (error) throw error;

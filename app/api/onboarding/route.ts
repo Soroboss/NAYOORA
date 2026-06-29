@@ -25,6 +25,7 @@ export async function POST(request: Request) {
       organization_id: organization.id,
       tenant_id: organization.id,
       subscription_id: subscription.id,
+      plan_id: plan.id,
       amount: Number((plan as any).price_xof ?? 0),
       currency: "XOF",
       status: "open",

@@ -115,8 +115,8 @@ export function ChatClient({ currentMemberId, contacts }: { currentMemberId: str
                   onMouseOver={(e) => { if (!isActive) e.currentTarget.style.background = "#f8fafc"; }}
                   onMouseOut={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
                 >
-                  <div style={{ width: "48px", height: "48px", borderRadius: "24px", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "16px", flexShrink: 0, color: "#64748b" }}>
-                    <User size={24} />
+                  <div style={{ width: "48px", height: "48px", borderRadius: "24px", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "16px", flexShrink: 0, color: "#64748b", overflow: "hidden" }}>
+                    {c.photo_url ? <img src={c.photo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <User size={24} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, color: "#111827", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -152,8 +152,8 @@ export function ChatClient({ currentMemberId, contacts }: { currentMemberId: str
               >
                 <ArrowLeft size={20} />
               </button>
-              <div style={{ width: "40px", height: "40px", borderRadius: "20px", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "12px", color: "#64748b" }}>
-                <User size={20} />
+              <div style={{ width: "40px", height: "40px", borderRadius: "20px", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "12px", color: "#64748b", overflow: "hidden" }}>
+                {activeContact.photo_url ? <img src={activeContact.photo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <User size={20} />}
               </div>
               <div>
                 <div style={{ fontWeight: 600, color: "#111827" }}>{activeContact.first_name} {activeContact.last_name}</div>

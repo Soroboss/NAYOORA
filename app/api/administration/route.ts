@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/insforge/server";
-import { administratorRoles, getPlanLimits } from "@/lib/plan-limits";
+import { administratorRoles, getPlanLimits, PlanLimitError, planLimitPayload } from "@/lib/plan-limits";
 
 const admins = ["organization_admin", "president"];
 const validRoles = ["organization_admin", "president", "secretaire", "tresorier", "gestionnaire", "membre", "auditeur"];
@@ -24,12 +24,21 @@ export async function POST(request: Request) {
   try {
     const body = await request.json(); const organizationId = membership.organization_id;
     const limits = await getPlanLimits(insforge, organizationId);
-    const administratorCount = async () => { const { count } = await insforge.from("organization_members").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).eq("status", "active").in("role", administratorRoles); return count ?? 0; };
-    const enforceAdministratorLimit = async () => { const count = await administratorCount(); if (limits.adminLimit !== null && count >= limits.adminLimit) throw new Error(`Limite de ${limits.adminLimit} administrateurs atteinte pour l’offre ${limits.name}.`); };
+    const administratorCount = async () => {
+      const [{ count: activeCount }, { count: pendingCount }] = await Promise.all([
+        insforge.from("organization_members").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).eq("status", "active").in("role", administratorRoles),
+        insforge.from("organization_invites").select("id", { count: "exact", head: true }).eq("organization_id", organizationId).eq("status", "pending").in("role", administratorRoles),
+      ]);
+      return (activeCount ?? 0) + (pendingCount ?? 0);
+    };
+    const enforceAdministratorLimit = async () => { const count = await administratorCount(); if (limits.adminLimit !== null && count >= limits.adminLimit) throw new PlanLimitError(`Limite de ${limits.adminLimit} administrateurs atteinte pour l’offre ${limits.name}.`, "administrators", limits.name, limits.adminLimit); };
     if (body.action === "card") { if (!body.memberId) throw new Error("Membre requis."); const number = `${body.prefix || "ORG"}-${Date.now().toString().slice(-7)}`; const { data, error } = await insforge.from("member_cards").upsert({ organization_id: organizationId, member_profile_id: body.memberId, card_number: number, status: "active" }, { onConflict: "member_profile_id" }).select().single(); if (error) throw error; return NextResponse.json({ item: data }); }
     if (body.action === "role") { if (!body.membershipId || !validRoles.includes(body.role)) throw new Error("Rôle invalide."); const accessLevel = validAccessLevels.includes(body.accessLevel) ? body.accessLevel : "standard"; const { data: target } = await insforge.from("organization_members").select("role").eq("id", body.membershipId).eq("organization_id", organizationId).maybeSingle(); if (!target) throw new Error("Utilisateur introuvable."); if (!administratorRoles.includes(target.role) && administratorRoles.includes(body.role)) await enforceAdministratorLimit(); const { data, error } = await insforge.from("organization_members").update({ role: body.role, access_level: accessLevel, responsibility: body.responsibility?.trim() || null, permissions: permissionsFor(body.role, accessLevel) }).eq("id", body.membershipId).eq("organization_id", organizationId).select().single(); if (error) throw error; await insforge.from("access_logs").insert({ organization_id: organizationId, user_id: user.id, event_type: "collaborator_access_updated", metadata: { membership_id: body.membershipId, role: body.role, access_level: accessLevel } }); return NextResponse.json({ item: data }); }
     if (body.action === "invite") { if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email || "")) throw new Error("Email invalide."); const role = validRoles.includes(body.role) ? body.role : "membre"; const accessLevel = validAccessLevels.includes(body.accessLevel) ? body.accessLevel : "standard"; if (administratorRoles.includes(role)) await enforceAdministratorLimit(); const { data, error } = await insforge.from("organization_invites").insert({ organization_id: organizationId, email: body.email.toLowerCase(), role, access_level: accessLevel, responsibility: body.responsibility?.trim() || null, permissions: permissionsFor(role, accessLevel), invited_by: user.id }).select().single(); if (error) throw error; await insforge.from("access_logs").insert({ organization_id: organizationId, user_id: user.id, event_type: "collaborator_invited", metadata: { email: body.email.toLowerCase(), role, access_level: accessLevel } }); return NextResponse.json({ item: data }); }
     if (body.action === "settings") { const { error } = await insforge.from("organizations").update({ name: body.name, phone: body.phone || null, email: body.email || null, country_code: body.country || null, currency: body.currency || "XOF" }).eq("id", organizationId); if (error) throw error; await insforge.from("settings").upsert({ organization_id: organizationId, timezone: body.timezone || "Africa/Abidjan", member_number_prefix: body.prefix || null, data: {} }); return NextResponse.json({ ok: true }); }
     throw new Error("Action inconnue.");
-  } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Opération impossible." }, { status: 400 }); }
+  } catch (error) {
+    if (error instanceof PlanLimitError) return NextResponse.json(planLimitPayload(error), { status: 402 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Opération impossible." }, { status: 400 });
+  }
 }

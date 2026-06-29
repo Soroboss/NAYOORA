@@ -68,11 +68,12 @@ export async function POST(request: Request) {
     if (body.action === "invoice") {
       if (!body.organizationId || Number(body.amount) < 0) throw new Error("Organisation et montant requis.");
       const status = invoiceStatuses.includes(body.status) ? body.status : "open";
-      const { data: subscription } = await insforge.from("saas_subscriptions").select("id").eq("organization_id", body.organizationId).maybeSingle();
+      const { data: subscription } = await insforge.from("saas_subscriptions").select("id,plan_id").eq("organization_id", body.organizationId).maybeSingle();
       const { error } = await insforge.from("saas_invoices").insert({
         organization_id: body.organizationId,
         tenant_id: body.organizationId,
         subscription_id: subscription?.id ?? null,
+        plan_id: subscription?.plan_id ?? null,
         amount: Number(body.amount),
         status,
         due_at: body.dueAt || null,
@@ -92,7 +93,8 @@ export async function POST(request: Request) {
         const { error } = await insforge.from("saas_payment_transactions").update({ status: "succeeded", paid_at: now, updated_at: now }).eq("id", transaction.id);
         if (error) throw error;
         await insforge.from("saas_invoices").update({ status: "paid", paid_at: now }).eq("id", transaction.invoice_id);
-        if (transaction.subscription_id) await insforge.from("saas_subscriptions").update({ status: "active", starts_at: now, updated_at: now }).eq("id", transaction.subscription_id);
+        const { data: invoice } = await insforge.from("saas_invoices").select("plan_id").eq("id", transaction.invoice_id).maybeSingle();
+        if (transaction.subscription_id) await insforge.from("saas_subscriptions").update({ ...(invoice?.plan_id ? { plan_id: invoice.plan_id } : {}), status: "active", starts_at: now, updated_at: now }).eq("id", transaction.subscription_id);
         await recordActivity(insforge, user.id, transaction.organization_id, "billing_payment_confirmed", "success", "Paiement d’abonnement confirmé manuellement");
       }
       return NextResponse.json({ ok: true });
