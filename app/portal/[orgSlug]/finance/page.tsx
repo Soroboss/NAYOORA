@@ -52,9 +52,8 @@ export default async function PortalFinancePage() {
             const isPaid = c.status === "paid";
             const isPending = !isPaid && pendingPlanIds.includes(c.contribution_plan_id);
 
-            return (
-              <div key={c.id} style={{ padding: "20px", borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
+              <div key={c.id} className="finance-item">
+                <div className="finance-details">
                   <b style={{ display: "block", fontSize: "16px" }}>{(c.plan as any)?.name || "Cotisation"}</b>
                   <small style={{ color: "#6b7280", display: "block", marginTop: "4px" }}>Échéance : {new Date(c.due_date).toLocaleDateString("fr-FR")}</small>
                   <div style={{ marginTop: "8px" }}>
@@ -70,10 +69,10 @@ export default async function PortalFinancePage() {
                     </span>
                   </div>
                 </div>
-                <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                  <b style={{ display: "block", fontSize: "18px", color: "#111827", marginBottom: "12px" }}>{formatMoney(c.amount_due)}</b>
+                <div className="finance-actions">
+                  <b className="amount-text">{formatMoney(c.amount_due)}</b>
                   {!isPaid && !isPending && (
-                    <div style={{ display: "flex", marginTop: "4px", gap: "8px" }}>
+                    <div className="action-buttons">
                       <WavePaymentButton amountDue={c.amount_due} />
                       <DeclarePaymentButton 
                         contributionId={c.id} 
@@ -88,6 +87,60 @@ export default async function PortalFinancePage() {
           })
         )}
       </div>
+
+      <style>{`
+        .finance-item {
+          padding: 20px;
+          border-bottom: 1px solid #f3f4f6;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+        }
+        .finance-actions {
+          text-align: right;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+        }
+        .amount-text {
+          display: block;
+          font-size: 18px;
+          color: #111827;
+          margin-bottom: 12px;
+        }
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        /* Mobile Responsive adjustments */
+        @media (max-width: 640px) {
+          .finance-item {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .finance-actions {
+            width: 100%;
+            align-items: flex-start;
+            text-align: left;
+            margin-top: 12px;
+            border-top: 1px dashed #e5e7eb;
+            padding-top: 16px;
+          }
+          .amount-text {
+            margin-bottom: 16px;
+          }
+          .action-buttons {
+            width: 100%;
+            flex-direction: column;
+          }
+          .action-buttons > * {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+      `}</style>
     </div>
   );
 }
