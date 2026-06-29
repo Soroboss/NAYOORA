@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const { data: member, error } = await insforge
       .from("member_profiles")
-      .select("id, organization_id")
+      .select("id, organization_id, organization:organizations(slug)")
       .or(`phone.eq.${cleanPhone},phone.eq.${localPhone},phone.eq.${withPrefix},phone.eq.${spacedLocal},phone.eq.${spacedPrefix}`)
       .eq("status", "active")
       .is("deleted_at", null)
@@ -63,7 +63,9 @@ export async function POST(request: Request) {
       path: "/",
     });
 
-    return NextResponse.json({ success: true });
+    const orgSlug = (member.organization as any)?.slug || "nayoora";
+
+    return NextResponse.json({ success: true, orgSlug });
 
   } catch (err: any) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

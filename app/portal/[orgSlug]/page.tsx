@@ -4,7 +4,8 @@ import { createAdminClient as createClient } from "@/lib/insforge/server";
 import Link from "next/link";
 import QRCode from "qrcode";
 
-export default async function PortalHomePage() {
+export default async function PortalHomePage(props: { params: Promise<{ orgSlug: string }> }) {
+  const params = await props.params;
   const cookieStore = await cookies();
   const sessionString = cookieStore.get("portal_session")?.value;
   if (!sessionString) redirect("/portal/login");
@@ -68,7 +69,7 @@ export default async function PortalHomePage() {
 
         {/* Quick Links */}
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <Link href="/portal/finance" style={{ textDecoration: "none" }}>
+          <Link href={`/portal/${params.orgSlug}/finance`} style={{ textDecoration: "none" }}>
             <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>💰</div>
               <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Mes Cotisations</h3>
@@ -76,28 +77,28 @@ export default async function PortalHomePage() {
             </div>
           </Link>
           
-          <Link href="/portal/tontine" style={{ textDecoration: "none" }}>
+          <Link href={`/portal/${params.orgSlug}/tontine`} style={{ textDecoration: "none" }}>
             <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>🔄</div>
               <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Ma Tontine</h3>
               <p style={{ color: "#6b7280", fontSize: "14px" }}>Suivez vos versements et consultez votre date de réception.</p>
             </div>
           </Link>
-          <Link href="/portal/chat" style={{ textDecoration: "none" }}>
+          <Link href={`/portal/${params.orgSlug}/chat`} style={{ textDecoration: "none" }}>
             <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>💬</div>
               <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Messagerie</h3>
               <p style={{ color: "#6b7280", fontSize: "14px" }}>Discutez avec les autres membres de votre organisation.</p>
             </div>
           </Link>
-          <Link href="/portal/governance" style={{ textDecoration: "none" }}>
+          <Link href={`/portal/${params.orgSlug}/governance`} style={{ textDecoration: "none" }}>
             <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>🗳️</div>
               <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Élections & Votes</h3>
               <p style={{ color: "#6b7280", fontSize: "14px" }}>Participez aux décisions de l'organisation.</p>
             </div>
           </Link>
-          <Link href="/portal/organigramme" style={{ textDecoration: "none" }}>
+          <Link href={`/portal/${params.orgSlug}/organigramme`} style={{ textDecoration: "none" }}>
             <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
               <div style={{ fontSize: "32px", marginBottom: "12px" }}>🏢</div>
               <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Organigramme</h3>

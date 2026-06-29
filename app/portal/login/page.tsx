@@ -25,7 +25,7 @@ export default function PortalLoginPage() {
       
       if (!res.ok) throw new Error(data.error || "Connexion impossible");
       
-      router.push("/portal");
+      router.push(`/portal/${data.orgSlug}`);
       router.refresh();
     } catch (err: any) {
       setError(err.message);
