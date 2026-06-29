@@ -222,7 +222,7 @@ export function OrganizationManager({ organization, modules: initial, settings, 
               </div>
               <div className="modules-grid">
                 {modules.map(([code, label, icon, desc]) => (
-                  <div key={code} className={\`module-card \${mods[code] ?? true ? 'active' : ''}\`}>
+                  <div key={code} className={`module-card ${mods[code] ?? true ? 'active' : ''}`}>
                     <div className="module-icon">{icon}</div>
                     <div className="module-content">
                       <h4>{label}</h4>
