@@ -2664,21 +2664,103 @@ legend {
     letter-spacing: -2.5px;
   }
 }
-@media (max-width: 430px) {
-  .metric-grid,
-  .type-choices {
-    grid-template-columns: 1fr;
+}
+
+/* ==========================================================================
+   GLOBAL MOBILE RESPONSIVENESS (DASHBOARD & APP)
+   ========================================================================== */
+@media (max-width: 800px) {
+  /* Layout: App Shell & Dashboard */
+  .app-shell {
+    grid-template-columns: 1fr !important;
+    padding-bottom: 70px; /* space for mobile toggle */
   }
+  .dashboard {
+    padding: 20px 15px !important;
+  }
+  
+  /* Headers */
   .dashboard-header {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px !important;
   }
-  .dashboard-header .button {
-    margin-top: 16px;
+  .dashboard-header .button, .dashboard-header > div:last-child {
+    width: 100%;
+    justify-content: center;
+    margin-top: 5px;
   }
+  
+  /* Grids & Cards */
+  .metric-grid,
+  .dashboard-grid,
+  .type-choices,
+  .request-board {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+  
+  /* Forms */
+  .form-grid,
+  .platform-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+  }
+  
+  /* Tables (Horizontal Scroll) */
+  /* tenant-table, billing-table, etc. use CSS Grid on rows. 
+     We wrap the table in overflow, and force the rows to maintain minimum widths */
+  .tenant-table, .billing-table, .data-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    /* Hide scrollbar for a cleaner look */
+    scrollbar-width: none; 
+  }
+  .tenant-table::-webkit-scrollbar {
+    display: none;
+  }
+  .tenant-table > div, .billing-table > div {
+    /* Force row width to prevent collapse */
+    min-width: 700px;
+  }
+  
+  /* Layout components inside cards */
+  .detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Modals & Dialogs */
+  .dialog-content, 
+  [role="dialog"] > div {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    padding: 20px !important;
+    margin: 10px !important;
+  }
+  
+  /* Empty States */
+  .empty-state {
+    padding: 30px 15px;
+  }
+  
+  /* Auth */
+  .auth-card {
+    margin: 5vh auto;
+    width: 90vw;
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 430px) {
   .marketing-nav .button {
     padding: 11px;
   }
   .marketing-nav > div > a:first-child {
     display: none;
+  }
+  .dashboard-header h1 {
+    font-size: 24px;
   }
 }
