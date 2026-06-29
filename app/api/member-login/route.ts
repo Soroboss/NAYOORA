@@ -11,18 +11,28 @@ export async function POST(request: Request) {
     
     // If a specific memberId is provided (Step 2 of Smart Login)
     if (memberId) {
-      // Step 2 still relies on the RPC because RLS will block even the direct single query for an anon user
       const { data, error } = await s.rpc("find_member_profiles_by_phone", { phone_number: phone.trim() });
       if (error || !data || data.length === 0) return NextResponse.json({ error: "Profil introuvable." }, { status: 404 });
-      
+
       const member = data.find((m: any) => m.id === memberId);
       if (!member) return NextResponse.json({ error: "Profil introuvable." }, { status: 404 });
-      
+
+      // Fetch organization slug for redirect
+      const { data: org } = await s.from("organizations").select("slug").eq("id", member.organization_id).single();
+      const orgSlug = org?.slug || "unknown";
+
+      const sessionData = JSON.stringify({ memberId: member.id, organizationId: member.organization_id });
+
       const cookieStore = await cookies();
-      cookieStore.set("member_session", JSON.stringify({ memberId: member.id, organizationId: member.organization_id }), {
+      // Set both sessions
+      cookieStore.set("member_session", sessionData, {
         httpOnly: true, secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 7
       });
-      return NextResponse.json({ success: true, memberId: member.id });
+      cookieStore.set("portal_session", sessionData, {
+        httpOnly: true, secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 7
+      });
+
+      return NextResponse.json({ success: true, memberId: member.id, orgSlug });
     }
 
     // Step 1: Find all member profiles by phone
@@ -36,11 +46,22 @@ export async function POST(request: Request) {
     // If only one active profile, log them in directly
     if (members.length === 1) {
       const member = members[0];
+
+      // Fetch organization slug for redirect
+      const { data: org } = await s.from("organizations").select("slug").eq("id", member.organization_id).single();
+      const orgSlug = org?.slug || "unknown";
+
+      const sessionData = JSON.stringify({ memberId: member.id, organizationId: member.organization_id });
+
       const cookieStore = await cookies();
-      cookieStore.set("member_session", JSON.stringify({ memberId: member.id, organizationId: member.organization_id }), {
+      cookieStore.set("member_session", sessionData, {
         httpOnly: true, secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 7
       });
-      return NextResponse.json({ success: true, memberId: member.id });
+      cookieStore.set("portal_session", sessionData, {
+        httpOnly: true, secure: process.env.NODE_ENV === "production", path: "/", maxAge: 60 * 60 * 24 * 7
+      });
+
+      return NextResponse.json({ success: true, memberId: member.id, orgSlug });
     }
 
     // If multiple active profiles, return them for selection

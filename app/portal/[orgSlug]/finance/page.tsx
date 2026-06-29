@@ -7,13 +7,13 @@ import { WavePaymentButton } from "@/components/wave-payment-button";
 export default async function PortalFinancePage() {
   const cookieStore = await cookies();
   const sessionString = cookieStore.get("portal_session")?.value;
-  if (!sessionString) redirect("/portal/login");
+  if (!sessionString) redirect("/member/login");
 
   let session;
   try {
     session = JSON.parse(sessionString);
   } catch {
-    redirect("/portal/login");
+    redirect("/member/login");
   }
 
   const insforge = await createClient();
@@ -52,6 +52,7 @@ export default async function PortalFinancePage() {
             const isPaid = c.status === "paid";
             const isPending = !isPaid && pendingPlanIds.includes(c.contribution_plan_id);
 
+            return (
               <div key={c.id} className="finance-item">
                 <div className="finance-details">
                   <b style={{ display: "block", fontSize: "16px" }}>{(c.plan as any)?.name || "Cotisation"}</b>

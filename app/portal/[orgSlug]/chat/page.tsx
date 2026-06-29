@@ -6,15 +6,15 @@ import { ChatClient } from "./chat-client";
 export default async function ChatPage() {
   const cookieStore = await cookies();
   const sessionString = cookieStore.get("portal_session")?.value;
-  if (!sessionString) redirect("/portal/login");
+  if (!sessionString) redirect("/member/login");
   
   let session;
-  try { session = JSON.parse(sessionString); } catch { redirect("/portal/login"); }
+  try { session = JSON.parse(sessionString); } catch { redirect("/member/login"); }
 
   const insforge = await createClient();
 
   const { data: member } = await insforge.from("member_profiles").select("organization_id").eq("id", session.memberId).single();
-  if (!member) redirect("/portal/login");
+  if (!member) redirect("/member/login");
 
   // Fetch all active members in the same organization
   const { data: contacts } = await insforge.from("member_profiles")

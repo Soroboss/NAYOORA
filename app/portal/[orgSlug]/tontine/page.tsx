@@ -5,13 +5,13 @@ import { createAdminClient as createClient } from "@/lib/insforge/server";
 export default async function PortalTontinePage() {
   const cookieStore = await cookies();
   const sessionString = cookieStore.get("portal_session")?.value;
-  if (!sessionString) redirect("/portal/login");
+  if (!sessionString) redirect("/member/login");
 
   let session;
   try {
     session = JSON.parse(sessionString);
   } catch {
-    redirect("/portal/login");
+    redirect("/member/login");
   }
 
   const insforge = await createClient();
