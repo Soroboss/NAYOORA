@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/insforge/server";
+import { DeclarePaymentButton } from "./declare-payment";
 
 export default async function PortalFinancePage() {
   const cookieStore = await cookies();
@@ -23,6 +24,15 @@ export default async function PortalFinancePage() {
     .eq("member_profile_id", session.memberId)
     .order("due_date", { ascending: false });
 
+  // Fetch pending payments to see if a contribution is already pending
+  const { data: pendingPayments } = await insforge
+    .from("payments")
+    .select("contribution_plan_id, status")
+    .eq("member_profile_id", session.memberId)
+    .eq("status", "pending");
+  
+  const pendingPlanIds = pendingPayments?.map(p => p.contribution_plan_id) || [];
+
   const formatMoney = (n: number) =>
     new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", maximumFractionDigits: 0 }).format(n);
 
@@ -39,6 +49,8 @@ export default async function PortalFinancePage() {
         ) : (
           contributions?.map((c) => {
             const isPaid = c.status === "paid";
+            const isPending = !isPaid && pendingPlanIds.includes(c.contribution_plan_id);
+
             return (
               <div key={c.id} style={{ padding: "16px", borderBottom: "1px solid #f3f4f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
@@ -49,29 +61,35 @@ export default async function PortalFinancePage() {
                       fontSize: "12px", 
                       padding: "2px 8px", 
                       borderRadius: "12px", 
-                      background: isPaid ? "#dcfce7" : "#fee2e2", 
-                      color: isPaid ? "#166534" : "#991b1b" 
+                      background: isPaid ? "#dcfce7" : isPending ? "#fef08a" : "#fee2e2", 
+                      color: isPaid ? "#166534" : isPending ? "#854d0e" : "#991b1b" 
                     }}>
-                      {isPaid ? "Payé" : "En attente"}
+                      {isPaid ? "Payé" : isPending ? "En cours de validation" : "En attente"}
                     </span>
                   </div>
                 </div>
-                <div style={{ textAlign: "right" }}>
+                <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
                   <b style={{ display: "block", fontSize: "16px" }}>{formatMoney(c.amount_due)}</b>
-                  {!isPaid && (
-                    <button style={{ 
-                      marginTop: "8px", 
-                      padding: "6px 12px", 
-                      background: "#ff9900", 
-                      color: "white", 
-                      border: "none", 
-                      borderRadius: "6px", 
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      fontWeight: "600"
-                    }}>
-                      Payer via Mobile Money
-                    </button>
+                  {!isPaid && !isPending && (
+                    <div style={{ display: "flex", marginTop: "8px" }}>
+                      <button style={{ 
+                        padding: "6px 12px", 
+                        background: "#ff9900", 
+                        color: "white", 
+                        border: "none", 
+                        borderRadius: "6px", 
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        fontWeight: "600"
+                      }}>
+                        Payer en ligne
+                      </button>
+                      <DeclarePaymentButton 
+                        contributionId={c.id} 
+                        planId={c.contribution_plan_id} 
+                        amountDue={c.amount_due} 
+                      />
+                    </div>
                   )}
                 </div>
               </div>

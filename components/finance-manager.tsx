@@ -29,7 +29,7 @@ function exportCSV(filename: string, rows: any[]) {
   link.click();
 }
 
-export function FinanceManager({ plans, members, contributions, payments, cash, canManage }: { plans: any[]; members: any[]; contributions: any[]; payments: any[]; cash: any[]; canManage: boolean }) {
+export function FinanceManager({ plans, members, contributions, payments, pendingPayments, cash, canManage }: { plans: any[]; members: any[]; contributions: any[]; payments: any[]; pendingPayments?: any[]; cash: any[]; canManage: boolean }) {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -95,6 +95,10 @@ export function FinanceManager({ plans, members, contributions, payments, cash, 
 
       <div className="tabs" style={{ display: "flex", gap: "16px", borderBottom: "1px solid #e5e7eb", marginBottom: "24px" }}>
         <button onClick={() => setActiveTab("vue")} style={{ padding: "12px 16px", borderBottom: activeTab === "vue" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "vue" ? "bold" : "normal" }}>Vue d'ensemble</button>
+        {canManage && <button onClick={() => setActiveTab("validations")} style={{ padding: "12px 16px", borderBottom: activeTab === "validations" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "validations" ? "bold" : "normal", display: "flex", alignItems: "center", gap: "8px" }}>
+          Validations
+          {pendingPayments && pendingPayments.length > 0 && <span style={{ background: "#ef4444", color: "white", borderRadius: "12px", padding: "2px 8px", fontSize: "12px" }}>{pendingPayments.length}</span>}
+        </button>}
         <button onClick={() => setActiveTab("cotisations")} style={{ padding: "12px 16px", borderBottom: activeTab === "cotisations" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "cotisations" ? "bold" : "normal" }}>Plans & Échéances</button>
         <button onClick={() => setActiveTab("encaissement")} style={{ padding: "12px 16px", borderBottom: activeTab === "encaissement" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "encaissement" ? "bold" : "normal" }}>Encaisser un paiement</button>
       </div>
@@ -190,6 +194,57 @@ export function FinanceManager({ plans, members, contributions, payments, cash, 
                       )}
                     </span>
                     <b>{money(p.amount)}</b>
+                  </div>
+                ))}
+              </div>
+            </article>
+          )}
+
+          {activeTab === "validations" && canManage && (
+            <article className="panel">
+              <p className="eyebrow">En attente</p>
+              <h2>Paiements déclarés</h2>
+              <div className="finance-list" style={{ maxHeight: "600px", overflowY: "auto" }}>
+                {(!pendingPayments || pendingPayments.length === 0) ? <p className="muted">Aucune déclaration en attente.</p> : pendingPayments.map(p => (
+                  <div key={p.id} style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-start", padding: "16px", borderBottom: "1px solid #e5e7eb" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                      <span>
+                        <b>{(p.member as any)?.first_name} {(p.member as any)?.last_name}</b>
+                        <small>{(p.plan as any)?.name} — {p.provider}</small>
+                        {p.provider_reference && <small>Réf: {p.provider_reference}</small>}
+                      </span>
+                      <b style={{ color: "#854d0e" }}>{money(p.amount)}</b>
+                    </div>
+                    {p.proof_url && (
+                      <div style={{ marginTop: "8px" }}>
+                        <a href={p.proof_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#2563eb", textDecoration: "underline" }}>
+                          Voir la preuve de paiement
+                        </a>
+                      </div>
+                    )}
+                    <div style={{ display: "flex", gap: "8px", marginTop: "8px", width: "100%" }}>
+                      <form onSubmit={e => submit(e, 'validate_payment')} style={{ flex: 1 }}>
+                        <input type="hidden" name="paymentId" value={p.id} />
+                        <input type="hidden" name="contributionId" value={(p.contribution as any)?.id} />
+                        <input type="hidden" name="amount" value={p.amount} />
+                        <button disabled={busy} className="button button-dark" style={{ width: "100%" }}>Valider</button>
+                      </form>
+                      <form onSubmit={e => {
+                        const reason = prompt("Motif du rejet :");
+                        if (reason === null) e.preventDefault(); // cancelled
+                        else {
+                          const input = document.createElement("input");
+                          input.type = "hidden";
+                          input.name = "rejectionReason";
+                          input.value = reason;
+                          e.currentTarget.appendChild(input);
+                          submit(e, 'reject_payment');
+                        }
+                      }} style={{ flex: 1 }}>
+                        <input type="hidden" name="paymentId" value={p.id} />
+                        <button disabled={busy} className="button" style={{ width: "100%", background: "#fee2e2", color: "#991b1b", border: "1px solid #f87171" }}>Rejeter</button>
+                      </form>
+                    </div>
                   </div>
                 ))}
               </div>
