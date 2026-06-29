@@ -1,6 +1,7 @@
 import { getCurrentOrganizationContext } from "@/lib/current-organization";
 import { PaywallScreen } from "@/components/paywall-screen";
 import { headers } from "next/headers";
+import { MobileSidebarToggle } from "@/components/mobile-sidebar-toggle";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // Catch the current headers (Next.js layout runs per page load)
@@ -15,5 +16,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return <PaywallScreen />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <MobileSidebarToggle />
+      {children}
+    </>
+  );
 }
