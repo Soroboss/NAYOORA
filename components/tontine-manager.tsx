@@ -35,6 +35,18 @@ export function TontineManager({ groups, participants, cycles, collections, payo
     }
   }
 
+  async function markPayoutPaid(payoutId: string) {
+    setError(""); setLoading(`payout-${payoutId}`);
+    try {
+      await send({ action: "payout_status", payoutId, status: "paid" });
+      toast.success("Le reversement est confirmé comme remis au bénéficiaire.");
+      location.reload();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erreur inconnue.";
+      toast.error(msg); setError(msg); setLoading("");
+    }
+  }
+
   const inTotal = collections.reduce((t, c) => t + Number(c.amount_paid || 0), 0);
   const outTotal = payouts.reduce((t, p) => t + Number(p.net_amount || 0), 0);
 
@@ -141,10 +153,13 @@ export function TontineManager({ groups, participants, cycles, collections, payo
                 {payouts.length ? payouts.map((p) => (
                   <div key={p.id}>
                     <span>
-                      <b>{(p.beneficiary as any)?.display_name || "Bénéficiaire"}</b>
-                      <small>Cycle {(p.cycle as any)?.cycle_number}</small>
+                      <b>{p.status === "paid" ? `✓ Remis à ${(p.beneficiary as any)?.display_name || "Bénéficiaire"}` : `À remettre à ${(p.beneficiary as any)?.display_name || "Bénéficiaire"}`}</b>
+                      <small>Cycle {(p.cycle as any)?.cycle_number} · {p.status === "paid" ? `remis le ${new Date(p.paid_at).toLocaleDateString("fr-FR")}` : "en attente de remise"}</small>
                     </span>
-                    <b className="negative">-{money(Number(p.net_amount))}</b>
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <b className={p.status === "paid" ? "negative" : ""}>-{money(Number(p.net_amount))}</b>
+                      {canManage && p.status !== "paid" && p.status !== "cancelled" && <button disabled={loading === `payout-${p.id}`} onClick={() => markPayoutPaid(p.id)}>{loading === `payout-${p.id}` ? "Validation…" : "Marquer remis"}</button>}
+                    </span>
                   </div>
                 )) : <p className="muted">Aucun reversement.</p>}
               </div>
@@ -244,6 +259,7 @@ export function TontineManager({ groups, participants, cycles, collections, payo
                   </select>
                   <input name="grossAmount" type="number" min="0" placeholder="Montant brut" />
                   <input name="commissionAmount" type="number" min="0" placeholder="Commission" />
+                  <select name="status" defaultValue="paid"><option value="paid">Remis maintenant au bénéficiaire</option><option value="scheduled">Programmer le reversement</option><option value="approved">Approuvé, en attente de remise</option></select>
                   <button disabled={loading === "payout"} className="button button-dark">Reverser</button>
                 </form>
               </>

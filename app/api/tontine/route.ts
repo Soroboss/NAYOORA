@@ -104,7 +104,23 @@ export async function POST(request: Request) {
         notes: body.notes || null,
       }).select().single();
       if (error) throw error;
+      if (body.status === "paid") {
+        await insforge.from("tontine_cycles").update({ status: "paid" }).eq("id", body.cycleId).eq("organization_id", organizationId);
+        await insforge.from("access_logs").insert({ organization_id: organizationId, user_id: user.id, event_type: "tontine_payout_paid", metadata: { payout_id: data.id, beneficiary_id: body.beneficiaryId, net_amount: Math.max(gross - commission, 0) } });
+      }
       return NextResponse.json({ item: data }, { status: 201 });
+    }
+    if (body.action === "payout_status") {
+      if (!body.payoutId || !["approved", "paid", "cancelled"].includes(body.status)) throw new Error("Reversement et statut requis.");
+      const { data: payout } = await insforge.from("tontine_payouts").select("id,tontine_cycle_id,beneficiary_participant_id,net_amount").eq("id", body.payoutId).eq("organization_id", organizationId).maybeSingle();
+      if (!payout) throw new Error("Reversement introuvable.");
+      const { data, error } = await insforge.from("tontine_payouts").update({ status: body.status, paid_at: body.status === "paid" ? new Date().toISOString() : null }).eq("id", payout.id).eq("organization_id", organizationId).select().single();
+      if (error) throw error;
+      if (body.status === "paid") {
+        await insforge.from("tontine_cycles").update({ status: "paid" }).eq("id", payout.tontine_cycle_id).eq("organization_id", organizationId);
+        await insforge.from("access_logs").insert({ organization_id: organizationId, user_id: user.id, event_type: "tontine_payout_paid", metadata: { payout_id: payout.id, beneficiary_id: payout.beneficiary_participant_id, net_amount: payout.net_amount } });
+      }
+      return NextResponse.json({ item: data });
     }
     throw new Error("Action inconnue.");
   } catch (error) {

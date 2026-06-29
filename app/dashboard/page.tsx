@@ -17,14 +17,11 @@ export default async function DashboardPage() {
   if (!organization) redirect("/onboarding");
   
   const config = organizationTypes[organization.organization_type as OrganizationType];
-  const startOfMonth = new Date(); startOfMonth.setDate(1); startOfMonth.setHours(0,0,0,0);
-  
   // Fetch core metrics
-  const [activeMembers, totalMembers, officers, payments, events] = await Promise.all([
+  const [activeMembers, totalMembers, officers, events] = await Promise.all([
     insforge.from("member_profiles").select("id", { count: "exact", head: true }).eq("organization_id", organization.id).eq("status", "active").is("deleted_at", null),
     insforge.from("member_profiles").select("id", { count: "exact", head: true }).eq("organization_id", organization.id).is("deleted_at", null),
     insforge.from("member_profiles").select("first_name,last_name,office_role").eq("organization_id", organization.id).eq("is_current_officer", true).is("deleted_at", null).limit(20),
-    insforge.from("payments").select("amount").eq("organization_id", organization.id).eq("status", "confirmed").gte("paid_at", startOfMonth.toISOString()),
     insforge.from("events").select("id").eq("organization_id", organization.id).gte("starts_at", new Date().toISOString()),
   ]);
 
@@ -33,22 +30,51 @@ export default async function DashboardPage() {
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
   sixMonthsAgo.setDate(1);
 
-  const [recentMembersRes, recentPaymentsRes, allRecentPayments] = await Promise.all([
+  const [recentMembersRes, recentPaymentsRes, allRecentPayments, allConfirmedPayments, paidContributionsRes, tontineCollectionsRes, tontinePayoutsRes, savingsCollectionsRes, savingsPayoutsRes] = await Promise.all([
     insforge.from("member_profiles").select("first_name, last_name, created_at").eq("organization_id", organization.id).order("created_at", { ascending: false }).limit(5),
-    insforge.from("payments").select("amount, paid_at, member:member_profiles(first_name, last_name)").eq("organization_id", organization.id).eq("status", "confirmed").order("paid_at", { ascending: false }).limit(5),
-    insforge.from("payments").select("amount, paid_at").eq("organization_id", organization.id).eq("status", "confirmed").gte("paid_at", sixMonthsAgo.toISOString())
+    insforge.from("payments").select("amount,paid_at,contribution_id,member:member_profiles(first_name,last_name)").eq("organization_id", organization.id).eq("status", "confirmed").order("paid_at", { ascending: false }).limit(5),
+    insforge.from("payments").select("amount, paid_at").eq("organization_id", organization.id).eq("status", "confirmed").gte("paid_at", sixMonthsAgo.toISOString()),
+    insforge.from("payments").select("amount,contribution_id").eq("organization_id", organization.id).eq("status", "confirmed"),
+    insforge.from("contributions").select("id,amount_paid,status,due_date,created_at,member:member_profiles(first_name,last_name)").eq("organization_id", organization.id).gt("amount_paid", 0).order("due_date", { ascending: false }),
+    insforge.from("tontine_collections").select("id,amount_paid,status,paid_at,created_at,participant:tontine_participants(display_name),cycle:tontine_cycles(cycle_number)").eq("organization_id", organization.id).order("created_at", { ascending: false }),
+    insforge.from("tontine_payouts").select("id,net_amount,gross_amount,commission_amount,status,paid_at,scheduled_at,created_at,beneficiary:tontine_participants(display_name),cycle:tontine_cycles(cycle_number)").eq("organization_id", organization.id).order("created_at", { ascending: false }),
+    insforge.from("tontine_savings_collections").select("id,amount_paid,status,collection_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).eq("status", "collected").order("created_at", { ascending: false }),
+    insforge.from("tontine_savings_payouts").select("id,net_amount,gross_amount,commission_amount,status,payout_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).order("created_at", { ascending: false })
   ]);
 
-  const paidThisMonth = (payments.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+  const paidContributionsTotal = (paidContributionsRes.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount_paid || 0), 0);
+  const unlinkedPaymentsTotal = (allConfirmedPayments.data ?? []).filter((item: any) => !item.contribution_id).reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+  const regularContributionsTotal = paidContributionsTotal + unlinkedPaymentsTotal;
+  const rotatingCollectionsTotal = (tontineCollectionsRes.data ?? []).filter((item: any) => item.status !== "waived").reduce((sum: number, item: any) => sum + Number(item.amount_paid || 0), 0);
+  const savingsCollectionsTotal = (savingsCollectionsRes.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount_paid || 0), 0);
+  const rotatingPaidTotal = (tontinePayoutsRes.data ?? []).filter((item: any) => item.status === "paid").reduce((sum: number, item: any) => sum + Number(item.net_amount || 0), 0);
+  const savingsPaidTotal = (savingsPayoutsRes.data ?? []).filter((item: any) => item.status === "paid").reduce((sum: number, item: any) => sum + Number(item.net_amount || 0), 0);
+  const contributionsTotal = regularContributionsTotal + rotatingCollectionsTotal + savingsCollectionsTotal;
+  const payoutsTotal = rotatingPaidTotal + savingsPaidTotal;
+  const tontineBalanceToPay = Math.max(rotatingCollectionsTotal + savingsCollectionsTotal - payoutsTotal, 0);
   const president = (officers.data ?? []).find((member: any) => member.office_role === "president");
   const formatMoney = (amount: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: organization.currency || "XOF", maximumFractionDigits: 0 }).format(amount);
   
   const liveMetrics = [
     { label: "Membres actifs", value: String(activeMembers.count ?? 0), trend: `${totalMembers.count ?? 0} inscrit(s) au total` },
     { label: "Bureau actif", value: String((officers.data ?? []).length), trend: president ? `Président : ${president.first_name} ${president.last_name}` : "Président à définir" },
-    { label: "Cotisations encaissées", value: formatMoney(paidThisMonth), trend: "Mois en cours" },
+    { label: "Cotisations encaissées", value: formatMoney(contributionsTotal), trend: `${paidContributionsRes.data?.length ?? 0} échéance(s) avec paiement enregistré` },
+    { label: "Reversements remis", value: formatMoney(payoutsTotal), trend: `${formatMoney(tontineBalanceToPay)} restant en caisse tontine` },
     { label: "Événements à venir", value: String(events.data?.length ?? 0), trend: "Calendrier organisation" },
   ];
+
+  const memberName = (member: any) => member ? `${member.first_name || ""} ${member.last_name || ""}`.trim() : "Membre non renseigné";
+  const recentContributions = [
+    ...(paidContributionsRes.data ?? []).map((item: any) => ({ id: `contribution-${item.id}`, name: memberName(item.member), source: item.status === "paid" ? "Cotisation réglée" : "Cotisation partielle", amount: Number(item.amount_paid || 0), date: item.due_date || item.created_at })),
+    ...(recentPaymentsRes.data ?? []).filter((item: any) => !item.contribution_id).map((item: any) => ({ id: `payment-${item.paid_at}-${item.amount}`, name: memberName(item.member), source: "Paiement libre confirmé", amount: Number(item.amount || 0), date: item.paid_at })),
+    ...(tontineCollectionsRes.data ?? []).map((item: any) => ({ id: item.id, name: item.participant?.display_name || "Participant", source: `Tontine · cycle ${item.cycle?.cycle_number ?? "—"}`, amount: Number(item.amount_paid || 0), date: item.paid_at || item.created_at })),
+    ...(savingsCollectionsRes.data ?? []).map((item: any) => ({ id: item.id, name: memberName(item.card?.member), source: "Collecte épargne", amount: Number(item.amount_paid || 0), date: item.collection_date || item.created_at })),
+  ].filter((item) => item.amount > 0).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()).slice(0, 8);
+
+  const recentPayouts = [
+    ...(tontinePayoutsRes.data ?? []).map((item: any) => ({ id: item.id, name: item.beneficiary?.display_name || "Bénéficiaire", source: `Tontine · cycle ${item.cycle?.cycle_number ?? "—"}`, amount: Number(item.net_amount || 0), commission: Number(item.commission_amount || 0), status: item.status, date: item.paid_at || item.scheduled_at || item.created_at })),
+    ...(savingsPayoutsRes.data ?? []).map((item: any) => ({ id: item.id, name: memberName(item.card?.member), source: "Épargne", amount: Number(item.net_amount || 0), commission: Number(item.commission_amount || 0), status: item.status, date: item.payout_date || item.created_at })),
+  ].sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()).slice(0, 8);
 
   const linkFor = (item: string) => ({
     "Membres": "/dashboard/members",
@@ -194,6 +220,35 @@ export default async function DashboardPage() {
               <span className="metric-orbit" />
             </article>
           ))}
+        </div>
+
+        <div className="finance-lists" style={{ marginTop: "24px" }}>
+          <article className="panel">
+            <div className="panel-heading"><div><p className="eyebrow">Entrées confirmées</p><h2>Dernières cotisations effectuées</h2></div><Link href="/dashboard/finance">Voir tout →</Link></div>
+            <div className="finance-list">
+              {recentContributions.length ? recentContributions.map((item) => (
+                <div key={item.id}>
+                  <span><b>{item.name}</b><small>{item.source} · {item.date ? new Date(item.date).toLocaleDateString("fr-FR") : "Date non renseignée"}</small></span>
+                  <b className="positive">+{formatMoney(item.amount)}</b>
+                </div>
+              )) : <p className="muted">Aucune cotisation confirmée pour le moment.</p>}
+            </div>
+          </article>
+
+          <article className="panel">
+            <div className="panel-heading"><div><p className="eyebrow">Sorties contrôlées</p><h2>Remises aux bénéficiaires</h2></div><Link href="/dashboard/tontine?tab=rotating">Gérer →</Link></div>
+            <div className="finance-list">
+              {recentPayouts.length ? recentPayouts.map((item) => (
+                <div key={item.id}>
+                  <span>
+                    <b>{item.status === "paid" ? `✓ Remis à ${item.name}` : `⏳ À remettre à ${item.name}`}</b>
+                    <small>{item.source} · {item.date ? new Date(item.date).toLocaleDateString("fr-FR") : "Date à définir"}{item.commission > 0 ? ` · commission ${formatMoney(item.commission)}` : ""}</small>
+                  </span>
+                  <b className={item.status === "paid" ? "negative" : ""}>{formatMoney(item.amount)}</b>
+                </div>
+              )) : <p className="muted">Aucun reversement enregistré.</p>}
+            </div>
+          </article>
         </div>
 
         <div className="dashboard-grid">

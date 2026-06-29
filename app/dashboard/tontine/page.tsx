@@ -29,16 +29,16 @@ export default async function TontinePage({ searchParams }: { searchParams: Prom
     insforge.from("tontine_groups").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }),
     insforge.from("tontine_participants").select("*").eq("organization_id", organizationId).order("payout_rank"),
     insforge.from("tontine_cycles").select("*,beneficiary:tontine_participants(display_name,payout_rank)").eq("organization_id", organizationId).order("cycle_number"),
-    insforge.from("tontine_collections").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
-    insforge.from("tontine_payouts").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
+    insforge.from("tontine_collections").select("*,participant:tontine_participants(display_name),cycle:tontine_cycles(cycle_number)").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
+    insforge.from("tontine_payouts").select("*,beneficiary:tontine_participants(display_name),cycle:tontine_cycles(cycle_number)").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
   ]);
 
   // Fetch data for savings tontine
   const [sProducts, sCards, sCollections, sPayouts, orgMembers] = await Promise.all([
     insforge.from("tontine_savings_products").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }),
     insforge.from("tontine_savings_cards").select("*, member:member_profiles(first_name,last_name), product:tontine_savings_products(contribution_amount)").eq("organization_id", organizationId).order("created_at", { ascending: false }),
-    insforge.from("tontine_savings_collections").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
-    insforge.from("tontine_savings_payouts").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
+    insforge.from("tontine_savings_collections").select("*,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
+    insforge.from("tontine_savings_payouts").select("*,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(50),
     insforge.from("member_profiles").select("id, user_id, first_name, last_name").eq("organization_id", organizationId),
   ]);
 
