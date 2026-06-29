@@ -1,2 +1,131 @@
-"use client";import{FormEvent,useState}from'react';const labels:{[key:string]:string}={recurring_contribution:'Cotisations récurrentes',overdue_reminder:'Relances impayés',loan_reminder:'Rappels de prêts',event_reminder:'Rappels événements',scheduled_report:'Rapports périodiques'};async function send(x:object){const r=await fetch('/api/automations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(x)}),d=await r.json();if(!r.ok)throw Error(d.error);return d}
-export function AutomationsManager({rules,runs,canManage}:{rules:any[];runs:any[];canManage:boolean}){const[n,setN]=useState(''),[busy,setBusy]=useState(false);async function sub(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);try{await send(Object.fromEntries(new FormData(e.currentTarget)));setN('Règle créée. Un Cron Job InsForge ou Vercel pourra l’exécuter selon sa prochaine date.');e.currentTarget.reset()}catch(e){setN(e instanceof Error?e.message:'Erreur')}finally{setBusy(false)}}return <div className="finance-workspace"><div className="finance-stats"><article><p>Règles actives</p><strong>{rules.filter(r=>r.enabled).length}</strong></article><article><p>Exécutions</p><strong>{runs.length}</strong></article><article><p>Échecs</p><strong>{runs.filter(r=>r.status==='failed').length}</strong></article></div>{canManage&&<div className="finance-forms"><form className="panel compact-form" onSubmit={sub}><p className="eyebrow">Nouvelle règle</p><h2>Automatiser une opération</h2><input required name="name" placeholder="Nom de la règle"/><select name="type">{Object.entries(labels).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select><select name="frequency"><option value="daily">Quotidienne</option><option value="weekly">Hebdomadaire</option><option value="monthly">Mensuelle</option></select><select name="channel"><option value="internal">Notification interne</option><option value="email">Email</option><option value="sms">SMS</option></select><input name="nextRun" type="datetime-local"/><label className="check-line"><input name="enabled" value="true" type="checkbox" defaultChecked/> Activer</label><button disabled={busy} className="button button-dark">Créer</button></form><article className="panel channel-note"><p className="eyebrow">Exécution</p><h2>Prêt pour un Cron</h2><p>Les règles sont enregistrées en base. L’étape de déploiement consiste à connecter un Cron à une Edge Function sécurisée, qui écrit chaque résultat dans le journal.</p></article></div>}{n&&<p className="member-message">{n}</p>}<div className="finance-lists"><article className="panel"><p className="eyebrow">Les 5 modules</p><h2>Règles configurées</h2><div className="finance-list">{rules.map(r=><div key={r.id}><span><b>{r.name}</b><small>{labels[r.rule_type]} · prochain passage {r.next_run_at?new Date(r.next_run_at).toLocaleString('fr-FR'):'non défini'}</small></span><b>{r.enabled?'Actif':'Inactif'}</b></div>)}</div></article><article className="panel"><p className="eyebrow">Journal</p><h2>Exécutions</h2><div className="finance-list">{runs.map(r=><div key={r.id}><span><b>{r.rule?.name}</b><small>{new Date(r.started_at).toLocaleString('fr-FR')}</small></span><b>{r.status}</b></div>)}</div></article></div></div>}
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/insforge/client";
+
+const DEFAULT_RULES = [
+  { type: "contribution_reminder", title: "Relance Cotisations", defaultMessage: "Bonjour [Nom], votre cotisation de [Montant] arrive à échéance le [Date]. Merci de régulariser." },
+  { type: "tontine_reminder", title: "Relance Tontine", defaultMessage: "Rappel Tontine : Bonjour [Nom], votre versement de [Montant] est attendu. Merci d'avance." }
+];
+
+export function AutomationsManager({ rules, organizationId, canManage }: { rules: any[], organizationId: string, canManage: boolean }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  async function toggleRule(ruleType: string, currentRule: any, active: boolean) {
+    if (!canManage) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const insforge = createClient();
+      if (currentRule) {
+        await insforge.from("automation_rules").update({ is_active: active }).eq("id", currentRule.id);
+      } else {
+        await insforge.from("automation_rules").insert({
+          organization_id: organizationId,
+          rule_type: ruleType,
+          is_active: active,
+          days_before_due: 2,
+          message_template: DEFAULT_RULES.find(r => r.type === ruleType)?.defaultMessage || ""
+        });
+      }
+      router.refresh();
+      setNotice("✅ Règle mise à jour avec succès.");
+    } catch (err: any) {
+      setNotice("❌ Erreur : " + err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveSettings(ruleType: string, currentRule: any, days: number, message: string) {
+    if (!canManage) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const insforge = createClient();
+      if (currentRule) {
+        await insforge.from("automation_rules").update({ days_before_due: days, message_template: message }).eq("id", currentRule.id);
+      } else {
+        await insforge.from("automation_rules").insert({
+          organization_id: organizationId,
+          rule_type: ruleType,
+          is_active: false,
+          days_before_due: days,
+          message_template: message
+        });
+      }
+      router.refresh();
+      setNotice("✅ Configuration sauvegardée.");
+    } catch (err: any) {
+      setNotice("❌ Erreur : " + err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px", maxWidth: "800px" }}>
+      {notice && <div style={{ padding: "12px", background: notice.startsWith("✅") ? "#dcfce7" : "#fee2e2", color: notice.startsWith("✅") ? "#166534" : "#991b1b", borderRadius: "8px" }}>{notice}</div>}
+      
+      {DEFAULT_RULES.map(def => {
+        const rule = rules.find(r => r.rule_type === def.type);
+        const isActive = rule?.is_active || false;
+        
+        return (
+          <div key={def.type} className="panel" style={{ padding: "24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h2 style={{ fontSize: "18px" }}>{def.title}</h2>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: canManage ? "pointer" : "default" }}>
+                <span style={{ fontSize: "14px", color: isActive ? "#059669" : "#6b7280" }}>{isActive ? "Activée" : "Désactivée"}</span>
+                <input 
+                  type="checkbox" 
+                  checked={isActive} 
+                  disabled={busy || !canManage}
+                  onChange={(e) => toggleRule(def.type, rule, e.target.checked)}
+                  style={{ width: "18px", height: "18px" }}
+                />
+              </label>
+            </div>
+            
+            <form 
+              onSubmit={(e: any) => { 
+                e.preventDefault(); 
+                saveSettings(def.type, rule, Number(e.target.days.value), e.target.message.value);
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}>Délai d'exécution</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span>Relancer</span>
+                    <input type="number" name="days" defaultValue={rule?.days_before_due ?? 2} style={{ width: "80px", padding: "6px" }} disabled={!canManage} />
+                    <span>jours avant l'échéance.</span>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}>Message modèle</label>
+                  <textarea 
+                    name="message" 
+                    defaultValue={rule?.message_template || def.defaultMessage} 
+                    style={{ width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #d1d5db" }} 
+                    rows={3}
+                    disabled={!canManage}
+                  />
+                  <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px" }}>Variables magiques : [Nom], [Montant], [Date]</p>
+                </div>
+                {canManage && (
+                  <div>
+                    <button disabled={busy} className="button button-dark" style={{ padding: "8px 16px" }}>Sauvegarder les réglages</button>
+                  </div>
+                )}
+              </div>
+            </form>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
