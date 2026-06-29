@@ -25,7 +25,7 @@ export async function getCurrentOrganizationContext() {
   // Verification des limites de souscription
   const { data: subscription } = await insforge
     .from("saas_subscriptions")
-    .select("status, plan:saas_plans(member_limit)")
+    .select("id,status, plan:saas_plans(member_limit)")
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -34,6 +34,8 @@ export async function getCurrentOrganizationContext() {
   // Si le statut est past_due ou cancelled, on bloque l'accès
   if (subscription && (subscription.status === "past_due" || subscription.status === "cancelled")) {
     isLimitReached = true;
+    const { data: invoice } = await insforge.from("saas_invoices").select("id").eq("organization_id", organizationId).eq("status", "open").order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (invoice?.id) redirect(`/billing/checkout?invoice=${encodeURIComponent(invoice.id)}`);
   }
   
   // Si on dépasse la limite de membres du plan

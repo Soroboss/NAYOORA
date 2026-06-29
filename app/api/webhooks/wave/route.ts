@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/insforge/server";
 import { reconcileWaveIntent, type WaveCheckout } from "@/lib/wave";
+import { reconcileSaasWaveTransaction } from "@/lib/saas-billing";
 
 function validSignature(rawBody: string, header: string | null) {
   const secret = process.env.WAVE_WEBHOOK_SECRET;
@@ -37,6 +38,10 @@ export async function POST(request: Request) {
         ? event.data.client_reference.slice("nayoora:".length)
         : null;
       if (intentId) await reconcileWaveIntent(intentId, event.data);
+      const billingTransactionId = event.data.client_reference?.startsWith("nayoora-saas:")
+        ? event.data.client_reference.slice("nayoora-saas:".length)
+        : null;
+      if (billingTransactionId) await reconcileSaasWaveTransaction(billingTransactionId, event.data);
     }
     if (event.id) await database.from("payment_webhook_events").update({ processed_at: new Date().toISOString() }).eq("provider", "wave").eq("event_id", event.id);
     return NextResponse.json({ received: true });

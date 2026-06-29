@@ -40,6 +40,7 @@ async function waveRequest(path = "", init?: RequestInit): Promise<WaveCheckout>
 export async function createWaveCheckout(input: {
   amount: number;
   intentId: string;
+  clientReference?: string;
   successUrl: string;
   errorUrl: string;
   payerMobile?: string | null;
@@ -47,7 +48,7 @@ export async function createWaveCheckout(input: {
   const body: Record<string, string> = {
     amount: String(Math.round(input.amount)),
     currency: "XOF",
-    client_reference: `nayoora:${input.intentId}`,
+    client_reference: input.clientReference || `nayoora:${input.intentId}`,
     success_url: input.successUrl,
     error_url: input.errorUrl,
   };

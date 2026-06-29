@@ -16,6 +16,7 @@ type PlatformManagerProps = {
   memberProfiles: any[];
   logs: any[];
   users: any[];
+  billingTransactions: any[];
 };
 
 const tabs = [
@@ -45,6 +46,7 @@ async function send(payload: object) {
 
 export function PlatformManager(props: PlatformManagerProps) {
   const { plans, organizations, subscriptions, invoices, requests, notes, activity, settings, members, memberProfiles, logs } = props;
+  const billingTransactions = props.billingTransactions ?? [];
   const users = props.users ?? [];
   const [tab, setTab] = useState<(typeof tabs)[number][0]>("overview");
   const [notice, setNotice] = useState("");
@@ -244,6 +246,10 @@ export function PlatformManager(props: PlatformManagerProps) {
           </div>
           <div className="tenant-table billing-table">
             {subscriptions.map((item) => <div key={item.id}><span><b>{item.organization?.name}</b><small>{item.status} · depuis {date(item.starts_at)}</small></span><span><b>{item.plan?.name ?? "Sans plan"}</b><small>{money(Number(item.plan?.price_xof ?? 0))}/mois</small></span><span><b>{item.plan?.member_limit ?? "∞"}</b><small>membres max</small></span><button disabled={busy} onClick={() => quick({ action: "subscription", organizationId: item.organization_id, planId: item.plan_id, status: item.status === "active" ? "past_due" : "active" })}>{item.status === "active" ? "Marquer impayé" : "Activer"}</button></div>)}
+          </div>
+          <h3 style={{ marginTop: "1.5rem" }}>Paiements Wave & Orange Money</h3>
+          <div className="tenant-table billing-table">
+            {billingTransactions.length === 0 ? <p className="muted">Aucun paiement d’abonnement.</p> : billingTransactions.map((item) => <div key={item.id}><span><b>{item.organization?.name ?? "Organisation"}</b><small>{item.provider} · {item.provider_reference ?? "sans référence"}</small></span><span><b>{money(Number(item.amount))}</b><small>{item.status} · {date(item.created_at)}</small></span><span><b>{item.status === "succeeded" ? "Confirmé" : "À contrôler"}</b><small>Abonnement SaaS</small></span>{item.status === "pending" ? <button disabled={busy} onClick={() => quick({ action: "billingPayment", transactionId: item.id, status: "succeeded" })}>Valider</button> : <span />}</div>)}
           </div>
         </article>
       </section>}

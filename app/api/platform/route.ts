@@ -71,6 +71,7 @@ export async function POST(request: Request) {
       const { data: subscription } = await insforge.from("saas_subscriptions").select("id").eq("organization_id", body.organizationId).maybeSingle();
       const { error } = await insforge.from("saas_invoices").insert({
         organization_id: body.organizationId,
+        tenant_id: body.organizationId,
         subscription_id: subscription?.id ?? null,
         amount: Number(body.amount),
         status,
@@ -79,6 +80,21 @@ export async function POST(request: Request) {
       });
       if (error) throw error;
       await recordActivity(insforge, user.id, body.organizationId, "invoice_created", status === "paid" ? "success" : "info", `Facture ${status}: ${Number(body.amount).toLocaleString("fr-FR")} XOF`);
+      return NextResponse.json({ ok: true });
+    }
+
+    if (body.action === "billingPayment") {
+      if (!body.transactionId) throw new Error("Transaction requise.");
+      const { data: transaction, error: transactionError } = await insforge.from("saas_payment_transactions").select("id,organization_id,invoice_id,subscription_id,status").eq("id", body.transactionId).maybeSingle();
+      if (transactionError || !transaction) throw transactionError || new Error("Transaction introuvable.");
+      if (transaction.status !== "succeeded") {
+        const now = new Date().toISOString();
+        const { error } = await insforge.from("saas_payment_transactions").update({ status: "succeeded", paid_at: now, updated_at: now }).eq("id", transaction.id);
+        if (error) throw error;
+        await insforge.from("saas_invoices").update({ status: "paid", paid_at: now }).eq("id", transaction.invoice_id);
+        if (transaction.subscription_id) await insforge.from("saas_subscriptions").update({ status: "active", starts_at: now, updated_at: now }).eq("id", transaction.subscription_id);
+        await recordActivity(insforge, user.id, transaction.organization_id, "billing_payment_confirmed", "success", "Paiement d’abonnement confirmé manuellement");
+      }
       return NextResponse.json({ ok: true });
     }
 

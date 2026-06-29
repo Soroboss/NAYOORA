@@ -16,9 +16,22 @@ export async function POST(request: Request) {
   const moduleResult = await insforge.from("organization_modules").insert(modules.map((module_code) => ({ organization_id: organization.id, module_code, active: true })));
   if (moduleResult.error) return NextResponse.json({ error: moduleResult.error.message }, { status: 400 });
   await insforge.from("settings").insert({ organization_id: organization.id, data: { service } });
-  const { data: plan, error: planError } = await insforge.from("saas_plans").select("id").eq("code", service).eq("active", true).maybeSingle();
+  const { data: plan, error: planError } = await insforge.from("saas_plans").select("id,price_xof").eq("code", service).eq("active", true).maybeSingle();
   if (planError || !plan) return NextResponse.json({ error: "Offre indisponible. Réessayez." }, { status: 400 });
-  const subscription = await insforge.from("saas_subscriptions").insert({ organization_id: organization.id, plan_id: plan.id, status: service === "free" ? "active" : "trialing" });
-  if (subscription.error) return NextResponse.json({ error: subscription.error.message }, { status: 400 });
-  return NextResponse.json({ ok: true });
+  const { data: subscription, error: subscriptionError } = await insforge.from("saas_subscriptions").insert({ organization_id: organization.id, plan_id: plan.id, status: service === "free" ? "active" : "past_due" }).select("id").single();
+  if (subscriptionError || !subscription) return NextResponse.json({ error: subscriptionError?.message ?? "Abonnement impossible." }, { status: 400 });
+  if (service !== "free") {
+    const { data: invoice, error: invoiceError } = await insforge.from("saas_invoices").insert({
+      organization_id: organization.id,
+      tenant_id: organization.id,
+      subscription_id: subscription.id,
+      amount: Number((plan as any).price_xof ?? 0),
+      currency: "XOF",
+      status: "open",
+      due_at: new Date().toISOString().slice(0, 10),
+    }).select("id").single();
+    if (invoiceError || !invoice) return NextResponse.json({ error: invoiceError?.message ?? "Facture impossible." }, { status: 400 });
+    return NextResponse.json({ ok: true, requiresPayment: true, invoiceId: invoice.id });
+  }
+  return NextResponse.json({ ok: true, requiresPayment: false });
 }

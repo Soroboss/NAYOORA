@@ -70,7 +70,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           {error && <p className="form-error">{error}</p>}
           <button className="button button-dark full" disabled={loading}>{loading ? "Patientez…" : isSignup ? "Créer mon compte" : "Se connecter"}</button>
         </form>
-        {isSignup && <p className="auth-note">Les offres payantes démarrent en essai ; le paiement sera activé avant leur renouvellement.</p>}
+        {isSignup && <p className="auth-note">L’offre gratuite est activée immédiatement. Pour une offre payante, vous réglerez ensuite le montant exact avec Wave ou Orange Money.</p>}
         <p className="form-footer">{isSignup ? "Déjà un compte ?" : "Pas encore de compte ?"} <Link href={isSignup ? "/login" : "/offres"}>{isSignup ? "Connexion" : "Voir les offres"}</Link></p>
       </>}
     </section>

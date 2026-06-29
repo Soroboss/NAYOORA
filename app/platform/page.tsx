@@ -24,6 +24,7 @@ export default async function Platform() {
     memberProfiles,
     logs,
     users,
+    billingTransactions,
   ] = await Promise.all([
     insforge.from("saas_plans").select("*").order("price_xof"),
     insforge.from("organizations").select("id,name,slug,organization_type,currency,country_code,email,phone,created_at,updated_at").order("created_at", { ascending: false }),
@@ -37,6 +38,7 @@ export default async function Platform() {
     insforge.from("member_profiles").select("id,organization_id,status,created_at").is("deleted_at", null).limit(2000),
     insforge.from("audit_logs").select("id,organization_id,action,entity_type,entity_id,created_at,organization:organizations(id,name)").order("created_at", { ascending: false }).limit(80),
     insforge.from("platform_registered_users").select("id,email,full_name,phone,avatar_path,created_at,synced_at").order("created_at", { ascending: false }).limit(500),
+    insforge.from("saas_payment_transactions").select("id,organization_id,invoice_id,subscription_id,provider,amount,currency,status,provider_reference,paid_at,created_at,organization:organizations(name)").order("created_at", { ascending: false }).limit(100),
   ]);
 
   return (
@@ -62,6 +64,7 @@ export default async function Platform() {
         memberProfiles={memberProfiles.data ?? []}
         logs={logs.data ?? []}
         users={users.data ?? []}
+        billingTransactions={billingTransactions.data ?? []}
       />
     </main>
   );
