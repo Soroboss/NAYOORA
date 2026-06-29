@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { createAdminClient as createClient } from "@/lib/insforge/server";
 
 export default async function PortalLayout(props: { children: React.ReactNode, params: Promise<{ orgSlug: string }> }) {
+  const { children } = props;
   const params = await props.params;
   const cookieStore = await cookies();
   const portalSession = cookieStore.get("portal_session")?.value;
