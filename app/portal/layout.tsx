@@ -19,6 +19,7 @@ export default async function PortalLayout({ children }: { children: React.React
             <Link href="/portal">Mon Profil</Link>
             <Link href="/portal/finance">Mes Cotisations</Link>
             <Link href="/portal/tontine">Ma Tontine</Link>
+            <Link href="/portal/chat">Messagerie</Link>
             <Link href="/api/portal/auth/logout" style={{ color: "#ef4444" }}>Déconnexion</Link>
           </div>
         )}
