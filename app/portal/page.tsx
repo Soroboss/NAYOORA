@@ -19,14 +19,21 @@ export default async function PortalHomePage() {
   const insforge = await createClient();
 
   // Fetch member profile
-  const { data: member } = await insforge
+  const { data: member, error } = await insforge
     .from("member_profiles")
     .select("*, organization:organizations(name)")
     .eq("id", session.memberId)
     .single();
 
-  if (!member) {
-    redirect("/api/portal/auth/logout");
+  if (error || !member) {
+    return (
+      <div style={{ padding: 40, color: "red" }}>
+        <h1>Erreur d'accès</h1>
+        <p>Impossible de charger votre profil. Le compte a été trouvé lors de la connexion mais est inaccessible ici.</p>
+        <pre>{JSON.stringify({ error, memberId: session.memberId }, null, 2)}</pre>
+        <Link href="/api/portal/auth/logout">Forcer la déconnexion</Link>
+      </div>
+    );
   }
 
   // Generate QR Code for digital card
