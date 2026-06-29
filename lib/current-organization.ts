@@ -20,7 +20,40 @@ export async function getCurrentOrganizationContext() {
   if (!list.length) redirect("/onboarding");
 
   const membership = list.find((item: any) => item.organization_id === activeOrganizationId) ?? list[0];
-  return { insforge, user, membership, memberships: list };
+  const organizationId = membership.organization_id;
+
+  // Verification des limites de souscription
+  const { data: subscription } = await insforge
+    .from("saas_subscriptions")
+    .select("status, plan:saas_plans(member_limit)")
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  let isLimitReached = false;
+  
+  // Si le statut est past_due ou cancelled, on bloque l'accès
+  if (subscription && (subscription.status === "past_due" || subscription.status === "cancelled")) {
+    isLimitReached = true;
+  }
+  
+  // Si on dépasse la limite de membres du plan
+  if (!isLimitReached && subscription?.plan && typeof (subscription.plan as any).member_limit === "number") {
+    const limit = (subscription.plan as any).member_limit;
+    if (limit > 0) {
+      const { count } = await insforge
+        .from("member_profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("organization_id", organizationId)
+        .eq("status", "active")
+        .is("deleted_at", null);
+        
+      if (count !== null && count > limit) {
+        isLimitReached = true;
+      }
+    }
+  }
+
+  return { insforge, user, membership, memberships: list, subscription, isLimitReached };
 }
 
 export function canManageMembers(role: string) {
