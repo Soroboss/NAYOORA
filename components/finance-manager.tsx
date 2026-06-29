@@ -183,6 +183,11 @@ export function FinanceManager({ plans, members, contributions, payments, cash, 
                     <span>
                       <b>{p.name}</b>
                       <small>Fréquence : {p.frequency}</small>
+                      {(p.start_date || p.end_date) && (
+                        <small style={{display:'block'}}>
+                          Période : {p.start_date ? new Date(p.start_date).toLocaleDateString('fr-FR') : '...'} au {p.end_date ? new Date(p.end_date).toLocaleDateString('fr-FR') : 'infini'}
+                        </small>
+                      )}
                     </span>
                     <b>{money(p.amount)}</b>
                   </div>
@@ -226,6 +231,10 @@ export function FinanceManager({ plans, members, contributions, payments, cash, 
                     <option value="quarterly">Trimestrielle</option>
                     <option value="yearly">Annuelle</option>
                   </select>
+                  <label style={{ fontSize: '0.8rem', color: '#666' }}>Période de début</label>
+                  <input name="startDate" type="date" />
+                  <label style={{ fontSize: '0.8rem', color: '#666' }}>Période de fin (optionnel)</label>
+                  <input name="endDate" type="date" title="Laissez vide pour une période infinie" />
                   <button disabled={busy} className="button button-dark">Créer</button>
                 </form>
 
