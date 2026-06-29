@@ -32,7 +32,7 @@ export default async function PortalHomePage(props: { params: Promise<{ orgSlug:
         <h1>Erreur d'accès</h1>
         <p>Impossible de charger votre profil. Le compte a été trouvé lors de la connexion mais est inaccessible ici.</p>
         <pre>{JSON.stringify({ error, memberId: session.memberId }, null, 2)}</pre>
-        <Link href="/api/portal/auth/logout">Forcer la déconnexion</Link>
+        <a href="/api/portal/auth/logout">Forcer la déconnexion</a>
       </div>
     );
   }

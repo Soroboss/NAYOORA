@@ -14,11 +14,15 @@ export default async function OrganigramPortalPage(props: { params: Promise<{ or
 
   const insforge = await createClient();
 
-  const { data: member } = await insforge
+  const { data: member, error: memberError } = await insforge
     .from("member_profiles")
     .select("organization_id, organization:organizations!member_profiles_organization_id_fkey(name)")
     .eq("id", session.memberId)
     .single();
+
+  if (memberError) {
+    console.error("Organigramme page member query error:", memberError);
+  }
 
   if (!member) redirect("/api/portal/auth/logout");
 

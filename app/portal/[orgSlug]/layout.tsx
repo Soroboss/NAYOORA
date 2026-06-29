@@ -36,7 +36,7 @@ export default async function PortalLayout(props: { children: React.ReactNode, p
             {hasTontine && <Link href={`/portal/${params.orgSlug}/tontine`}>Ma Tontine</Link>}
             <Link href={`/portal/${params.orgSlug}/chat`}>Messagerie</Link>
             <Link href={`/portal/${params.orgSlug}/organigramme`}>Organigramme</Link>
-            <Link href="/api/portal/auth/logout" style={{ color: "#ef4444" }}>Déconnexion</Link>
+            <a href="/api/portal/auth/logout" style={{ color: "#ef4444", textDecoration: "none" }}>Déconnexion</a>
           </div>
         )}
       </nav>
