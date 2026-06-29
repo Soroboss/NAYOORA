@@ -240,6 +240,8 @@ export function MemberProfileManager({ member, allMembers, elections, canManage,
                   <option value="Commissaire aux comptes">Commissaire aux comptes</option>
                   <option value="Conseiller(ère)">Conseiller(ère)</option>
                   <option value="Délégué(e)">Délégué(e)</option>
+                  <option value="Communication">Communication</option>
+                  <option value="Organisation">Organisation</option>
                   <option value="Autre">Autre</option>
                 </select>
                 <select name="reportsTo" defaultValue={member.reports_to || ""}>
