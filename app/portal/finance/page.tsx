@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/insforge/server";
+import { createAdminClient as createClient } from "@/lib/insforge/server";
 import { DeclarePaymentButton } from "./declare-payment";
 
 export default async function PortalFinancePage() {

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/insforge/server";
+import { createAdminClient as createClient } from "@/lib/insforge/server";
 import { ChatClient } from "./chat-client";
 
 export default async function ChatPage() {

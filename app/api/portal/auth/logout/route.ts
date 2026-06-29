@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export async function GET() {
+export async function GET(request: Request) {
   const cookieStore = await cookies();
   cookieStore.delete("portal_session");
-  return NextResponse.redirect(new URL("/portal/login", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"));
+  
+  const origin = new URL(request.url).origin;
+  return NextResponse.redirect(new URL("/portal/login", origin));
 }

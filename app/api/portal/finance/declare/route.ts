@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/insforge/server";
+import { createAdminClient as createClient } from "@/lib/insforge/server";
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();

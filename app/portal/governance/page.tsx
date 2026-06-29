@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/insforge/server";
+import { createAdminClient as createClient } from "@/lib/insforge/server";
 import { PortalVoting } from "@/components/portal-voting";
 
 export default async function PortalGovernancePage() {
