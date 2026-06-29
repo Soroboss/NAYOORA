@@ -205,6 +205,9 @@
 }
 
 /* Start section connecting lines */
+.start-section {
+  overflow: hidden;
+}
 .premium-start {
   position: relative;
   z-index: 1;
@@ -222,6 +225,7 @@
 }
 .premium-steps {
   position: relative;
+  z-index: 2;
 }
 .premium-steps::before {
   content: "";
