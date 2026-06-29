@@ -31,8 +31,13 @@ export async function POST(request: Request) {
       .limit(1)
       .maybeSingle();
 
+    const hasServiceKey = !!(process.env.INSFORGE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
+
     if (error || !member) {
-      return NextResponse.json({ error: "Numéro de téléphone introuvable ou compte inactif." }, { status: 404 });
+      const debugInfo = JSON.stringify({ hasServiceKey, supabaseError: error?.message, memberFound: !!member });
+      return NextResponse.json({ 
+        error: `Numéro de téléphone introuvable ou compte inactif. [Debug: ${debugInfo}]`
+      }, { status: 404 });
     }
 
     // Very simple PIN verification for the prototype.
