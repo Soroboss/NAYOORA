@@ -1,2 +1,194 @@
-"use client";import{FormEvent,useMemo,useState}from'react';const f=(n:number)=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'XOF',maximumFractionDigits:0}).format(n);async function send(x:object){const r=await fetch('/api/solidarity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(x)}),d=await r.json();if(!r.ok)throw Error(d.error);return d}
-export function SolidarityManager({members,cases,disbursements,canManage}:{members:any[];cases:any[];disbursements:any[];canManage:boolean}){const[n,setN]=useState(''),[busy,setBusy]=useState(false);const total=useMemo(()=>disbursements.reduce((s,d)=>s+Number(d.amount),0),[disbursements]);async function sub(e:FormEvent<HTMLFormElement>,action:string){e.preventDefault();setBusy(true);try{await send({action,...Object.fromEntries(new FormData(e.currentTarget))});setN('Opération enregistrée. Actualisez la page pour voir le dossier mis à jour.');e.currentTarget.reset()}catch(e){setN(e instanceof Error?e.message:'Erreur')}finally{setBusy(false)}}return <div className="finance-workspace"><div className="finance-stats"><article><p>Dossiers ouverts</p><strong>{cases.filter(c=>['open','approved'].includes(c.status)).length}</strong></article><article><p>Aide approuvée</p><strong>{f(cases.reduce((s,c)=>s+Number(c.approved_amount||0),0))}</strong></article><article><p>Décaissements</p><strong>{f(total)}</strong></article></div>{canManage&&<div className="finance-forms"><form className="panel compact-form" onSubmit={e=>sub(e,'case')}><p className="eyebrow">Soutiens</p><h2>Créer un dossier</h2><select name="memberId" required><option value="">Choisir un membre</option>{members.map(m=><option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}</select><select name="type"><option value="illness">Maladie</option><option value="death">Décès</option><option value="marriage">Mariage</option><option value="birth">Naissance</option><option value="emergency">Urgence</option><option value="other">Autre</option></select><input required name="title" placeholder="Objet de la demande"/><input name="amount" type="number" min="0" placeholder="Montant demandé FCFA"/><button disabled={busy} className="button button-dark">Ouvrir le dossier</button></form><form className="panel compact-form" onSubmit={e=>sub(e,'contribution')}><p className="eyebrow">Fonds</p><h2>Ajouter une contribution</h2><select name="caseId" required><option value="">Choisir un dossier</option>{cases.filter(c=>c.status!=='disbursed').map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select><select name="memberId"><option value="">Contribution de l’organisation</option>{members.map(m=><option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}</select><input required name="amount" type="number" min="1" placeholder="Montant FCFA"/><button disabled={busy} className="button button-dark">Ajouter</button></form><form className="panel compact-form" onSubmit={e=>sub(e,'disbursement')}><p className="eyebrow">Décaissement</p><h2>Verser une aide</h2><select name="caseId" required><option value="">Choisir un dossier</option>{cases.filter(c=>['open','approved'].includes(c.status)).map(c=><option key={c.id} value={c.id}>{c.title} — {c.member?.first_name}</option>)}</select><input required name="amount" type="number" min="1" placeholder="Montant versé FCFA"/><input name="notes" placeholder="Note ou référence"/><button disabled={busy} className="button button-dark">Décaisser</button></form></div>}{n&&<p className="member-message">{n}</p>}<div className="finance-lists"><article className="panel"><p className="eyebrow">Dossiers</p><h2>Soutiens en cours</h2><div className="finance-list">{cases.map(c=><div key={c.id}><span><b>{c.title}</b><small>{c.member?.first_name} {c.member?.last_name} · {c.case_type} · {c.status}</small></span><b>{f(c.approved_amount||c.requested_amount||0)}</b></div>)}</div></article><article className="panel"><p className="eyebrow">Historique</p><h2>Décaissements</h2><div className="finance-list">{disbursements.map(d=><div key={d.id}><span><b>{d.solidarity_case?.title}</b><small>{new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small></span><b className="negative">−{f(d.amount)}</b></div>)}</div></article></div></div>}
+"use client";
+import { FormEvent, useMemo, useState } from 'react';
+
+const f = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
+
+async function send(x: object) {
+  const r = await fetch('/api/solidarity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(x) });
+  const d = await r.json();
+  if (!r.ok) throw Error(d.error);
+  return d;
+}
+
+export function SolidarityManager({ members, cases, disbursements, canManage }: { members: any[]; cases: any[]; disbursements: any[]; canManage: boolean }) {
+  const [n, setN] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [activeTab, setActiveTab] = useState("vue");
+
+  const total = useMemo(() => disbursements.reduce((s, d) => s + Number(d.amount), 0), [disbursements]);
+
+  async function sub(e: FormEvent<HTMLFormElement>, action: string) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await send({ action, ...Object.fromEntries(new FormData(e.currentTarget)) });
+      setN('Opération enregistrée. Actualisez la page pour voir le dossier mis à jour.');
+      e.currentTarget.reset();
+    } catch (e) {
+      setN(e instanceof Error ? e.message : 'Erreur');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="finance-workspace">
+      <div className="finance-stats">
+        <article>
+          <p>Dossiers ouverts</p>
+          <strong>{cases.filter(c => ['open', 'approved'].includes(c.status)).length}</strong>
+        </article>
+        <article>
+          <p>Aide approuvée</p>
+          <strong>{f(cases.reduce((s, c) => s + Number(c.approved_amount || 0), 0))}</strong>
+        </article>
+        <article>
+          <p>Décaissements</p>
+          <strong>{f(total)}</strong>
+        </article>
+      </div>
+
+      <div className="tabs" style={{ display: "flex", gap: "16px", borderBottom: "1px solid #e5e7eb", marginBottom: "24px" }}>
+        <button onClick={() => setActiveTab("vue")} style={{ padding: "12px 16px", borderBottom: activeTab === "vue" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "vue" ? "bold" : "normal" }}>Vue d'ensemble</button>
+        <button onClick={() => setActiveTab("dossiers")} style={{ padding: "12px 16px", borderBottom: activeTab === "dossiers" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "dossiers" ? "bold" : "normal" }}>Gestion des Dossiers</button>
+        <button onClick={() => setActiveTab("fonds")} style={{ padding: "12px 16px", borderBottom: activeTab === "fonds" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "fonds" ? "bold" : "normal" }}>Contributions & Versements</button>
+      </div>
+
+      {n && <p className="member-message">{n}</p>}
+
+      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+        
+        {activeTab === "vue" && (
+          <div className="finance-lists">
+            <article className="panel">
+              <p className="eyebrow">Dossiers</p>
+              <h2>Soutiens en cours</h2>
+              <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                {cases.length === 0 ? <p className="muted">Aucun dossier.</p> : cases.map(c => (
+                  <div key={c.id}>
+                    <span>
+                      <b>{c.title}</b>
+                      <small>{c.member?.first_name} {c.member?.last_name} · {c.case_type} · {c.status}</small>
+                    </span>
+                    <b>{f(c.approved_amount || c.requested_amount || 0)}</b>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="panel">
+              <p className="eyebrow">Historique</p>
+              <h2>Décaissements</h2>
+              <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                {disbursements.length === 0 ? <p className="muted">Aucun décaissement.</p> : disbursements.map(d => (
+                  <div key={d.id}>
+                    <span>
+                      <b>{d.solidarity_case?.title}</b>
+                      <small>{new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>
+                    </span>
+                    <b className="negative">−{f(d.amount)}</b>
+                  </div>
+                ))}
+              </div>
+            </article>
+          </div>
+        )}
+
+        {activeTab === "dossiers" && (
+          <article className="panel">
+            <p className="eyebrow">Registre</p>
+            <h2>Tous les dossiers</h2>
+            <div className="finance-list" style={{ maxHeight: "500px", overflowY: "auto" }}>
+              {cases.length === 0 ? <p className="muted">Aucun dossier enregistré.</p> : cases.map(c => (
+                <div key={c.id}>
+                  <span>
+                    <b>{c.title}</b>
+                    <small>{c.member?.first_name} {c.member?.last_name} · {c.case_type} · {c.status}</small>
+                  </span>
+                  <b>{f(c.approved_amount || c.requested_amount || 0)}</b>
+                </div>
+              ))}
+            </div>
+          </article>
+        )}
+
+        {activeTab === "fonds" && (
+          <article className="panel">
+            <p className="eyebrow">Mouvements</p>
+            <h2>Aides versées</h2>
+            <div className="finance-list" style={{ maxHeight: "500px", overflowY: "auto" }}>
+              {disbursements.length === 0 ? <p className="muted">Aucun versement.</p> : disbursements.map(d => (
+                <div key={d.id}>
+                  <span>
+                    <b>{d.solidarity_case?.title}</b>
+                    <small>{new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>
+                  </span>
+                  <b className="negative">−{f(d.amount)}</b>
+                </div>
+              ))}
+            </div>
+          </article>
+        )}
+
+        {canManage && activeTab !== "vue" && (
+          <div className="finance-forms">
+            
+            {activeTab === "dossiers" && (
+              <form className="panel compact-form" onSubmit={e => sub(e, 'case')}>
+                <p className="eyebrow">Soutiens</p>
+                <h2>Créer un dossier</h2>
+                <select name="memberId" required>
+                  <option value="">Choisir un membre</option>
+                  {members.map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
+                </select>
+                <select name="type">
+                  <option value="illness">Maladie</option>
+                  <option value="death">Décès</option>
+                  <option value="marriage">Mariage</option>
+                  <option value="birth">Naissance</option>
+                  <option value="emergency">Urgence</option>
+                  <option value="other">Autre</option>
+                </select>
+                <input required name="title" placeholder="Objet de la demande" />
+                <input name="amount" type="number" min="0" placeholder="Montant demandé FCFA" />
+                <button disabled={busy} className="button button-dark">Ouvrir le dossier</button>
+              </form>
+            )}
+
+            {activeTab === "fonds" && (
+              <>
+                <form className="panel compact-form" onSubmit={e => sub(e, 'contribution')}>
+                  <p className="eyebrow">Fonds</p>
+                  <h2>Ajouter une contribution</h2>
+                  <select name="caseId" required>
+                    <option value="">Choisir un dossier</option>
+                    {cases.filter(c => c.status !== 'disbursed').map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+                  </select>
+                  <select name="memberId">
+                    <option value="">Contribution de l’organisation</option>
+                    {members.map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
+                  </select>
+                  <input required name="amount" type="number" min="1" placeholder="Montant FCFA" />
+                  <button disabled={busy} className="button button-dark">Ajouter</button>
+                </form>
+
+                <form className="panel compact-form" onSubmit={e => sub(e, 'disbursement')}>
+                  <p className="eyebrow">Décaissement</p>
+                  <h2>Verser une aide</h2>
+                  <select name="caseId" required>
+                    <option value="">Choisir un dossier</option>
+                    {cases.filter(c => ['open', 'approved'].includes(c.status)).map(c => <option key={c.id} value={c.id}>{c.title} — {c.member?.first_name}</option>)}
+                  </select>
+                  <input required name="amount" type="number" min="1" placeholder="Montant versé FCFA" />
+                  <input name="notes" placeholder="Note ou référence" />
+                  <button disabled={busy} className="button button-dark">Décaisser</button>
+                </form>
+              </>
+            )}
+
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

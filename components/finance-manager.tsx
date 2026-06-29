@@ -74,6 +74,8 @@ export function FinanceManager({ plans, members, contributions, payments, cash, 
     exportCSV('cotisations.csv', data);
   }
 
+  const [activeTab, setActiveTab] = useState("vue");
+
   return (
     <div className="finance-workspace">
       <div className="finance-stats">
@@ -90,123 +92,183 @@ export function FinanceManager({ plans, members, contributions, payments, cash, 
           <strong>{payments.length}</strong>
         </article>
       </div>
+
+      <div className="tabs" style={{ display: "flex", gap: "16px", borderBottom: "1px solid #e5e7eb", marginBottom: "24px" }}>
+        <button onClick={() => setActiveTab("vue")} style={{ padding: "12px 16px", borderBottom: activeTab === "vue" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "vue" ? "bold" : "normal" }}>Vue d'ensemble</button>
+        <button onClick={() => setActiveTab("cotisations")} style={{ padding: "12px 16px", borderBottom: activeTab === "cotisations" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "cotisations" ? "bold" : "normal" }}>Plans & Échéances</button>
+        <button onClick={() => setActiveTab("encaissement")} style={{ padding: "12px 16px", borderBottom: activeTab === "encaissement" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "encaissement" ? "bold" : "normal" }}>Encaisser un paiement</button>
+      </div>
       
-      {canManage && (
-        <div className="finance-forms">
-          <form className="panel compact-form" onSubmit={e => submit(e, 'plan')}>
-            <p className="eyebrow">Cotisations</p>
-            <h2>Créer un plan</h2>
-            <input name="name" required placeholder="Ex. Cotisation mensuelle" />
-            <input name="amount" required type="number" min="0" placeholder="Montant FCFA" />
-            <select name="frequency">
-              <option value="monthly">Mensuelle</option>
-              <option value="weekly">Hebdomadaire</option>
-              <option value="quarterly">Trimestrielle</option>
-              <option value="yearly">Annuelle</option>
-            </select>
-            <button disabled={busy} className="button button-dark">Créer</button>
-          </form>
+      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "2fr 1fr" : "1fr", gap: "24px" }}>
+        
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          {activeTab === "vue" && (
+            <>
+              {overdueContributions.length > 0 && (
+                <article className="panel" style={{ borderColor: 'var(--error, #e53935)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div>
+                      <p className="eyebrow" style={{ color: 'var(--error, #e53935)' }}>Relances</p>
+                      <h2>{overdueContributions.length} Retard(s) de paiement</h2>
+                    </div>
+                  </div>
+                  <div className="finance-list">
+                    {overdueContributions.map(c => (
+                      <div key={c.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedMember(c.member?.id || c.member_profile_id)}>
+                        <span>
+                          <b>{c.member?.first_name} {c.member?.last_name}</b>
+                          <small style={{ color: 'var(--error, #e53935)' }}>Échu le {new Date(c.due_date).toLocaleDateString('fr-FR')} ({c.plan?.name})</small>
+                        </span>
+                        <b style={{ color: 'var(--error, #e53935)' }}>Reste {money(c.amount_due - c.amount_paid)}</b>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              )}
 
-          <form className="panel compact-form" onSubmit={e => submit(e, (e.nativeEvent as any).submitter?.value || 'contribution')}>
-            <p className="eyebrow">Échéance</p>
-            <h2>Attribuer une cotisation</h2>
-            <select name="memberId">
-              <option value="">Choisir un membre (ou ignorer pour "Tous")</option>
-              {members.map(m => <option value={m.id} key={m.id}>{m.first_name} {m.last_name}</option>)}
-            </select>
-            <select name="planId" required>
-              <option value="">Choisir un plan</option>
-              {plans.map(p => <option value={p.id} key={p.id}>{p.name} — {money(p.amount)}</option>)}
-            </select>
-            <input required name="dueDate" type="date" />
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button type="submit" name="action" value="contribution" disabled={busy} className="button button-dark" style={{ flex: 1 }}>Individuel</button>
-              <button type="submit" name="action" value="mass_contribution" disabled={busy} className="button" style={{ flex: 1 }} title="Générer pour tous les membres actifs">Pour Tous</button>
-            </div>
-          </form>
+              <div className="finance-lists">
+                <article className="panel">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div>
+                      <p className="eyebrow">Cotisations</p>
+                      <h2>Échéances récentes</h2>
+                    </div>
+                    <button onClick={handleExportContributions} className="button button-small">Export CSV</button>
+                  </div>
+                  {contributions.length ?
+                    <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                      {contributions.map(c => (
+                        <div key={c.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedMember(c.member?.id || c.member_profile_id)}>
+                          <span>
+                            <b>{c.member?.first_name} {c.member?.last_name}</b>
+                            <small>{c.plan?.name} · échéance {c.due_date}</small>
+                          </span>
+                          <b>{money(c.amount_paid)} / {money(c.amount_due)}</b>
+                        </div>
+                      ))}
+                    </div>
+                    : <p className="muted">Aucune échéance pour le moment.</p>
+                  }
+                </article>
 
-          <form className="panel compact-form" onSubmit={e => submit(e, 'payment')}>
-            <p className="eyebrow">Paiements</p>
-            <h2>Encaisser</h2>
-            <select name="contributionId" required>
-              <option value="">Choisir une échéance</option>
-              {contributions.filter(c => c.status !== 'paid').map(c => <option value={c.id} key={c.id}>{c.member?.first_name} {c.member?.last_name} — reste {money(c.amount_due - c.amount_paid)}</option>)}
-            </select>
-            <input required name="amount" type="number" min="1" placeholder="Montant reçu FCFA" />
-            <input name="provider" placeholder="Espèces, Wave, Orange…" />
-            <button disabled={busy} className="button button-dark">Confirmer le paiement</button>
-          </form>
+                <article className="panel">
+                  <p className="eyebrow">Caisse</p>
+                  <h2>Derniers mouvements</h2>
+                  {cash.length ?
+                    <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                      {cash.map(x => (
+                        <div key={x.id}>
+                          <span>
+                            <b>{x.category}</b>
+                            <small>{new Date(x.occurred_at).toLocaleDateString('fr-FR')}</small>
+                          </span>
+                          <b className={x.direction === 'in' ? 'positive' : 'negative'}>{x.direction === 'in' ? '+' : '−'}{money(x.amount)}</b>
+                        </div>
+                      ))}
+                    </div>
+                    : <p className="muted">Aucun mouvement enregistré.</p>
+                  }
+                </article>
+              </div>
+            </>
+          )}
+
+          {activeTab === "cotisations" && (
+            <article className="panel">
+              <p className="eyebrow">Gestion</p>
+              <h2>Plans de Cotisations</h2>
+              <div className="finance-list">
+                {plans.length === 0 ? <p className="muted">Aucun plan défini.</p> : plans.map(p => (
+                  <div key={p.id}>
+                    <span>
+                      <b>{p.name}</b>
+                      <small>Fréquence : {p.frequency}</small>
+                    </span>
+                    <b>{money(p.amount)}</b>
+                  </div>
+                ))}
+              </div>
+            </article>
+          )}
+
+          {activeTab === "encaissement" && (
+            <article className="panel">
+              <p className="eyebrow">Tableau de bord</p>
+              <h2>Paiements récents</h2>
+              <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
+                {payments.length === 0 ? <p className="muted">Aucun paiement récent.</p> : payments.map(p => (
+                  <div key={p.id}>
+                    <span>
+                      <b>{(p.member as any)?.first_name} {(p.member as any)?.last_name}</b>
+                      <small>{new Date(p.paid_at).toLocaleString('fr-FR')} — {p.provider || "Espèces"}</small>
+                    </span>
+                    <b className="positive">+{money(p.amount)}</b>
+                  </div>
+                ))}
+              </div>
+            </article>
+          )}
         </div>
-      )}
+      
+        {canManage && activeTab !== "vue" && (
+          <div className="finance-forms">
+            
+            {activeTab === "cotisations" && (
+              <>
+                <form className="panel compact-form" onSubmit={e => submit(e, 'plan')}>
+                  <p className="eyebrow">Ajout</p>
+                  <h2>Créer un plan</h2>
+                  <input name="name" required placeholder="Ex. Cotisation mensuelle" />
+                  <input name="amount" required type="number" min="0" placeholder="Montant FCFA" />
+                  <select name="frequency">
+                    <option value="monthly">Mensuelle</option>
+                    <option value="weekly">Hebdomadaire</option>
+                    <option value="quarterly">Trimestrielle</option>
+                    <option value="yearly">Annuelle</option>
+                  </select>
+                  <button disabled={busy} className="button button-dark">Créer</button>
+                </form>
+
+                <form className="panel compact-form" onSubmit={e => submit(e, (e.nativeEvent as any).submitter?.value || 'contribution')}>
+                  <p className="eyebrow">Assignation</p>
+                  <h2>Attribuer une échéance</h2>
+                  <select name="memberId">
+                    <option value="">Choisir un membre (ou ignorer pour "Tous")</option>
+                    {members.map(m => <option value={m.id} key={m.id}>{m.first_name} {m.last_name}</option>)}
+                  </select>
+                  <select name="planId" required>
+                    <option value="">Choisir un plan</option>
+                    {plans.map(p => <option value={p.id} key={p.id}>{p.name} — {money(p.amount)}</option>)}
+                  </select>
+                  <input required name="dueDate" type="date" />
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                    <button type="submit" name="action" value="contribution" disabled={busy} className="button button-dark" style={{ flex: 1 }}>Individuel</button>
+                    <button type="submit" name="action" value="mass_contribution" disabled={busy} className="button" style={{ flex: 1 }} title="Générer pour tous les membres actifs">Pour Tous</button>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {activeTab === "encaissement" && (
+              <form className="panel compact-form" onSubmit={e => submit(e, 'payment')}>
+                <p className="eyebrow">Paiements</p>
+                <h2>Encaisser</h2>
+                <select name="contributionId" required>
+                  <option value="">Choisir une échéance</option>
+                  {contributions.filter(c => c.status !== 'paid').map(c => <option value={c.id} key={c.id}>{c.member?.first_name} {c.member?.last_name} — reste {money(c.amount_due - c.amount_paid)}</option>)}
+                </select>
+                <input required name="amount" type="number" min="1" placeholder="Montant reçu FCFA" />
+                <input name="provider" placeholder="Espèces, Wave, Orange…" />
+                <button disabled={busy} className="button button-dark">Confirmer le paiement</button>
+              </form>
+            )}
+          </div>
+        )}
+      </div>
 
       {notice && <p className="member-message">{notice}</p>}
 
-      {overdueContributions.length > 0 && (
-        <article className="panel" style={{ borderColor: 'var(--error, #e53935)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div>
-              <p className="eyebrow" style={{ color: 'var(--error, #e53935)' }}>Relances</p>
-              <h2>{overdueContributions.length} Retard(s) de paiement</h2>
-            </div>
-          </div>
-          <div className="finance-list">
-            {overdueContributions.map(c => (
-              <div key={c.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedMember(c.member?.id || c.member_profile_id)}>
-                <span>
-                  <b>{c.member?.first_name} {c.member?.last_name}</b>
-                  <small style={{ color: 'var(--error, #e53935)' }}>Échu le {new Date(c.due_date).toLocaleDateString('fr-FR')} ({c.plan?.name})</small>
-                </span>
-                <b style={{ color: 'var(--error, #e53935)' }}>Reste {money(c.amount_due - c.amount_paid)}</b>
-              </div>
-            ))}
-          </div>
-        </article>
-      )}
 
-      <div className="finance-lists">
-        <article className="panel">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div>
-              <p className="eyebrow">Cotisations</p>
-              <h2>Échéances récentes</h2>
-            </div>
-            <button onClick={handleExportContributions} className="button button-small">Export CSV</button>
-          </div>
-          {contributions.length ?
-            <div className="finance-list">
-              {contributions.map(c => (
-                <div key={c.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedMember(c.member?.id || c.member_profile_id)}>
-                  <span>
-                    <b>{c.member?.first_name} {c.member?.last_name}</b>
-                    <small>{c.plan?.name} · échéance {c.due_date}</small>
-                  </span>
-                  <b>{money(c.amount_paid)} / {money(c.amount_due)}</b>
-                </div>
-              ))}
-            </div>
-            : <p className="muted">Aucune échéance pour le moment.</p>
-          }
-        </article>
-
-        <article className="panel">
-          <p className="eyebrow">Caisse</p>
-          <h2>Derniers mouvements</h2>
-          {cash.length ?
-            <div className="finance-list">
-              {cash.map(x => (
-                <div key={x.id}>
-                  <span>
-                    <b>{x.category}</b>
-                    <small>{new Date(x.occurred_at).toLocaleDateString('fr-FR')}</small>
-                  </span>
-                  <b className={x.direction === 'in' ? 'positive' : 'negative'}>{x.direction === 'in' ? '+' : '−'}{money(x.amount)}</b>
-                </div>
-              ))}
-            </div>
-            : <p className="muted">Aucun mouvement enregistré.</p>
-          }
-        </article>
-      </div>
 
       {selectedMember && memberHistory && (
         <div className="modal-backdrop" onClick={() => setSelectedMember(null)}>
