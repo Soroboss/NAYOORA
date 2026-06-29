@@ -3,9 +3,9 @@
 import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { createClient } from "@/lib/insforge/client";
 
-export type Member = { id: string; first_name: string; last_name: string; phone: string | null; email: string | null; member_number: string | null; status: string; birth_date: string | null; address: string | null; photo_url?: string | null };
-type FormDataState = { firstName: string; lastName: string; phone: string; email: string; memberNumber: string; address: string; birthDate: string; photoUrl: string };
-const blank: FormDataState = { firstName: "", lastName: "", phone: "", email: "", memberNumber: "", address: "", birthDate: "", photoUrl: "" };
+export type Member = { id: string; first_name: string; last_name: string; phone: string | null; email: string | null; member_number: string | null; status: string; birth_date: string | null; address: string | null; photo_url?: string | null; title?: string | null; reports_to?: string | null };
+type FormDataState = { firstName: string; lastName: string; phone: string; email: string; memberNumber: string; address: string; birthDate: string; photoUrl: string; title: string; reportsTo: string };
+const blank: FormDataState = { firstName: "", lastName: "", phone: "", email: "", memberNumber: "", address: "", birthDate: "", photoUrl: "", title: "", reportsTo: "" };
 
 export function MembersManager({ organizationId, members: initialMembers, canManage }: { organizationId: string; members: Member[]; canManage: boolean }) {
   const [members, setMembers] = useState(initialMembers);
@@ -64,7 +64,7 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
 
   function beginEdit(member: Member) {
     setEditing(member);
-    setForm({ firstName: member.first_name, lastName: member.last_name, phone: member.phone ?? "", email: member.email ?? "", memberNumber: member.member_number ?? "", address: member.address ?? "", birthDate: member.birth_date ?? "", photoUrl: member.photo_url ?? "" });
+    setForm({ firstName: member.first_name, lastName: member.last_name, phone: member.phone ?? "", email: member.email ?? "", memberNumber: member.member_number ?? "", address: member.address ?? "", birthDate: member.birth_date ?? "", photoUrl: member.photo_url ?? "", title: member.title ?? "", reportsTo: member.reports_to ?? "" });
     setActiveTab("ajouter");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -139,7 +139,7 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
                       </span>
                       <div>
                         <b>{member.first_name} {member.last_name}</b>
-                        <small>{member.member_number || member.phone || "Aucun contact"}</small>
+                        <small>{member.title || "Membre"}</small>
                       </div>
                       <span className={`member-status ${member.status}`}>{member.status === "active" ? "Actif" : "Inactif"}</span>
                       {canManage && (
@@ -180,6 +180,13 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
                 <label>Email<input type="email" name="email" value={form.email} onChange={update}/></label>
                 <label>Matricule<input name="memberNumber" value={form.memberNumber} onChange={update} placeholder="Auto si vide"/></label>
                 <label>Date de naissance<input type="date" name="birthDate" value={form.birthDate} onChange={update}/></label>
+                <label>Fonction<input name="title" value={form.title} onChange={update} placeholder="Ex: Président"/></label>
+                <label>Supérieur hiérarchique
+                  <select name="reportsTo" value={form.reportsTo} onChange={update as any}>
+                    <option value="">Aucun</option>
+                    {members.filter(m => m.id !== editing?.id).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name} ({m.title || 'Membre'})</option>)}
+                  </select>
+                </label>
                 <label style={{ gridColumn: "1 / -1" }}>Photo du membre<input disabled={busy} type="file" accept="image/*" onChange={photo}/><small>Image uploadée dans InsForge Storage, 2 Mo max.</small></label>
                 {form.photoUrl && <span className="member-photo-preview" style={{ gridColumn: "1 / -1" }}><img src={form.photoUrl} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%" }} /> Photo uploadée</span>}
               </div>

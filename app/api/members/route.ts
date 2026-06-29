@@ -45,7 +45,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ member: data });
     }
     const member = normalizeMember(input);
-    const { data, error } = await ctx.insforge.from("member_profiles").update({ first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: member.memberNumber, birth_date: member.birthDate, photo_url: member.photoUrl, updated_at: new Date().toISOString() }).eq("id", id).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null).select().single();
+    const { data, error } = await ctx.insforge.from("member_profiles").update({ first_name: member.firstName, last_name: member.lastName, phone: member.phone, email: member.email, address: member.address, member_number: member.memberNumber, birth_date: member.birthDate, photo_url: member.photoUrl, title: member.title, reports_to: member.reportsTo, updated_at: new Date().toISOString() }).eq("id", id).eq("organization_id", ctx.membership.organization_id).is("deleted_at", null).select().single();
     if (error) throw error; return NextResponse.json({ member: data });
   } catch (error: any) { 
     if (error?.name === "ZodError") {

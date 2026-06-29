@@ -8,7 +8,9 @@ export const memberSchema = z.object({
   address: z.string().optional().transform(v => v?.trim() || undefined),
   memberNumber: z.string().optional().transform(v => v?.trim() || undefined),
   birthDate: z.string().optional().transform(v => v?.trim() || undefined),
-  photoUrl: z.string().optional().transform(v => v?.trim() || undefined)
+  photoUrl: z.string().optional().transform(v => v?.trim() || undefined),
+  title: z.string().optional().transform(v => v?.trim() || undefined),
+  reportsTo: z.string().optional().transform(v => v?.trim() || undefined)
 }).refine(data => {
   if (data.photoUrl?.startsWith("data:")) return false;
   return true;

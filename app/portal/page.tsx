@@ -90,6 +90,13 @@ export default async function PortalHomePage() {
               <p style={{ color: "#6b7280", fontSize: "14px" }}>Participez aux décisions de l'organisation.</p>
             </div>
           </Link>
+          <Link href="/portal/organigramme" style={{ textDecoration: "none" }}>
+            <div className="panel" style={{ padding: "24px", transition: "transform 0.2s", cursor: "pointer", border: "2px solid transparent" }} onMouseOver={e => e.currentTarget.style.borderColor = "#2563eb"} onMouseOut={e => e.currentTarget.style.borderColor = "transparent"}>
+              <div style={{ fontSize: "32px", marginBottom: "12px" }}>🏢</div>
+              <h3 style={{ fontSize: "18px", color: "#111827", marginBottom: "8px" }}>Organigramme</h3>
+              <p style={{ color: "#6b7280", fontSize: "14px" }}>Découvrez l'équipe dirigeante et la structure.</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

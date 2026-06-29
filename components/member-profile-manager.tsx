@@ -15,7 +15,7 @@ const officeRoles = [
 
 const roleLabel = (role: string) => officeRoles.find(([value]) => value === role)?.[1] ?? role;
 
-export function MemberProfileManager({ member, elections, canManage, orgName }: { member: any; elections: any[]; canManage: boolean; orgName?: string }) {
+export function MemberProfileManager({ member, allMembers, elections, canManage, orgName }: { member: any; allMembers: any[]; elections: any[]; canManage: boolean; orgName?: string }) {
   const router = useRouter();
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -171,7 +171,9 @@ export function MemberProfileManager({ member, elections, canManage, orgName }: 
               <p><b>Email</b><span>{member.email || "Non renseigné"}</span></p>
               <p><b>Adresse</b><span>{member.address || "Non renseignée"}</span></p>
               <p><b>Statut</b><span>{member.status}</span></p>
-              <p><b>Fonction</b><span>{roleLabel(member.office_role || "member")}{member.office_title ? ` · ${member.office_title}` : ""}</span></p>
+              <p><b>Rôle Bureau</b><span>{roleLabel(member.office_role || "member")}{member.office_title ? ` · ${member.office_title}` : ""}</span></p>
+              <p><b>Fonction</b><span>{member.title || "Non renseignée"}</span></p>
+              <p><b>Supérieur hiérarchique</b><span>{allMembers.find(m => m.id === member.reports_to) ? `${allMembers.find(m => m.id === member.reports_to).first_name} ${allMembers.find(m => m.id === member.reports_to).last_name}` : "Aucun"}</span></p>
             </div>
           </article>
 
@@ -226,6 +228,13 @@ export function MemberProfileManager({ member, elections, canManage, orgName }: 
                 <input name="phone" defaultValue={member.phone || ""} placeholder="Téléphone" />
                 <input name="email" type="email" defaultValue={member.email || ""} placeholder="Email" />
                 <input name="address" defaultValue={member.address || ""} placeholder="Adresse" />
+                <input name="title" defaultValue={member.title || ""} placeholder="Fonction (Ex: Secrétaire Général)" />
+                <select name="reportsTo" defaultValue={member.reports_to || ""}>
+                  <option value="">Aucun supérieur hiérarchique</option>
+                  {allMembers.filter(m => m.id !== member.id).map(m => (
+                    <option key={m.id} value={m.id}>{m.first_name} {m.last_name} {m.title ? `(${m.title})` : ""}</option>
+                  ))}
+                </select>
                 <label>Photo<input disabled={busy} type="file" accept="image/*" onChange={photo}/></label>
                 {form.photoUrl && <span className="member-photo-preview"><img src={form.photoUrl} alt="" /> Nouvelle photo en attente</span>}
                 {notice && <p className="member-message">{notice}</p>}

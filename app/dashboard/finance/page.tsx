@@ -3,10 +3,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/insforge/server";
 import { FinanceManager } from "@/components/finance-manager";
 
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/insforge/server";
-import { FinanceManager } from "@/components/finance-manager";
 
 export default async function FinancePage() {
   const insforge = await createClient();
