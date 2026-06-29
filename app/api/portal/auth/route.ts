@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/insforge/server";
+import { createAdminClient } from "@/lib/insforge/server";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const { phone, pin } = await request.json();
     if (!phone || !pin) return NextResponse.json({ error: "Numéro et PIN requis." }, { status: 400 });
 
-    const insforge = await createClient();
+    const insforge = await createAdminClient();
     
     // Find the member by phone (handle various formats like +225, spaces, etc.)
     const cleanPhone = phone.replace(/\s/g, "");
