@@ -298,6 +298,21 @@ export function OrganigramChart({ members }: { members: Member[] }) {
           font-weight: 500;
         }
 
+        .node-role-chip { margin-top:5px; padding:3px 8px; border-radius:999px; background:#eff6ff; color:#1d4ed8; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+
+        @media (max-width: 700px) {
+          .organigram-wrapper { padding:22px 10px; min-height:0; border-radius:16px; overflow:hidden; }
+          .tree ul { padding-left:14px; gap:12px; width:100%; }
+          .tree li { padding-left:14px; align-items:flex-start; width:100%; min-width:0; }
+          .tree li::before { width:14px; top:34px; }
+          .tree ul::before { width:14px; top:34px; }
+          .tree li::after { left:0; }
+          .node-card { min-width:0; width:100%; padding:10px; border-radius:13px; }
+          .node-photo, .node-initials { width:46px; height:46px; min-width:46px; margin-right:10px; font-size:16px; }
+          .node-name { font-size:13px; }
+          .node-title { font-size:11px; }
+        }
+
       `}</style>
     </div>
   );
@@ -317,6 +332,7 @@ function TreeNodeComponent({ node }: { node: TreeNode }) {
         <div className="node-info">
           <div className="node-name">{node.first_name} {node.last_name}</div>
           <div className="node-title">{formatRole(node.office_role, node.title)}</div>
+          {node.office_role && <div className="node-role-chip">Bureau</div>}
         </div>
       </div>
       {node.children.length > 0 && (
