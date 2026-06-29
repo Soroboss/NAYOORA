@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const { data: member, error } = await insforge
       .from("member_profiles")
-      .select("id, organization_id, pin_hash")
+      .select("id, organization_id")
       .or(`phone.eq.${cleanPhone},phone.eq.${localPhone},phone.eq.${withPrefix},phone.eq.${spacedLocal},phone.eq.${spacedPrefix}`)
       .eq("status", "active")
       .is("deleted_at", null)
@@ -42,8 +42,8 @@ export async function POST(request: Request) {
 
     // Very simple PIN verification for the prototype.
     // In production, we'd compare the hashed PIN using bcrypt.
-    // If the PIN is not set, we accept "0000" as the default PIN.
-    const isPinValid = member.pin_hash ? member.pin_hash === pin : pin === "0000";
+    // We accept "0000" as the default PIN since pin_hash column doesn't exist yet.
+    const isPinValid = pin === "0000";
 
     if (!isPinValid) {
       return NextResponse.json({ error: "Code PIN incorrect." }, { status: 401 });
