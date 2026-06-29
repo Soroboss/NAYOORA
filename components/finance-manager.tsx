@@ -211,7 +211,7 @@ export function FinanceManager({ plans, members, contributions, payments, cash, 
         </div>
       
         {canManage && activeTab !== "vue" && (
-          <div className="finance-forms">
+          <div className="finance-forms" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {activeTab === "cotisations" && (
               <>
@@ -233,8 +233,12 @@ export function FinanceManager({ plans, members, contributions, payments, cash, 
                   <p className="eyebrow">Assignation</p>
                   <h2>Attribuer une échéance</h2>
                   <select name="memberId">
-                    <option value="">Choisir un membre (ou ignorer pour "Tous")</option>
+                    <option value="">Pour un seul membre (ou ignorer)</option>
                     {members.map(m => <option value={m.id} key={m.id}>{m.first_name} {m.last_name}</option>)}
+                  </select>
+                  <select name="excludeMemberId">
+                    <option value="">Exclure un membre (optionnel)</option>
+                    {members.map(m => <option value={m.id} key={m.id}>Sauf : {m.first_name} {m.last_name}</option>)}
                   </select>
                   <select name="planId" required>
                     <option value="">Choisir un plan</option>
