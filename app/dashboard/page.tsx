@@ -30,16 +30,17 @@ export default async function DashboardPage() {
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
   sixMonthsAgo.setDate(1);
 
-  const [recentMembersRes, recentPaymentsRes, allRecentPayments, allConfirmedPayments, paidContributionsRes, tontineCollectionsRes, tontinePayoutsRes, savingsCollectionsRes, savingsPayoutsRes] = await Promise.all([
+  const [recentMembersRes, recentPaymentsRes, allRecentPayments, allConfirmedPayments, paidContributionsRes, tontineCollectionsRes, tontinePayoutsRes, savingsCollectionsRes, savingsPayoutsRes, aidDisbursementsRes] = await Promise.all([
     insforge.from("member_profiles").select("first_name, last_name, created_at").eq("organization_id", organization.id).order("created_at", { ascending: false }).limit(5),
     insforge.from("payments").select("amount,paid_at,contribution_id,member:member_profiles(first_name,last_name)").eq("organization_id", organization.id).eq("status", "confirmed").order("paid_at", { ascending: false }).limit(5),
-    insforge.from("payments").select("amount, paid_at").eq("organization_id", organization.id).eq("status", "confirmed").gte("paid_at", sixMonthsAgo.toISOString()),
+    insforge.from("payments").select("amount,paid_at,contribution_id").eq("organization_id", organization.id).eq("status", "confirmed").gte("paid_at", sixMonthsAgo.toISOString()),
     insforge.from("payments").select("amount,contribution_id").eq("organization_id", organization.id).eq("status", "confirmed"),
     insforge.from("contributions").select("id,amount_paid,status,due_date,created_at,member:member_profiles(first_name,last_name)").eq("organization_id", organization.id).gt("amount_paid", 0).order("due_date", { ascending: false }),
     insforge.from("tontine_collections").select("id,amount_paid,status,paid_at,created_at,participant:tontine_participants(display_name),cycle:tontine_cycles(cycle_number)").eq("organization_id", organization.id).order("created_at", { ascending: false }),
     insforge.from("tontine_payouts").select("id,net_amount,gross_amount,commission_amount,status,paid_at,scheduled_at,created_at,beneficiary:tontine_participants(display_name),cycle:tontine_cycles(cycle_number)").eq("organization_id", organization.id).order("created_at", { ascending: false }),
     insforge.from("tontine_savings_collections").select("id,amount_paid,status,collection_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).eq("status", "collected").order("created_at", { ascending: false }),
-    insforge.from("tontine_savings_payouts").select("id,net_amount,gross_amount,commission_amount,status,payout_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).order("created_at", { ascending: false })
+    insforge.from("tontine_savings_payouts").select("id,net_amount,gross_amount,commission_amount,status,payout_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).order("created_at", { ascending: false }),
+    insforge.from("disbursements").select("id,amount,disbursed_at,notes,beneficiary:member_profiles(first_name,last_name),solidarity_case:solidarity_cases(title,case_type)").eq("organization_id", organization.id).order("disbursed_at", { ascending: false })
   ]);
 
   const paidContributionsTotal = (paidContributionsRes.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount_paid || 0), 0);
@@ -49,9 +50,10 @@ export default async function DashboardPage() {
   const savingsCollectionsTotal = (savingsCollectionsRes.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount_paid || 0), 0);
   const rotatingPaidTotal = (tontinePayoutsRes.data ?? []).filter((item: any) => item.status === "paid").reduce((sum: number, item: any) => sum + Number(item.net_amount || 0), 0);
   const savingsPaidTotal = (savingsPayoutsRes.data ?? []).filter((item: any) => item.status === "paid").reduce((sum: number, item: any) => sum + Number(item.net_amount || 0), 0);
+  const aidPaidTotal = (aidDisbursementsRes.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
   const contributionsTotal = regularContributionsTotal + rotatingCollectionsTotal + savingsCollectionsTotal;
-  const payoutsTotal = rotatingPaidTotal + savingsPaidTotal;
-  const tontineBalanceToPay = Math.max(rotatingCollectionsTotal + savingsCollectionsTotal - payoutsTotal, 0);
+  const tontinePayoutsTotal = rotatingPaidTotal + savingsPaidTotal;
+  const memberDisbursementsTotal = tontinePayoutsTotal + aidPaidTotal;
   const president = (officers.data ?? []).find((member: any) => member.office_role === "president");
   const formatMoney = (amount: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: organization.currency || "XOF", maximumFractionDigits: 0 }).format(amount);
   
@@ -59,7 +61,7 @@ export default async function DashboardPage() {
     { label: "Membres actifs", value: String(activeMembers.count ?? 0), trend: `${totalMembers.count ?? 0} inscrit(s) au total` },
     { label: "Bureau actif", value: String((officers.data ?? []).length), trend: president ? `Président : ${president.first_name} ${president.last_name}` : "Président à définir" },
     { label: "Cotisations encaissées", value: formatMoney(contributionsTotal), trend: `${paidContributionsRes.data?.length ?? 0} échéance(s) avec paiement enregistré` },
-    { label: "Reversements remis", value: formatMoney(payoutsTotal), trend: `${formatMoney(tontineBalanceToPay)} restant en caisse tontine` },
+    { label: "Versements aux membres", value: formatMoney(memberDisbursementsTotal), trend: `${formatMoney(aidPaidTotal)} d’aides · ${formatMoney(tontinePayoutsTotal)} de tontines` },
     { label: "Événements à venir", value: String(events.data?.length ?? 0), trend: "Calendrier organisation" },
   ];
 
@@ -74,6 +76,7 @@ export default async function DashboardPage() {
   const recentPayouts = [
     ...(tontinePayoutsRes.data ?? []).map((item: any) => ({ id: item.id, name: item.beneficiary?.display_name || "Bénéficiaire", source: `Tontine · cycle ${item.cycle?.cycle_number ?? "—"}`, amount: Number(item.net_amount || 0), commission: Number(item.commission_amount || 0), status: item.status, date: item.paid_at || item.scheduled_at || item.created_at })),
     ...(savingsPayoutsRes.data ?? []).map((item: any) => ({ id: item.id, name: memberName(item.card?.member), source: "Épargne", amount: Number(item.net_amount || 0), commission: Number(item.commission_amount || 0), status: item.status, date: item.payout_date || item.created_at })),
+    ...(aidDisbursementsRes.data ?? []).map((item: any) => ({ id: `aid-${item.id}`, name: memberName(item.beneficiary), source: `Aide / soutien · ${item.solidarity_case?.title || "Décaissement solidaire"}`, amount: Number(item.amount || 0), commission: 0, status: "paid", date: item.disbursed_at })),
   ].sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()).slice(0, 8);
 
   const linkFor = (item: string) => ({
@@ -165,12 +168,17 @@ export default async function DashboardPage() {
     chartDataMap[key] = 0;
   }
 
-  (allRecentPayments.data || []).forEach(p => {
+  (allRecentPayments.data || []).filter((p: any) => !p.contribution_id).forEach(p => {
     const d = new Date(p.paid_at);
     const key = `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(2)}`;
     if (chartDataMap[key] !== undefined) {
       chartDataMap[key] += Number(p.amount || 0);
     }
+  });
+  (paidContributionsRes.data || []).forEach((contribution: any) => {
+    const d = new Date(contribution.due_date || contribution.created_at);
+    const key = `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(2)}`;
+    if (chartDataMap[key] !== undefined) chartDataMap[key] += Number(contribution.amount_paid || 0);
   });
 
   const chartData = Object.entries(chartDataMap).map(([label, value]) => ({ label, value }));
@@ -195,6 +203,7 @@ export default async function DashboardPage() {
           <Link href="/dashboard/members/new"><i>·</i>Ajouter un membre</Link>
           <Link href="/dashboard/recruitment"><i>·</i>Recrutement</Link>
           <Link href="/dashboard/finance"><i>·</i>Cotisations & Caisse</Link>
+          {!config.navigation.includes("Solidarité") && organization.organization_type !== "tontine" && <Link href="/dashboard/solidarity"><i>·</i>Aides & soutiens</Link>}
           {config.navigation.slice(2).map(item=><Link href={linkFor(item)} key={item}><i>·</i>{item}</Link>)}
           <Link href="/dashboard/support"><i>·</i>Support NAYOORA</Link>
         </nav>
@@ -236,7 +245,7 @@ export default async function DashboardPage() {
           </article>
 
           <article className="panel">
-            <div className="panel-heading"><div><p className="eyebrow">Sorties contrôlées</p><h2>Remises aux bénéficiaires</h2></div><Link href="/dashboard/tontine?tab=rotating">Gérer →</Link></div>
+            <div className="panel-heading"><div><p className="eyebrow">Sorties contrôlées</p><h2>Versements aux membres</h2></div><Link href={organization.organization_type === "tontine" ? "/dashboard/tontine?tab=rotating" : "/dashboard/solidarity"}>Gérer →</Link></div>
             <div className="finance-list">
               {recentPayouts.length ? recentPayouts.map((item) => (
                 <div key={item.id}>
@@ -246,7 +255,7 @@ export default async function DashboardPage() {
                   </span>
                   <b className={item.status === "paid" ? "negative" : ""}>{formatMoney(item.amount)}</b>
                 </div>
-              )) : <p className="muted">Aucun reversement enregistré.</p>}
+              )) : <p className="muted">Aucun reversement ou soutien enregistré.</p>}
             </div>
           </article>
         </div>

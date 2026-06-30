@@ -83,8 +83,8 @@ export function SolidarityManager({ members, cases, disbursements, canManage }: 
                 {disbursements.length === 0 ? <p className="muted">Aucun décaissement.</p> : disbursements.map(d => (
                   <div key={d.id}>
                     <span>
-                      <b>{d.solidarity_case?.title}</b>
-                      <small>{new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>
+                      <b>✓ Remis à {d.beneficiary?.first_name} {d.beneficiary?.last_name}</b>
+                      <small>{d.solidarity_case?.title} · {new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>
                     </span>
                     <b className="negative">−{f(d.amount)}</b>
                   </div>
@@ -120,8 +120,8 @@ export function SolidarityManager({ members, cases, disbursements, canManage }: 
               {disbursements.length === 0 ? <p className="muted">Aucun versement.</p> : disbursements.map(d => (
                 <div key={d.id}>
                   <span>
-                    <b>{d.solidarity_case?.title}</b>
-                    <small>{new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>
+                    <b>✓ Aide remise à {d.beneficiary?.first_name} {d.beneficiary?.last_name}</b>
+                    <small>{d.solidarity_case?.title} · {new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>
                   </span>
                   <b className="negative">−{f(d.amount)}</b>
                 </div>

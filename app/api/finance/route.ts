@@ -1,20 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/insforge/server";
+import { getCurrentOrganizationContext } from "@/lib/current-organization";
 
 const financeRoles = ["organization_admin", "president", "tresorier"];
 
-async function context() { 
-  const insforge = await createClient(); 
-  const { data: { user } } = await insforge.auth.getUser(); 
-  const { data: membership } = user 
-    ? await insforge.from("organization_members").select("organization_id,role").eq("user_id", user.id).eq("status", "active").limit(1).maybeSingle() 
-    : { data: null }; 
-  return { insforge, user, membership }; 
-}
-
 export async function POST(request: Request) { 
-  const {insforge, user, membership} = await context(); 
-  if(!user || !membership || !financeRoles.includes(membership.role)) 
+  const {insforge, user, membership} = await getCurrentOrganizationContext();
+  if(!membership || !financeRoles.includes(membership.role))
     return NextResponse.json({error: "Droits trésorerie requis."}, {status: 403}); 
     
   try { 
@@ -53,47 +44,26 @@ export async function POST(request: Request) {
     }
 
     if(body.action === "payment"){ 
+      if(!body.contributionId || Number(body.amount) <= 0) throw new Error("Échéance et montant positif requis.");
       const {data, error} = await insforge.rpc("record_contribution_payment", {p_organization_id: org, p_contribution_id: body.contributionId, p_amount: Number(body.amount), p_provider: body.provider || null, p_provider_reference: body.reference || null, p_notes: body.notes || null}); 
       if(error) throw error; 
       return NextResponse.json({paymentId: data}); 
     }
 
     if(body.action === "validate_payment") {
-      if(!body.paymentId || !body.contributionId) throw new Error("Données manquantes");
-      const amt = Number(body.amount);
-
-      // Fetch current contribution
-      const { data: contrib } = await insforge.from("contributions").select("amount_paid, amount_due").eq("id", body.contributionId).single();
-      if(!contrib) throw new Error("Cotisation introuvable");
-
-      const newPaid = Number(contrib.amount_paid) + amt;
-      const newStatus = newPaid >= Number(contrib.amount_due) ? 'paid' : (newPaid > 0 ? 'partial' : 'pending');
-
-      // Update payment
-      await insforge.from("payments").update({ status: 'completed', paid_at: new Date().toISOString() }).eq("id", body.paymentId);
-      
-      // Update contribution
-      await insforge.from("contributions").update({ amount_paid: newPaid, status: newStatus }).eq("id", body.contributionId);
-      
-      // Insert cash transaction
-      await insforge.from("cash_transactions").insert({
-        organization_id: org,
-        direction: 'in',
-        category: 'cotisation',
-        amount: amt,
-        reference: `Validé depuis décl.: ${body.paymentId}`,
-        created_by: user.id
-      });
-      
-      return NextResponse.json({ success: true });
+      if(!body.paymentId) throw new Error("Paiement manquant.");
+      const { data, error } = await insforge.rpc("validate_declared_contribution_payment", { p_organization_id: org, p_payment_id: body.paymentId });
+      if(error) throw error;
+      return NextResponse.json({ success: true, paymentId: data });
     }
 
     if(body.action === "reject_payment") {
       if(!body.paymentId) throw new Error("Paiement manquant");
-      await insforge.from("payments").update({ 
+      const { error } = await insforge.from("payments").update({
         status: 'failed', 
         rejection_reason: body.rejectionReason || 'Rejeté par un administrateur' 
-      }).eq("id", body.paymentId);
+      }).eq("id", body.paymentId).eq("organization_id", org).eq("status", "pending");
+      if(error) throw error;
       return NextResponse.json({ success: true });
     }
 

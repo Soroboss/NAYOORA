@@ -229,8 +229,6 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
                     <div style={{ display: "flex", gap: "8px", marginTop: "8px", width: "100%" }}>
                       <form onSubmit={e => submit(e, 'validate_payment')} style={{ flex: 1 }}>
                         <input type="hidden" name="paymentId" value={p.id} />
-                        <input type="hidden" name="contributionId" value={(p.contribution as any)?.id} />
-                        <input type="hidden" name="amount" value={p.amount} />
                         <button disabled={busy} className="button button-dark" style={{ width: "100%" }}>Valider</button>
                       </form>
                       <form onSubmit={e => {

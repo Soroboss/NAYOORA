@@ -15,9 +15,9 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { planId, amount, provider, provider_reference, proof_url } = body;
+  const { contributionId, planId, amount, provider, provider_reference, proof_url } = body;
 
-  if (!planId || !amount || !provider) {
+  if (!contributionId || !planId || !amount || !provider) {
     return NextResponse.json({ error: "Données manquantes" }, { status: 400 });
   }
 
@@ -31,12 +31,19 @@ export async function POST(request: Request) {
     .single();
 
   if (!member) return NextResponse.json({ error: "Membre non trouvé" }, { status: 404 });
+  if (member.organization_id !== session.organizationId) return NextResponse.json({ error: "Organisation invalide" }, { status: 403 });
+
+  const { data: contribution } = await insforge.from("contributions").select("id,amount_due,amount_paid,contribution_plan_id").eq("id", contributionId).eq("organization_id", member.organization_id).eq("member_profile_id", session.memberId).maybeSingle();
+  if (!contribution || contribution.contribution_plan_id !== planId) return NextResponse.json({ error: "Cotisation introuvable" }, { status: 404 });
+  const remaining = Number(contribution.amount_due) - Number(contribution.amount_paid);
+  if (Number(amount) <= 0 || Number(amount) > remaining) return NextResponse.json({ error: "Montant de paiement invalide" }, { status: 400 });
 
   // Insert payment as pending
   const { error } = await insforge.from("payments").insert({
     organization_id: member.organization_id,
     member_profile_id: session.memberId,
     contribution_plan_id: planId,
+    contribution_id: contributionId,
     amount: amount,
     provider: provider,
     provider_reference: provider_reference || null,

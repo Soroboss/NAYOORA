@@ -28,11 +28,11 @@ export default async function PortalFinancePage() {
   // Fetch pending payments to see if a contribution is already pending
   const { data: pendingPayments } = await insforge
     .from("payments")
-    .select("contribution_plan_id, status")
+    .select("contribution_id,status")
     .eq("member_profile_id", session.memberId)
     .eq("status", "pending");
   
-  const pendingPlanIds = pendingPayments?.map(p => p.contribution_plan_id) || [];
+  const pendingContributionIds = pendingPayments?.map(p => p.contribution_id).filter(Boolean) || [];
 
   const formatMoney = (n: number) =>
     new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", maximumFractionDigits: 0 }).format(n);
@@ -50,7 +50,7 @@ export default async function PortalFinancePage() {
         ) : (
           contributions?.map((c) => {
             const isPaid = c.status === "paid";
-            const isPending = !isPaid && pendingPlanIds.includes(c.contribution_plan_id);
+            const isPending = !isPaid && pendingContributionIds.includes(c.id);
 
             return (
               <div key={c.id} className="finance-item">
