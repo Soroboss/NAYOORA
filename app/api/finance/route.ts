@@ -3,6 +3,19 @@ import { getCurrentOrganizationContext } from "@/lib/current-organization";
 
 const financeRoles = ["organization_admin", "president", "tresorier"];
 
+function readableError(error: unknown) {
+  const raw = typeof error === "object" && error !== null
+    ? String((error as any).message || (error as any).details || (error as any).hint || "")
+    : error instanceof Error ? error.message : String(error || "");
+  const message = raw.toLowerCase();
+  if (message.includes("finance permission denied")) return "Vous n’avez pas les droits nécessaires pour enregistrer ce paiement.";
+  if (message.includes("contribution not found")) return "Cette échéance n’appartient pas à l’organisation actuellement sélectionnée.";
+  if (message.includes("amount exceeds outstanding balance")) return "Le montant dépasse le reste à payer de cette cotisation.";
+  if (message.includes("amount must be positive")) return "Le montant du paiement doit être positif.";
+  if (message.includes("schema cache") || message.includes("could not find the function")) return "Le service de paiement vient d’être mis à jour. Actualisez la page puis réessayez.";
+  return raw || "Le paiement n’a pas pu être enregistré. Actualisez la page puis réessayez.";
+}
+
 export async function POST(request: Request) { 
   const {insforge, user, membership} = await getCurrentOrganizationContext();
   if(!membership || !financeRoles.includes(membership.role))
@@ -45,7 +58,7 @@ export async function POST(request: Request) {
 
     if(body.action === "payment"){ 
       if(!body.contributionId || Number(body.amount) <= 0) throw new Error("Échéance et montant positif requis.");
-      const {data, error} = await insforge.rpc("record_contribution_payment", {p_organization_id: org, p_contribution_id: body.contributionId, p_amount: Number(body.amount), p_provider: body.provider || null, p_provider_reference: body.reference || null, p_notes: body.notes || null}); 
+      const {data, error} = await insforge.rpc("record_contribution_payment_v2", {p_organization_id: org, p_contribution_id: body.contributionId, p_amount: Number(body.amount), p_provider: body.provider || "cash", p_provider_reference: body.reference || "", p_notes: body.notes || ""});
       if(error) throw error; 
       return NextResponse.json({paymentId: data}); 
     }
@@ -76,6 +89,6 @@ export async function POST(request: Request) {
 
     throw new Error("Action inconnue.");
   } catch(error) {
-    return NextResponse.json({error: error instanceof Error ? error.message : "Opération impossible."}, {status: 400});
+    return NextResponse.json({error: readableError(error)}, {status: 400});
   } 
 }

@@ -55,8 +55,9 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
       const d = Object.fromEntries(f);
       await send({ action, ...d });
       toast.success('Opération enregistrée avec succès.');
-      setNotice('Opération enregistrée. Actualisez la page pour voir les données à jour.');
+      setNotice('Opération enregistrée avec succès. Les chiffres ont été actualisés.');
       e.currentTarget.reset();
+      if (action === 'payment' || action === 'validate_payment' || action === 'reject_payment') window.setTimeout(() => window.location.reload(), 350);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur.';
       toast.error(msg);
