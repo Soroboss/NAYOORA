@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./overrides.css";
 import "./mobile-nav.css";
+import "./responsive.css";
 import { Toaster } from "sonner";
 
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
