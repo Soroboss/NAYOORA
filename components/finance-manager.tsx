@@ -108,7 +108,7 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
         <button onClick={() => setActiveTab("encaissement")} style={{ padding: "12px 16px", borderBottom: activeTab === "encaissement" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "encaissement" ? "bold" : "normal" }}>Encaisser un paiement</button>
       </div>
       
-      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "2fr 1fr" : "1fr", gap: "24px" }}>
+      <div className={`module-split ${activeTab === "cotisations" ? "finance-plan-stack" : ""}`} style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "2fr 1fr" : "1fr", gap: "24px" }}>
         
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {activeTab === "vue" && (
@@ -274,7 +274,7 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
         </div>
       
         {canManage && activeTab !== "vue" && (
-          <div className="finance-forms" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className={`finance-forms ${activeTab === "cotisations" ? "finance-plan-forms" : ""}`} style={activeTab === "cotisations" ? undefined : { display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
             {activeTab === "cotisations" && (
               <>

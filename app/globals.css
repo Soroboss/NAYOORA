@@ -1825,6 +1825,12 @@
 .module-split > * {
   min-width: 0;
 }
+.finance-plan-stack {
+  grid-template-columns: 1fr !important;
+}
+.finance-plan-forms {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+}
 .finance-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
