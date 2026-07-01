@@ -80,7 +80,7 @@ export function PlatformManager(props: PlatformManagerProps) {
     try {
       await send({ action, ...Object.fromEntries(new FormData(event.currentTarget)) });
       setNotice("Opération enregistrée. Les données seront visibles après actualisation.");
-      event.currentTarget.reset();
+      ((event.target || event.currentTarget) as HTMLFormElement | null)?.reset();
     } catch (error) {
       const __msg = error instanceof Error ? error.message : "Erreur inconnue."; toast.error(__msg); setNotice(__msg);
     } finally {

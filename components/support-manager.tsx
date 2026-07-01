@@ -21,7 +21,7 @@ export function SupportManager({ requests, canManage }: { requests: any[]; canMa
     try {
       await send(Object.fromEntries(new FormData(event.currentTarget)));
       setNotice("Requête envoyée aux propriétaires NAYOORA.");
-      event.currentTarget.reset();
+      ((event.target || event.currentTarget) as HTMLFormElement | null)?.reset();
     } catch (error) {
       const __msg = error instanceof Error ? error.message : "Erreur inconnue."; toast.error(__msg); setNotice(__msg);
     } finally {

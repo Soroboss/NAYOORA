@@ -147,7 +147,7 @@ export function MembersManager({ organizationId, members: initialMembers, canMan
 
       {message && <p className="member-message">{message}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab === "ajouter" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab === "ajouter" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "repertoire" && (
           <article className="panel directory" style={{ maxWidth: "100%" }}>

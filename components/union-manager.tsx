@@ -19,7 +19,7 @@ export function UnionManager({ sectors, claims, mobilizations, canManage }: { se
     try {
       await send({ action, ...Object.fromEntries(new FormData(e.currentTarget)) });
       setN('Enregistrement effectué. Actualisez la page pour voir la liste à jour.');
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
     } catch (e) {
       setN(e instanceof Error ? e.message : 'Erreur');
     } finally {
@@ -52,7 +52,7 @@ export function UnionManager({ sectors, claims, mobilizations, canManage }: { se
 
       {n && <p className="member-message">{n}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "revendications" && (
           <>

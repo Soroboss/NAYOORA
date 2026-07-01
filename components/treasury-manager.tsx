@@ -19,7 +19,7 @@ export function TreasuryManager({ accounts, categories, reconciliations, transac
     try {
       await send({ action, ...Object.fromEntries(new FormData(e.currentTarget)) });
       setN('Opération enregistrée. Actualisez la page pour voir les données à jour.');
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
     } catch (e) {
       setN(e instanceof Error ? e.message : 'Erreur');
     } finally {
@@ -54,7 +54,7 @@ export function TreasuryManager({ accounts, categories, reconciliations, transac
 
       {n && <p className="member-message">{n}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "1fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "1fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "vue" && (
           <div className="finance-lists">

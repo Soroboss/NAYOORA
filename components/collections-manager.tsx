@@ -54,7 +54,7 @@ export function CollectionsManager({ contributions, imports, errors, canManage }
 
       {n && <p className="member-message">{n}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "vue" && (
           <div className="finance-lists">

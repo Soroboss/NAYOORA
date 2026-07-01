@@ -46,7 +46,7 @@ export function CooperativeManager({
       });
       if (error) throw error;
       setMessage("✅ Récolte enregistrée avec succès.");
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
       router.refresh();
     } catch (err: any) {
       setMessage(`❌ Erreur: ${err.message}`);
@@ -72,7 +72,7 @@ export function CooperativeManager({
       });
       if (error) throw error;
       setMessage("✅ Entrée de stock enregistrée.");
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
       router.refresh();
     } catch (err: any) {
       setMessage(`❌ Erreur: ${err.message}`);
@@ -106,7 +106,7 @@ export function CooperativeManager({
 
       {message && <p className="member-message">{message}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "harvests" && (
           <>

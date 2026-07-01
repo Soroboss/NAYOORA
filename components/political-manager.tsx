@@ -32,7 +32,7 @@ export function PoliticalManager({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
       setNotice("✅ Enregistrement effectué. Actualisez la page pour voir les changements.");
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
     } catch (err: any) {
       setNotice(`❌ Erreur : ${err.message}`);
     } finally {
@@ -66,7 +66,7 @@ export function PoliticalManager({
         <button onClick={() => setActiveTab("campaigns")} style={{ padding: "12px 16px", borderBottom: activeTab === "campaigns" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "campaigns" ? "bold" : "normal" }}>Campagnes Terrain</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage ? "2fr 1fr" : "1fr", gap: "24px" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage ? "2fr 1fr" : "1fr", gap: "24px" }}>
         
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           

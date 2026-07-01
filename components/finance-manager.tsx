@@ -56,7 +56,7 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
       await send({ action, ...d });
       toast.success('Opération enregistrée avec succès.');
       setNotice('Opération enregistrée avec succès. Les chiffres ont été actualisés.');
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
       if (action === 'payment' || action === 'validate_payment' || action === 'reject_payment') window.setTimeout(() => window.location.reload(), 350);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Erreur.';
@@ -108,7 +108,7 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
         <button onClick={() => setActiveTab("encaissement")} style={{ padding: "12px 16px", borderBottom: activeTab === "encaissement" ? "2px solid #000" : "2px solid transparent", background: "none", borderTop: "none", borderLeft: "none", borderRight: "none", cursor: "pointer", fontWeight: activeTab === "encaissement" ? "bold" : "normal" }}>Encaisser un paiement</button>
       </div>
       
-      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "2fr 1fr" : "1fr", gap: "24px" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "vue" ? "2fr 1fr" : "1fr", gap: "24px" }}>
         
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {activeTab === "vue" && (

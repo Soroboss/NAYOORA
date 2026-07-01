@@ -25,7 +25,7 @@ export function ProjectsManager({ projects, canManage }: { projects: any[]; canM
       const payload = Object.fromEntries(new FormData(e.currentTarget));
       await send({ action: "project", ...payload });
       setNotice("Projet enregistré avec succès.");
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
     } catch (err) {
       const __msg = err instanceof Error ? err.message : "Erreur."; toast.error(__msg); setNotice(__msg);
     } finally {

@@ -24,7 +24,7 @@ export function EventsManager({ members, events, attendance, canManage }: { memb
       if (action === 'invite') Object.assign(d, { memberIds: chosen });
       await send({ action, ...d });
       setN(action === 'invite' ? 'Convocations enregistrées.' : 'Opération enregistrée. Actualisez la page pour actualiser la liste.');
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
       if (action === 'invite') setChosen([]);
       setActiveTab("calendrier");
     } catch (e) {
@@ -58,7 +58,7 @@ export function EventsManager({ members, events, attendance, canManage }: { memb
 
       {n && <p className="member-message">{n}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab === "planifier" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab === "planifier" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "calendrier" && (
           <article className="panel">

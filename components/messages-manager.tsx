@@ -22,7 +22,7 @@ export function MessagesManager({ members, messages, templates = [], canManage }
     try {
       await send({ ...Object.fromEntries(new FormData(e.currentTarget)), memberIds: ids });
       setN('Message créé. Les messages internes sont disponibles immédiatement ; emails, SMS et WhatsApp restent en file d’envoi jusqu’au raccordement d’un prestataire.');
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
       setIds([]);
       setBody('');
       setSubject('');
@@ -67,7 +67,7 @@ export function MessagesManager({ members, messages, templates = [], canManage }
 
       {n && <p className="member-message">{n}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab === "composer" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab === "composer" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "vue" && (
           <article className="panel">

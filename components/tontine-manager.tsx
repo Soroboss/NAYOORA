@@ -75,7 +75,7 @@ export function TontineManager({ groups, participants, cycles, collections, payo
 
       {error && <p className="member-message">{error}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "vue" && (
           <div className="finance-lists">

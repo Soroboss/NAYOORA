@@ -48,7 +48,7 @@ export function GovernanceManager({
       });
       if (error) throw error;
       setNotice("✅ Élection créée. Vous pouvez maintenant ajouter des candidats.");
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
       router.refresh();
     } catch (err: any) {
       setNotice(`❌ Erreur: ${err.message}`);
@@ -72,7 +72,7 @@ export function GovernanceManager({
       });
       if (error) throw error;
       setNotice("✅ Candidat ajouté à l'élection.");
-      e.currentTarget.reset();
+      ((e.target || e.currentTarget) as HTMLFormElement | null)?.reset();
       router.refresh();
     } catch (err: any) {
       setNotice(`❌ Erreur: ${err.message}`);
@@ -97,7 +97,7 @@ export function GovernanceManager({
 
       {notice && <p className="member-message">{notice}</p>}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab === "elections" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab === "elections" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "documents" && (
           <article className="panel">

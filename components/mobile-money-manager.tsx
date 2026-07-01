@@ -78,7 +78,7 @@ export function MobileMoneyManager({
         <p className="member-message">{message}</p>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "transactions" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
+      <div className="module-split" style={{ display: "grid", gridTemplateColumns: canManage && activeTab !== "transactions" ? "2fr 1fr" : "1fr", gap: "24px", alignItems: "start" }}>
         
         {activeTab === "transactions" && (
           <article className="panel">
