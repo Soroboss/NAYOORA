@@ -127,7 +127,7 @@ export function SolidarityManager({ members, cases, disbursements, canManage, or
                 <div key={c.id}>
                   <span style={{ display: 'flex', alignItems: 'center' }}>
                     <b>{c.title}</b>
-                    {c.member?.phone && <WhatsAppButton phone={c.member.phone} message={getSolidarityCaseMessage(c, orgName)} />}
+                    <WhatsAppButton phone={c.member?.phone} message={getSolidarityCaseMessage(c, orgName)} />
                   </span>
                   <span>
                     <small>{c.member?.first_name} {c.member?.last_name} · {c.case_type} · {c.status}</small>
@@ -148,7 +148,7 @@ export function SolidarityManager({ members, cases, disbursements, canManage, or
                 <div key={d.id}>
                   <span style={{ display: 'flex', alignItems: 'center' }}>
                     <b>✓ Aide remise à {d.beneficiary?.first_name} {d.beneficiary?.last_name}</b>
-                    {d.beneficiary?.phone && <WhatsAppButton phone={d.beneficiary.phone} message={getSolidarityDisbursementMessage(d, orgName)} />}
+                    <WhatsAppButton phone={d.beneficiary?.phone} message={getSolidarityDisbursementMessage(d, orgName)} />
                   </span>
                   <span>
                     <small>{d.solidarity_case?.title} · {new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>

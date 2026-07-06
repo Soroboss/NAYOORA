@@ -130,7 +130,7 @@ export function TontineManager({ groups, participants, cycles, collections, payo
                   <div key={p.id}>
                     <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>Rang {p.payout_rank} — {p.display_name}</b>
-                      {p.phone && <WhatsAppButton phone={p.phone} message={getTontineReminderMessage(p, groups)} />}
+                      <WhatsAppButton phone={p.phone} message={getTontineReminderMessage(p, groups)} />
                     </span>
                     <span>
                       <small>{p.status}</small>
@@ -170,7 +170,7 @@ export function TontineManager({ groups, participants, cycles, collections, payo
                   <div key={c.id}>
                     <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>{(c.participant as any)?.display_name || "Participant"}</b>
-                      {(c.participant as any)?.phone && <WhatsAppButton phone={(c.participant as any).phone} message={getTontineCollectionMessage(c, groups)} />}
+                      <WhatsAppButton phone={(c.participant as any)?.phone} message={getTontineCollectionMessage(c, groups)} />
                     </span>
                     <span>
                       <small>Cycle {(c.cycle as any)?.cycle_number}</small>
@@ -188,7 +188,7 @@ export function TontineManager({ groups, participants, cycles, collections, payo
                   <div key={p.id}>
                     <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>{p.status === "paid" ? `✓ Remis à ${(p.beneficiary as any)?.display_name || "Bénéficiaire"}` : `À remettre à ${(p.beneficiary as any)?.display_name || "Bénéficiaire"}`}</b>
-                      {(p.beneficiary as any)?.phone && <WhatsAppButton phone={(p.beneficiary as any).phone} message={getTontinePayoutMessage(p, groups)} />}
+                      <WhatsAppButton phone={(p.beneficiary as any)?.phone} message={getTontinePayoutMessage(p, groups)} />
                     </span>
                     <span>
                       <small>Cycle {(p.cycle as any)?.cycle_number} · {p.status === "paid" ? `remis le ${new Date(p.paid_at).toLocaleDateString("fr-FR")}` : "en attente de remise"}</small>

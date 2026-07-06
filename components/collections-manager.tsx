@@ -84,7 +84,7 @@ export function CollectionsManager({ contributions, imports, errors, canManage, 
                   <div key={c.id}>
                     <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>{c.member?.first_name} {c.member?.last_name}</b>
-                      {c.member?.phone && <WhatsAppButton phone={c.member.phone} message={getCollectionMessage(c, orgName)} />}
+                      <WhatsAppButton phone={c.member?.phone} message={getCollectionMessage(c, orgName)} />
                     </span>
                     <span>
                       <small>{c.plan?.name} · échéance {c.due_date}</small>
@@ -133,7 +133,7 @@ export function CollectionsManager({ contributions, imports, errors, canManage, 
                 <div key={c.id}>
                   <span style={{ display: 'flex', alignItems: 'center' }}>
                     <b>{c.member?.first_name} {c.member?.last_name}</b>
-                    {c.member?.phone && <WhatsAppButton phone={c.member.phone} message={getCollectionMessage(c, orgName)} />}
+                    <WhatsAppButton phone={c.member?.phone} message={getCollectionMessage(c, orgName)} />
                   </span>
                   <span>
                     <small>{c.plan?.name} · échéance {c.due_date} · {c.status}</small>
