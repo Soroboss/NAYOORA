@@ -35,9 +35,20 @@ export function WhatsAppButton({ phone, message }: WhatsAppButtonProps) {
     );
   }
 
-  const cleanPhone = phone.replace(/[^0-9+]/g, '');
-  const basePhoneUrl = `https://wa.me/${cleanPhone.startsWith('+') ? cleanPhone.substring(1) : cleanPhone}?text=`;
+  let cleanPhone = phone.replace(/[^0-9+]/g, '');
+  if (cleanPhone.startsWith('00')) {
+    cleanPhone = '+' + cleanPhone.substring(2);
+  }
+  
+  let digitsOnly = cleanPhone.replace(/\D/g, '');
+  
+  if (!cleanPhone.startsWith('+')) {
+    if (!(digitsOnly.startsWith('225') && digitsOnly.length >= 11)) {
+      digitsOnly = '225' + digitsOnly;
+    }
+  }
 
+  const basePhoneUrl = `https://wa.me/${digitsOnly}?text=`;
 
   const getUrl = (msg: string) => `${basePhoneUrl}${encodeURIComponent(msg)}`;
   const mainUrl = getUrl(msgList[0]);
