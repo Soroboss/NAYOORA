@@ -48,6 +48,7 @@ export default async function FinancePage() {
           pendingPayments={pendingPayments.data ?? []}
           cash={cash.data ?? []} 
           canManage={["organization_admin", "president", "tresorier"].includes(membership.role)} 
+          orgName={(membership.organization as any)?.name}
         />
       </section>
     </main>

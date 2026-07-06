@@ -1,6 +1,7 @@
 "use client";
 import { FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { WhatsAppButton } from "./whatsapp-button";
 
 const money = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
 
@@ -9,6 +10,19 @@ async function send(body: object) {
   const d = await r.json();
   if (!r.ok) throw new Error(d.error);
   return d;
+}
+
+function getCollectionMessage(c: any, orgName: string) {
+  const name = c.member?.first_name || 'Membre';
+  const org = orgName || 'notre organisation';
+  if (c.status === 'paid') {
+    return `Cher(e) ${name}, merci du fond du cœur pour ta générosité et ton paiement de ${money(c.amount_paid)}. C'est grâce à des membres dévoués comme toi que ${org} brille et avance !`;
+  }
+  return [
+    `Cher(e) ${name}, nous t'écrivons avec amitié pour te rappeler ton échéance de ${money(c.amount_due)} prévue pour le ${new Date(c.due_date).toLocaleDateString('fr-FR')}. Ta contribution est précieuse pour ${org}.`,
+    `Cher(e) ${name}, nous espérons que tu vas bien. Sauf erreur de notre part, ton paiement de ${money(c.amount_due)} pour ${org} est en attente. Nous comptons sur ton engagement fraternel.`,
+    `Cher(e) ${name}, ceci est notre dernière relance concernant ton échéance de ${money(c.amount_due)} pour ${org}. L'efficacité de notre organisation dépend du respect des engagements de chacun. Merci de régulariser au plus vite.`
+  ];
 }
 
 function exportCSV(filename: string, rows: any[]) {
@@ -30,7 +44,7 @@ function exportCSV(filename: string, rows: any[]) {
   link.click();
 }
 
-export function FinanceManager({ plans, members, contributions, payments, pendingPayments, cash, canManage }: { plans: any[]; members: any[]; contributions: any[]; payments: any[]; pendingPayments?: any[]; cash: any[]; canManage: boolean }) {
+export function FinanceManager({ plans, members, contributions, payments, pendingPayments, cash, canManage, orgName = "notre organisation" }: { plans: any[]; members: any[]; contributions: any[]; payments: any[]; pendingPayments?: any[]; cash: any[]; canManage: boolean; orgName?: string }) {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
@@ -123,12 +137,15 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
                   </div>
                   <div className="finance-list">
                     {overdueContributions.map(c => (
-                      <div key={c.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedMember(c.member?.id || c.member_profile_id)}>
-                        <span>
-                          <b>{c.member?.first_name} {c.member?.last_name}</b>
-                          <small style={{ color: 'var(--error, #e53935)' }}>Échu le {new Date(c.due_date).toLocaleDateString('fr-FR')} ({c.plan?.name})</small>
-                        </span>
-                        <b style={{ color: 'var(--error, #e53935)' }}>Reste {money(c.amount_due - c.amount_paid)}</b>
+                      <div key={c.id} style={{ display: 'flex', alignItems: 'center' }}>
+                        <div style={{ cursor: 'pointer', flex: 1 }} onClick={() => setSelectedMember(c.member?.id || c.member_profile_id)}>
+                          <span>
+                            <b>{c.member?.first_name} {c.member?.last_name}</b>
+                            <small style={{ color: 'var(--error, #e53935)' }}>Échu le {new Date(c.due_date).toLocaleDateString('fr-FR')} ({c.plan?.name})</small>
+                          </span>
+                          <b style={{ color: 'var(--error, #e53935)' }}>Reste {money(c.amount_due - c.amount_paid)}</b>
+                        </div>
+                        <WhatsAppButton phone={c.member?.phone} message={getCollectionMessage(c, orgName)} />
                       </div>
                     ))}
                   </div>
@@ -147,12 +164,15 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
                   {contributions.length ?
                     <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
                       {contributions.map(c => (
-                        <div key={c.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedMember(c.member?.id || c.member_profile_id)}>
-                          <span>
-                            <b>{c.member?.first_name} {c.member?.last_name}</b>
-                            <small>{c.plan?.name} · échéance {c.due_date}</small>
-                          </span>
-                          <b>{money(c.amount_paid)} / {money(c.amount_due)}</b>
+                        <div key={c.id} style={{ display: 'flex', alignItems: 'center' }}>
+                          <div style={{ cursor: 'pointer', flex: 1 }} onClick={() => setSelectedMember(c.member?.id || c.member_profile_id)}>
+                            <span>
+                              <b>{c.member?.first_name} {c.member?.last_name}</b>
+                              <small>{c.plan?.name} · échéance {c.due_date}</small>
+                            </span>
+                            <b>{money(c.amount_paid)} / {money(c.amount_due)}</b>
+                          </div>
+                          <WhatsAppButton phone={c.member?.phone} message={getCollectionMessage(c, orgName)} />
                         </div>
                       ))}
                     </div>

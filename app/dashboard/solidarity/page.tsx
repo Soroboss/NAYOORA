@@ -19,7 +19,7 @@ export default async function SolidarityPage() {
       </aside>
       <section className="dashboard">
         <header className="dashboard-header"><div><p className="eyebrow">Fonds de solidarité</p><h1>Aides & soutiens aux membres</h1><p>Enregistrez chaque aide, son bénéficiaire, son montant et sa remise effective.</p></div></header>
-        <SolidarityManager members={members.data ?? []} cases={cases.data ?? []} disbursements={disbursements.data ?? []} canManage={["organization_admin", "president", "tresorier"].includes(membership.role)} />
+        <SolidarityManager members={members.data ?? []} cases={cases.data ?? []} disbursements={disbursements.data ?? []} canManage={["organization_admin", "president", "tresorier"].includes(membership.role)} orgName={(membership.organization as any)?.name} />
       </section>
     </main>
   );
