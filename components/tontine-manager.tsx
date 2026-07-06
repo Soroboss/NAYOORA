@@ -27,7 +27,11 @@ function getTontineReminderMessage(p: any, groups: any[]) {
   const group = groups.find(g => g.id === p.group_id);
   const groupName = group ? group.name : "notre groupe";
   const amount = group ? money(Number(group.contribution_amount)) : "ta cotisation";
-  return `Cher(e) ${name}, le cycle en cours pour ${groupName} attend ta contribution de ${amount}. N'oublie pas de faire ton versement. Notre force, c'est notre régularité et notre amour fraternel !`;
+  return [
+    `Cher(e) ${name}, le cycle en cours pour ${groupName} attend ta contribution de ${amount}. N'oublie pas de faire ton versement. Notre force, c'est notre régularité !`,
+    `Cher(e) ${name}, ${groupName} repose sur la confiance mutuelle. Ton versement de ${amount} est attendu pour permettre au bénéficiaire de recevoir son gain. Merci de faire le nécessaire au plus vite.`,
+    `Cher(e) ${name}, ton retard de paiement de ${amount} bloque le cycle de ${groupName}. Le respect de la parole donnée est sacré. Merci d'agir immédiatement pour ne pas pénaliser le bénéficiaire.`
+  ];
 }
 
 async function send(payload: object) {
