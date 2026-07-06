@@ -15,13 +15,15 @@ async function send(body: object) {
 function getCollectionMessage(c: any, orgName: string) {
   const name = c.member?.first_name || 'Membre';
   const org = orgName || 'notre organisation';
+  const planName = c.plan?.name ? `(${c.plan.name})` : '';
+  
   if (c.status === 'paid') {
-    return `Cher(e) ${name}, merci du fond du cœur pour ta générosité et ton paiement de ${money(c.amount_paid)}. C'est grâce à des membres dévoués comme toi que ${org} brille et avance !`;
+    return `Cher(e) ${name}, merci du fond du cœur pour ta générosité et ton paiement de ${money(c.amount_paid)} ${planName}. C'est grâce à des membres dévoués comme toi que ${org} brille et avance !`;
   }
   return [
-    `Cher(e) ${name}, nous t'écrivons avec amitié pour te rappeler ton échéance de ${money(c.amount_due)} prévue pour le ${new Date(c.due_date).toLocaleDateString('fr-FR')}. Ta contribution est précieuse pour ${org}.`,
-    `Cher(e) ${name}, nous espérons que tu vas bien. Sauf erreur de notre part, ton paiement de ${money(c.amount_due)} pour ${org} est en attente. Nous comptons sur ton engagement fraternel.`,
-    `Cher(e) ${name}, ceci est notre dernière relance concernant ton échéance de ${money(c.amount_due)} pour ${org}. L'efficacité de notre organisation dépend du respect des engagements de chacun. Merci de régulariser au plus vite.`
+    `Cher(e) ${name}, nous t'écrivons avec amitié pour te rappeler ton échéance de ${money(c.amount_due)} ${planName} prévue pour le ${new Date(c.due_date).toLocaleDateString('fr-FR')}. Ta contribution est précieuse pour ${org}.`,
+    `Cher(e) ${name}, nous espérons que tu vas bien. Sauf erreur de notre part, ton paiement de ${money(c.amount_due)} ${planName} pour ${org} est en attente. Nous comptons sur ton engagement fraternel.`,
+    `Cher(e) ${name}, ceci est notre dernière relance concernant ton échéance de ${money(c.amount_due)} ${planName} pour ${org}. L'efficacité de notre organisation dépend du respect des engagements de chacun. Merci de régulariser au plus vite.`
   ];
 }
 
