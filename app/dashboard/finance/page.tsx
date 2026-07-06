@@ -9,10 +9,10 @@ export default async function FinancePage() {
 
   const [plans, members, contributions, payments, pendingPayments, cash] = await Promise.all([
     insforge.from('contribution_plans').select('id,name,amount,frequency,start_date,end_date').eq('organization_id', org).eq('active', true).order('created_at', { ascending: false }),
-    insforge.from('member_profiles').select('id,first_name,last_name').eq('organization_id', org).is('deleted_at', null).eq('status', 'active').order('last_name'),
-    insforge.from('contributions').select('id,amount_due,amount_paid,due_date,status,member:member_profiles(first_name,last_name),plan:contribution_plans(name)').eq('organization_id', org).order('due_date', { ascending: false }).limit(12),
-    insforge.from('payments').select('id,amount,paid_at,provider,member_profile_id,member:member_profiles(first_name,last_name)').eq('organization_id', org).eq('status', 'confirmed').order('paid_at', { ascending: false }).limit(8),
-    insforge.from('payments').select('id,amount,created_at,provider,provider_reference,proof_url,contribution_plan_id,member:member_profiles(first_name,last_name),contribution:contributions(id,due_date,amount_due),plan:contribution_plans(name)').eq('organization_id', org).eq('status', 'pending').order('created_at', { ascending: false }),
+    insforge.from('member_profiles').select('id,first_name,last_name,phone').eq('organization_id', org).is('deleted_at', null).eq('status', 'active').order('last_name'),
+    insforge.from('contributions').select('id,amount_due,amount_paid,due_date,status,member:member_profiles(first_name,last_name,phone),plan:contribution_plans(name)').eq('organization_id', org).order('due_date', { ascending: false }).limit(12),
+    insforge.from('payments').select('id,amount,paid_at,provider,member_profile_id,member:member_profiles(first_name,last_name,phone)').eq('organization_id', org).eq('status', 'confirmed').order('paid_at', { ascending: false }).limit(8),
+    insforge.from('payments').select('id,amount,created_at,provider,provider_reference,proof_url,contribution_plan_id,member:member_profiles(first_name,last_name,phone),contribution:contributions(id,due_date,amount_due),plan:contribution_plans(name)').eq('organization_id', org).eq('status', 'pending').order('created_at', { ascending: false }),
     insforge.from('cash_transactions').select('id,direction,category,amount,occurred_at').eq('organization_id', org).eq('status', 'posted').order('occurred_at', { ascending: false }).limit(8)
   ]);
 
