@@ -15,6 +15,26 @@ export function PwaInstallPrompt() {
 
     const handler = (e: any) => {
       e.preventDefault();
+      
+      // Do not show on desktop (width > 768px)
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        return;
+      }
+
+      // Check if already installed
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        return;
+      }
+
+      // Check if dismissed within the last 48 hours
+      const dismissedAt = localStorage.getItem('pwa_prompt_dismissed');
+      if (dismissedAt) {
+        const elapsed = Date.now() - parseInt(dismissedAt, 10);
+        if (elapsed < 48 * 60 * 60 * 1000) {
+          return;
+        }
+      }
+
       setDeferredPrompt(e);
       setShowPrompt(true);
     };
@@ -29,8 +49,14 @@ export function PwaInstallPrompt() {
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       console.log('User accepted the install prompt');
+      localStorage.setItem('pwa_prompt_dismissed', Date.now().toString()); // prevent reappearing immediately
     }
     setDeferredPrompt(null);
+    setShowPrompt(false);
+  };
+
+  const handleIgnore = () => {
+    localStorage.setItem('pwa_prompt_dismissed', Date.now().toString());
     setShowPrompt(false);
   };
 
@@ -52,7 +78,7 @@ export function PwaInstallPrompt() {
       </div>
       <div style={{ display: 'flex', gap: '8px' }}>
         <button 
-          onClick={() => setShowPrompt(false)} 
+          onClick={handleIgnore} 
           style={{ background: 'transparent', border: 'none', color: '#fff', padding: '8px', cursor: 'pointer', opacity: 0.6 }}
         >
           Ignorer
