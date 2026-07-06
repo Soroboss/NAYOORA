@@ -1,7 +1,25 @@
 "use client";
 import { FormEvent, useMemo, useState } from 'react';
+import { WhatsAppButton } from './whatsapp-button';
 
 const f = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
+
+function getSolidarityCaseMessage(c: any, orgName: string) {
+  const name = c.member?.first_name || 'Membre';
+  const org = orgName || 'notre organisation';
+  if (c.status === 'approved') {
+    return `Cher(e) ${name}, face à l'épreuve ou l'événement, ${org} se tient à tes côtés. Ton dossier d'aide a été approuvé. Nous sommes ensemble, unis et forts !`;
+  } else if (c.status === 'open') {
+    return `Cher(e) ${name}, nous avons bien reçu l'ouverture de ton dossier de solidarité. Toute l'union de ${org} est en pensée avec toi.`;
+  }
+  return `Cher(e) ${name}, le statut de ton dossier d'aide a été mis à jour. N'oublie jamais que tu n'es pas seul(e), nous sommes une famille.`;
+}
+
+function getSolidarityDisbursementMessage(d: any, orgName: string) {
+  const name = d.beneficiary?.first_name || 'Bénéficiaire';
+  const org = orgName || 'notre organisation';
+  return `Cher(e) ${name}, ${org} t'entoure de tout son amour. Un versement de solidarité de ${f(Number(d.amount))} t'a été remis. N'oublie jamais que tu n'es pas seul(e), nous formons une grande famille !`;
+}
 
 async function send(x: object) {
   const r = await fetch('/api/solidarity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(x) });
@@ -10,7 +28,7 @@ async function send(x: object) {
   return d;
 }
 
-export function SolidarityManager({ members, cases, disbursements, canManage }: { members: any[]; cases: any[]; disbursements: any[]; canManage: boolean }) {
+export function SolidarityManager({ members, cases, disbursements, canManage, orgName = "notre organisation" }: { members: any[]; cases: any[]; disbursements: any[]; canManage: boolean; orgName?: string }) {
   const [n, setN] = useState('');
   const [busy, setBusy] = useState(false);
   const [activeTab, setActiveTab] = useState("vue");
@@ -66,8 +84,11 @@ export function SolidarityManager({ members, cases, disbursements, canManage }: 
               <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
                 {cases.length === 0 ? <p className="muted">Aucun dossier.</p> : cases.map(c => (
                   <div key={c.id}>
-                    <span>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>{c.title}</b>
+                      {c.member?.phone && <WhatsAppButton phone={c.member.phone} message={getSolidarityCaseMessage(c, orgName)} />}
+                    </span>
+                    <span>
                       <small>{c.member?.first_name} {c.member?.last_name} · {c.case_type} · {c.status}</small>
                     </span>
                     <b>{f(c.approved_amount || c.requested_amount || 0)}</b>
@@ -82,8 +103,11 @@ export function SolidarityManager({ members, cases, disbursements, canManage }: 
               <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
                 {disbursements.length === 0 ? <p className="muted">Aucun décaissement.</p> : disbursements.map(d => (
                   <div key={d.id}>
-                    <span>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>✓ Remis à {d.beneficiary?.first_name} {d.beneficiary?.last_name}</b>
+                      {d.beneficiary?.phone && <WhatsAppButton phone={d.beneficiary.phone} message={getSolidarityDisbursementMessage(d, orgName)} />}
+                    </span>
+                    <span>
                       <small>{d.solidarity_case?.title} · {new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>
                     </span>
                     <b className="negative">−{f(d.amount)}</b>
@@ -101,8 +125,11 @@ export function SolidarityManager({ members, cases, disbursements, canManage }: 
             <div className="finance-list" style={{ maxHeight: "500px", overflowY: "auto" }}>
               {cases.length === 0 ? <p className="muted">Aucun dossier enregistré.</p> : cases.map(c => (
                 <div key={c.id}>
-                  <span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
                     <b>{c.title}</b>
+                    {c.member?.phone && <WhatsAppButton phone={c.member.phone} message={getSolidarityCaseMessage(c, orgName)} />}
+                  </span>
+                  <span>
                     <small>{c.member?.first_name} {c.member?.last_name} · {c.case_type} · {c.status}</small>
                   </span>
                   <b>{f(c.approved_amount || c.requested_amount || 0)}</b>
@@ -119,8 +146,11 @@ export function SolidarityManager({ members, cases, disbursements, canManage }: 
             <div className="finance-list" style={{ maxHeight: "500px", overflowY: "auto" }}>
               {disbursements.length === 0 ? <p className="muted">Aucun versement.</p> : disbursements.map(d => (
                 <div key={d.id}>
-                  <span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
                     <b>✓ Aide remise à {d.beneficiary?.first_name} {d.beneficiary?.last_name}</b>
+                    {d.beneficiary?.phone && <WhatsAppButton phone={d.beneficiary.phone} message={getSolidarityDisbursementMessage(d, orgName)} />}
+                  </span>
+                  <span>
                     <small>{d.solidarity_case?.title} · {new Date(d.disbursed_at).toLocaleDateString('fr-FR')}</small>
                   </span>
                   <b className="negative">−{f(d.amount)}</b>

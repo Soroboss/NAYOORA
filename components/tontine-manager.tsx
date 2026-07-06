@@ -2,9 +2,33 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { WhatsAppButton } from "./whatsapp-button";
 
 type Row = Record<string, any>;
 const money = (value: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF", maximumFractionDigits: 0 }).format(value || 0);
+
+function getTontineCollectionMessage(c: any, groups: any[]) {
+  const name = c.participant?.display_name || "Participant";
+  const groupName = groups.find(g => g.id === c.participant?.group_id)?.name || "notre groupe";
+  return `Cher(e) ${name}, ton versement de ${money(Number(c.amount_paid))} pour ${groupName} a bien été enregistré. Merci pour ta fidélité et ton engagement fraternel !`;
+}
+
+function getTontinePayoutMessage(p: any, groups: any[]) {
+  const name = p.beneficiary?.display_name || "Bénéficiaire";
+  const groupName = groups.find(g => g.id === p.beneficiary?.group_id)?.name || "notre groupe";
+  if (p.status === 'paid') {
+    return `Cher(e) ${name}, la remise de ton gain de ${money(Number(p.net_amount))} (${groupName}) a été effectuée. Que cette somme te soit grandement bénéfique !`;
+  }
+  return `Félicitations cher(e) ${name} ! Ton tour est arrivé pour ${groupName}. Le montant de ${money(Number(p.net_amount))} t'est attribué et sera bientôt remis. Prépare-toi à réaliser tes beaux projets !`;
+}
+
+function getTontineReminderMessage(p: any, groups: any[]) {
+  const name = p.display_name || "Participant";
+  const group = groups.find(g => g.id === p.group_id);
+  const groupName = group ? group.name : "notre groupe";
+  const amount = group ? money(Number(group.contribution_amount)) : "ta cotisation";
+  return `Cher(e) ${name}, le cycle en cours pour ${groupName} attend ta contribution de ${amount}. N'oublie pas de faire ton versement. Notre force, c'est notre régularité et notre amour fraternel !`;
+}
 
 async function send(payload: object) {
   const response = await fetch("/api/tontine", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -100,8 +124,11 @@ export function TontineManager({ groups, participants, cycles, collections, payo
               <div className="finance-list">
                 {participants.length ? participants.map((p) => (
                   <div key={p.id}>
-                    <span>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>Rang {p.payout_rank} — {p.display_name}</b>
+                      {p.phone && <WhatsAppButton phone={p.phone} message={getTontineReminderMessage(p, groups)} />}
+                    </span>
+                    <span>
                       <small>{p.status}</small>
                     </span>
                   </div>
@@ -137,8 +164,11 @@ export function TontineManager({ groups, participants, cycles, collections, payo
               <div className="finance-list" style={{ maxHeight: "300px", overflowY: "auto" }}>
                 {collections.length ? collections.map((c) => (
                   <div key={c.id}>
-                    <span>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>{(c.participant as any)?.display_name || "Participant"}</b>
+                      {(c.participant as any)?.phone && <WhatsAppButton phone={(c.participant as any).phone} message={getTontineCollectionMessage(c, groups)} />}
+                    </span>
+                    <span>
                       <small>Cycle {(c.cycle as any)?.cycle_number}</small>
                     </span>
                     <b className="positive">+{money(Number(c.amount_paid))}</b>
@@ -152,8 +182,11 @@ export function TontineManager({ groups, participants, cycles, collections, payo
               <div className="finance-list" style={{ maxHeight: "300px", overflowY: "auto" }}>
                 {payouts.length ? payouts.map((p) => (
                   <div key={p.id}>
-                    <span>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>{p.status === "paid" ? `✓ Remis à ${(p.beneficiary as any)?.display_name || "Bénéficiaire"}` : `À remettre à ${(p.beneficiary as any)?.display_name || "Bénéficiaire"}`}</b>
+                      {(p.beneficiary as any)?.phone && <WhatsAppButton phone={(p.beneficiary as any).phone} message={getTontinePayoutMessage(p, groups)} />}
+                    </span>
+                    <span>
                       <small>Cycle {(p.cycle as any)?.cycle_number} · {p.status === "paid" ? `remis le ${new Date(p.paid_at).toLocaleDateString("fr-FR")}` : "en attente de remise"}</small>
                     </span>
                     <span style={{ display: "flex", alignItems: "center", gap: 8 }}>

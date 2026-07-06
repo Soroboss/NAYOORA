@@ -1,9 +1,19 @@
 "use client";
 import { useMemo, useState } from 'react';
+import { WhatsAppButton } from './whatsapp-button';
 
 const f = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(n);
 
-export function CollectionsManager({ contributions, imports, errors, canManage }: { contributions: any[]; imports: any[]; errors: any[]; canManage: boolean }) {
+function getCollectionMessage(c: any, orgName: string) {
+  const name = c.member?.first_name || 'Membre';
+  const org = orgName || 'notre organisation';
+  if (c.status === 'paid') {
+    return `Cher(e) ${name}, merci du fond du cœur pour ta générosité et ton paiement de ${f(c.amount_paid)}. C'est grâce à des membres dévoués comme toi que ${org} brille et avance !`;
+  }
+  return `Cher(e) ${name}, frère/sœur de notre union, nous t'écrivons avec amour pour te rappeler ton échéance de ${f(c.amount_due)} prévue pour le ${new Date(c.due_date).toLocaleDateString('fr-FR')}. Ta contribution est précieuse pour ${org}.`;
+}
+
+export function CollectionsManager({ contributions, imports, errors, canManage, orgName = "notre organisation" }: { contributions: any[]; imports: any[]; errors: any[]; canManage: boolean; orgName?: string }) {
   const [n, setN] = useState('');
   const [filter, setFilter] = useState('all');
   const [busy, setBusy] = useState(false);
@@ -68,8 +78,11 @@ export function CollectionsManager({ contributions, imports, errors, canManage }
               <div className="finance-list" style={{ maxHeight: "400px", overflowY: "auto" }}>
                 {overdue.length === 0 ? <p className="muted">Aucun retard détecté.</p> : overdue.map(c => (
                   <div key={c.id}>
-                    <span>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
                       <b>{c.member?.first_name} {c.member?.last_name}</b>
+                      {c.member?.phone && <WhatsAppButton phone={c.member.phone} message={getCollectionMessage(c, orgName)} />}
+                    </span>
+                    <span>
                       <small>{c.plan?.name} · échéance {c.due_date}</small>
                     </span>
                     <b className="negative">{f(c.amount_paid)} / {f(c.amount_due)}</b>
@@ -114,8 +127,11 @@ export function CollectionsManager({ contributions, imports, errors, canManage }
             <div className="finance-list" style={{ maxHeight: "500px", overflowY: "auto" }}>
               {rows.length === 0 ? <p className="muted">Aucune échéance ne correspond à ce filtre.</p> : rows.map(c => (
                 <div key={c.id}>
-                  <span>
+                  <span style={{ display: 'flex', alignItems: 'center' }}>
                     <b>{c.member?.first_name} {c.member?.last_name}</b>
+                    {c.member?.phone && <WhatsAppButton phone={c.member.phone} message={getCollectionMessage(c, orgName)} />}
+                  </span>
+                  <span>
                     <small>{c.plan?.name} · échéance {c.due_date} · {c.status}</small>
                   </span>
                   <b className={c.status === "overdue" ? "negative" : ""}>{f(c.amount_paid)} / {f(c.amount_due)}</b>
