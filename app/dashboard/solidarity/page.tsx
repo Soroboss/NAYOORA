@@ -6,9 +6,9 @@ export default async function SolidarityPage() {
   const { insforge, membership } = await getCurrentOrganizationContext();
   const organizationId = membership.organization_id;
   const [members, cases, disbursements] = await Promise.all([
-    insforge.from("member_profiles").select("id,first_name,last_name").eq("organization_id", organizationId).is("deleted_at", null).eq("status", "active").order("last_name"),
-    insforge.from("solidarity_cases").select("id,title,case_type,requested_amount,approved_amount,status,member:member_profiles(first_name,last_name)").eq("organization_id", organizationId).order("requested_at", { ascending: false }),
-    insforge.from("disbursements").select("id,amount,disbursed_at,notes,beneficiary:member_profiles(first_name,last_name),solidarity_case:solidarity_cases(title)").eq("organization_id", organizationId).not("solidarity_case_id", "is", null).order("disbursed_at", { ascending: false }).limit(50),
+    insforge.from("member_profiles").select("id,first_name,last_name,phone").eq("organization_id", organizationId).is("deleted_at", null).eq("status", "active").order("last_name"),
+    insforge.from("solidarity_cases").select("id,title,case_type,requested_amount,approved_amount,status,member:member_profiles(first_name,last_name,phone)").eq("organization_id", organizationId).order("requested_at", { ascending: false }),
+    insforge.from("disbursements").select("id,amount,disbursed_at,notes,beneficiary:member_profiles(first_name,last_name,phone),solidarity_case:solidarity_cases(title)").eq("organization_id", organizationId).not("solidarity_case_id", "is", null).order("disbursed_at", { ascending: false }).limit(50),
   ]);
   return (
     <main className="app-shell">
