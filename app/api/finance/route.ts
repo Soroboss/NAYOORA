@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 
     if(body.action === "payment"){ 
       if(!body.contributionId || Number(body.amount) <= 0) throw new Error("Échéance et montant positif requis.");
-      const {data, error} = await insforge.rpc("record_contribution_payment_v2", {p_organization_id: org, p_contribution_id: body.contributionId, p_amount: Number(body.amount), p_provider: body.provider || "cash", p_provider_reference: body.reference || "", p_notes: body.notes || ""});
+      const {data, error} = await insforge.rpc("record_contribution_payment_v2", {p_organization_id: org, p_contribution_id: body.contributionId, p_amount: Number(body.amount), p_provider: body.provider || "cash", p_provider_reference: body.reference || null, p_notes: body.notes || ""});
       if(error) throw error; 
       return NextResponse.json({paymentId: data}); 
     }
