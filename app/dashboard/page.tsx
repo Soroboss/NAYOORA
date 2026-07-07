@@ -240,8 +240,8 @@ export default async function DashboardPage() {
         <article className="panel" style={{ marginTop: '24px' }}>
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">Progression du cycle</p>
-              <h2>État des encaissements et remises</h2>
+              <p className="eyebrow">Aide mensuelle (Flexible)</p>
+              <h2>État des encaissements et soutiens</h2>
             </div>
             <span style={{ padding: '4px 12px', backgroundColor: 'var(--brand-subtle, #e0e7ff)', color: 'var(--brand, #4f46e5)', borderRadius: '999px', fontSize: '0.875rem', fontWeight: 500 }}>Groupe Elite</span>
           </div>
@@ -260,7 +260,7 @@ export default async function DashboardPage() {
                 </h3>
               </div>
               <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle, #f9fafb)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Somme remise</p>
+                <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Somme apportée (soutien)</p>
                 <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600, color: 'var(--positive, #10b981)' }}>
                   {formatMoney(sommeRemise)}
                 </h3>
@@ -275,7 +275,7 @@ export default async function DashboardPage() {
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <span style={{ fontWeight: 500 }}>Projection des encaissements (Tour en cours)</span>
+                <span style={{ fontWeight: 500 }}>Projection des encaissements (Mois en cours)</span>
                 <strong style={{ color: 'var(--brand)' }}>85%</strong>
               </div>
               <div style={{ width: '100%', backgroundColor: 'var(--border)', height: '12px', borderRadius: '999px', overflow: 'hidden' }}>
