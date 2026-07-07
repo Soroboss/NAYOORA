@@ -185,7 +185,9 @@ export default async function DashboardPage() {
 
   const latestPayout = (tontinePayoutsRes.data ?? []).find((p: any) => p.status === "paid");
   const dernierBeneficiaire = latestPayout?.beneficiary?.display_name || "Issouf";
-  const sommeEnCours = (contributionsTotal * 0.15) || 150000;
+  const sommeEnCours = 25000;
+  const sommeRemise = 50000;
+  const totalGlobal = 75000;
 
   return (
     <main className="app-shell">
@@ -246,27 +248,28 @@ export default async function DashboardPage() {
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
               <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle, #f9fafb)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Total global</p>
+                <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600, color: 'var(--brand)' }}>
+                  {formatMoney(totalGlobal)}
+                </h3>
+              </div>
+              <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle, #f9fafb)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                 <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Somme en cours d'encaissement</p>
-                <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600, color: 'var(--fg)' }}>
+                <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600, color: 'var(--warning, #f59e0b)' }}>
                   {formatMoney(sommeEnCours)}
                 </h3>
               </div>
               <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle, #f9fafb)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                 <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Somme remise</p>
                 <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600, color: 'var(--positive, #10b981)' }}>
-                  {formatMoney(tontinePayoutsTotal || 500000)}
+                  {formatMoney(sommeRemise)}
                 </h3>
               </div>
               <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle, #f9fafb)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                 <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Dernier bénéficiaire</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--brand)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem' }}>
-                    {dernierBeneficiaire.charAt(0).toUpperCase()}
-                  </div>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--fg)' }}>
-                    {dernierBeneficiaire}
-                  </h3>
-                </div>
+                <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: 'var(--fg)', lineHeight: '1.2' }}>
+                  {dernierBeneficiaire}
+                </h3>
               </div>
             </div>
 
