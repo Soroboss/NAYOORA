@@ -183,6 +183,10 @@ export default async function DashboardPage() {
 
   const chartData = Object.entries(chartDataMap).map(([label, value]) => ({ label, value }));
 
+  const latestPayout = (tontinePayoutsRes.data ?? []).find((p: any) => p.status === "paid");
+  const dernierBeneficiaire = latestPayout?.beneficiary?.display_name || "Issouf";
+  const sommeEnCours = (contributionsTotal * 0.15) || 150000;
+
   return (
     <main className="app-shell">
       <aside className="sidebar">
@@ -230,6 +234,60 @@ export default async function DashboardPage() {
             </article>
           ))}
         </div>
+
+        <article className="panel" style={{ marginTop: '24px' }}>
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">Progression du cycle</p>
+              <h2>État des encaissements et remises</h2>
+            </div>
+            <span style={{ padding: '4px 12px', backgroundColor: 'var(--brand-subtle, #e0e7ff)', color: 'var(--brand, #4f46e5)', borderRadius: '999px', fontSize: '0.875rem', fontWeight: 500 }}>Groupe Elite</span>
+          </div>
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
+              <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle, #f9fafb)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Somme en cours d'encaissement</p>
+                <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600, color: 'var(--fg)' }}>
+                  {formatMoney(sommeEnCours)}
+                </h3>
+              </div>
+              <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle, #f9fafb)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Somme remise</p>
+                <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 600, color: 'var(--positive, #10b981)' }}>
+                  {formatMoney(tontinePayoutsTotal || 500000)}
+                </h3>
+              </div>
+              <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle, #f9fafb)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <p className="muted" style={{ marginBottom: '8px', fontSize: '0.875rem' }}>Dernier bénéficiaire</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--brand)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem' }}>
+                    {dernierBeneficiaire.charAt(0).toUpperCase()}
+                  </div>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--fg)' }}>
+                    {dernierBeneficiaire}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <span style={{ fontWeight: 500 }}>Projection des encaissements (Tour en cours)</span>
+                <strong style={{ color: 'var(--brand)' }}>85%</strong>
+              </div>
+              <div style={{ width: '100%', backgroundColor: 'var(--border)', height: '12px', borderRadius: '999px', overflow: 'hidden' }}>
+                <div style={{ width: '85%', backgroundColor: 'var(--brand)', height: '100%', borderRadius: '999px', transition: 'width 1s ease-in-out' }}></div>
+              </div>
+            </div>
+
+            <div style={{ padding: '16px', backgroundColor: '#f0f9ff', borderRadius: '8px', fontSize: '0.95rem', color: '#0369a1', border: '1px solid #bae6fd', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+              <span style={{ fontSize: '1.2rem' }}>💡</span>
+              <p style={{ margin: 0, lineHeight: 1.5 }}>
+                <strong>Note (Groupe Elite) :</strong> Le premier tour de mai a été remis à Issouf pour son soutien.
+              </p>
+            </div>
+          </div>
+        </article>
 
         <div className="finance-lists" style={{ marginTop: "24px" }}>
           <article className="panel">
