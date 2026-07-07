@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     { label: "Membres actifs", value: String(activeMembers.count ?? 0), trend: `${totalMembers.count ?? 0} inscrit(s) au total` },
     { label: "Bureau actif", value: String((officers.data ?? []).length), trend: president ? `Président : ${president.first_name} ${president.last_name}` : "Président à définir" },
     { label: "Cotisations encaissées", value: formatMoney(contributionsTotal), trend: `${paidContributionsRes.data?.length ?? 0} échéance(s) avec paiement enregistré` },
-    { label: "Versements aux membres", value: formatMoney(memberDisbursementsTotal), trend: `${formatMoney(aidPaidTotal)} d’aides · ${formatMoney(tontinePayoutsTotal)} de tontines` },
+    { label: "Versements aux membres", value: formatMoney(memberDisbursementsTotal), trend: `${formatMoney(aidPaidTotal)} d’aides · ${formatMoney(tontinePayoutsTotal)} de soutiens mensuels` },
     { label: "Événements à venir", value: String(events.data?.length ?? 0), trend: "Calendrier organisation" },
   ];
 
