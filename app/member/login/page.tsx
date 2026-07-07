@@ -13,6 +13,7 @@ type Profile = {
 
 export default function MemberLogin() {
   const [phone, setPhone] = useState("");
+  const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [profiles, setProfiles] = useState<Profile[] | null>(null);
@@ -23,7 +24,7 @@ export default function MemberLogin() {
     setBusy(true);
     setError("");
     try {
-      const payload: any = { phone };
+      const payload: any = { phone, pin: pin.trim() };
       if (selectedMemberId) payload.memberId = selectedMemberId;
 
       const response = await fetch("/api/member-login", {
@@ -110,6 +111,23 @@ export default function MemberLogin() {
                   value={phone} 
                   onChange={(e) => setPhone(e.target.value)} 
                   placeholder="Ex: +225 01 02 03 04" 
+                  style={{ width: '100%', padding: '0.875rem 1rem', borderRadius: '0.75rem', border: '1.5px solid #e5e7eb', fontSize: '1.05rem', outline: 'none', transition: 'all 0.2s ease', backgroundColor: '#f9fafb' }}
+                  onFocus={e => { e.target.style.borderColor = '#111827'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 4px rgba(17, 24, 39, 0.1)' }}
+                  onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.backgroundColor = '#f9fafb'; e.target.style.boxShadow = 'none' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
+                  Code PIN (4 chiffres)
+                </label>
+                <input 
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={pin} 
+                  onChange={(e) => setPin(e.target.value)} 
+                  placeholder="Ex: 0000 (Laissez vide pour la 1ère fois)" 
                   style={{ width: '100%', padding: '0.875rem 1rem', borderRadius: '0.75rem', border: '1.5px solid #e5e7eb', fontSize: '1.05rem', outline: 'none', transition: 'all 0.2s ease', backgroundColor: '#f9fafb' }}
                   onFocus={e => { e.target.style.borderColor = '#111827'; e.target.style.backgroundColor = '#fff'; e.target.style.boxShadow = '0 0 0 4px rgba(17, 24, 39, 0.1)' }}
                   onBlur={e => { e.target.style.borderColor = '#e5e7eb'; e.target.style.backgroundColor = '#f9fafb'; e.target.style.boxShadow = 'none' }}
