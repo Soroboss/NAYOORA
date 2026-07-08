@@ -1854,14 +1854,14 @@
 .finance-forms,
 .finance-lists {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+  gap: 32px;
   align-items: start;
   width: 100%;
   min-width: 0;
 }
 .finance-lists {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
 }
 .finance-forms > *,
 .finance-lists > * {
@@ -2594,17 +2594,19 @@ legend {
 }
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1.55fr 1fr;
-  gap: 14px;
-  margin-top: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+  gap: 24px;
+  margin-top: 24px;
 }
 .panel {
   background: #fff;
   border: 1px solid #e1e8e2;
-  border-radius: 12px;
-  padding: 22px;
+  border-radius: 16px;
+  padding: 32px;
   min-height: 315px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 .tabs {
   display: flex !important;
