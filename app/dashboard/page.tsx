@@ -41,8 +41,8 @@ export default async function DashboardPage() {
     insforge.from("tontine_savings_collections").select("id,amount_paid,status,collection_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).eq("status", "collected").order("created_at", { ascending: false }),
     insforge.from("tontine_savings_payouts").select("id,net_amount,gross_amount,commission_amount,status,payout_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).order("created_at", { ascending: false }),
     insforge.from("disbursements").select("id,amount,disbursed_at,notes,beneficiary:member_profiles(first_name,last_name),solidarity_case:solidarity_cases(title,case_type)").eq("organization_id", organization.id).order("disbursed_at", { ascending: false }),
-    insforge.from("tontine_groups").select("id, name, contribution_amount").eq("organization_id", organization.id).in("status", ["active", "completed"]).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-    insforge.from("tontine_cycles").select("id, cycle_number, expected_amount, status, notes, beneficiary:tontine_participants(display_name)").eq("organization_id", organization.id).in("status", ["collecting", "ready_to_pay", "planned"]).order("cycle_number", { ascending: false }).limit(1).maybeSingle()
+    insforge.from("tontine_groups").select("id, name, contribution_amount").eq("organization_id", organization.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    insforge.from("tontine_cycles").select("id, cycle_number, expected_amount, status, notes, beneficiary:tontine_participants(display_name)").eq("organization_id", organization.id).order("cycle_number", { ascending: false }).limit(1).maybeSingle()
   ]);
 
   const paidContributionsTotal = (paidContributionsRes.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount_paid || 0), 0);
