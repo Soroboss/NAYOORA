@@ -226,26 +226,25 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
                       <b>{money(p.amount)}</b>
                       <div style={{display:'flex', gap:'8px'}}>
                         <button className="button button-small" onClick={() => setEditingPlan(p)}>Modifier</button>
-                        {p.active && <button className="button button-small" style={{borderColor:'var(--error, #e53935)', color:'var(--error, #e53935)'}} onClick={() => {
-                          if(confirm("Voulez-vous vraiment arrêter ce plan ?")) {
-                            const e = { preventDefault: () => {}, currentTarget: { elements: { action: { value: 'update_plan' }, planId: { value: p.id }, active: { value: 'false' } } } };
-                            // We construct a fake FormData event to re-use the submit handler
-                            const fd = new FormData();
-                            fd.append('planId', p.id);
-                            fd.append('active', 'false');
-                            const fakeForm = {
-                              preventDefault: () => {},
-                              currentTarget: {
-                                elements: {},
-                                reset: () => {}
-                              }
-                            } as any;
-                            // Inject formData behavior
-                            const orig = global.FormData;
-                            global.FormData = function() { return fd; } as any;
-                            submit(fakeForm, 'update_plan').finally(() => { global.FormData = orig; });
-                          }
-                        }}>Arrêter</button>}
+                        {p.active ? (
+                          <button className="button button-small" style={{borderColor:'var(--error, #e53935)', color:'var(--error, #e53935)'}} onClick={() => {
+                            if(confirm("Voulez-vous vraiment arrêter ce plan ?")) {
+                              const fd = new FormData(); fd.append('planId', p.id); fd.append('active', 'false');
+                              const fakeForm = { preventDefault: () => {}, currentTarget: { elements: {}, reset: () => {} } } as any;
+                              const orig = global.FormData; global.FormData = function() { return fd; } as any;
+                              submit(fakeForm, 'update_plan').finally(() => { global.FormData = orig; });
+                            }
+                          }}>Arrêter</button>
+                        ) : (
+                          <button className="button button-small" style={{borderColor:'var(--success, #10b981)', color:'var(--success, #10b981)'}} onClick={() => {
+                            if(confirm("Voulez-vous vraiment relancer ce plan ?")) {
+                              const fd = new FormData(); fd.append('planId', p.id); fd.append('active', 'true');
+                              const fakeForm = { preventDefault: () => {}, currentTarget: { elements: {}, reset: () => {} } } as any;
+                              const orig = global.FormData; global.FormData = function() { return fd; } as any;
+                              submit(fakeForm, 'update_plan').finally(() => { global.FormData = orig; });
+                            }
+                          }}>Relancer</button>
+                        )}
                       </div>
                     </div>
                   </div>

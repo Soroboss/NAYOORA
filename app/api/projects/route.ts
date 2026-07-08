@@ -27,6 +27,16 @@ export async function POST(r: Request) {
       return NextResponse.json({ item: data });
     }
 
+    if (b.action === 'update_project') {
+      if (!b.projectId) throw Error('Le projet est requis.');
+      const updates: any = {};
+      if (b.status !== undefined) updates.status = b.status;
+      
+      const { error } = await s.from('projects').update(updates).eq('id', b.projectId).eq('organization_id', o);
+      if (error) throw error;
+      return NextResponse.json({ ok: true });
+    }
+
     throw Error('Action inconnue.');
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : 'Opération impossible.' }, { status: 400 });
