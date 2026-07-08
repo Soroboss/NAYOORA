@@ -30,7 +30,7 @@ export default async function DashboardPage() {
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
   sixMonthsAgo.setDate(1);
 
-  const [recentMembersRes, recentPaymentsRes, allRecentPayments, allConfirmedPayments, paidContributionsRes, tontineCollectionsRes, tontinePayoutsRes, savingsCollectionsRes, savingsPayoutsRes, aidDisbursementsRes] = await Promise.all([
+  const [recentMembersRes, recentPaymentsRes, allRecentPayments, allConfirmedPayments, paidContributionsRes, tontineCollectionsRes, tontinePayoutsRes, savingsCollectionsRes, savingsPayoutsRes, aidDisbursementsRes, activeTontineGroupRes, activeCycleRes] = await Promise.all([
     insforge.from("member_profiles").select("first_name, last_name, created_at").eq("organization_id", organization.id).order("created_at", { ascending: false }).limit(5),
     insforge.from("payments").select("amount,paid_at,contribution_id,member:member_profiles(first_name,last_name)").eq("organization_id", organization.id).eq("status", "confirmed").order("paid_at", { ascending: false }).limit(5),
     insforge.from("payments").select("amount,paid_at,contribution_id").eq("organization_id", organization.id).eq("status", "confirmed").gte("paid_at", sixMonthsAgo.toISOString()),
@@ -40,7 +40,9 @@ export default async function DashboardPage() {
     insforge.from("tontine_payouts").select("id,net_amount,gross_amount,commission_amount,status,paid_at,scheduled_at,created_at,beneficiary:tontine_participants(display_name),cycle:tontine_cycles(cycle_number)").eq("organization_id", organization.id).order("created_at", { ascending: false }),
     insforge.from("tontine_savings_collections").select("id,amount_paid,status,collection_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).eq("status", "collected").order("created_at", { ascending: false }),
     insforge.from("tontine_savings_payouts").select("id,net_amount,gross_amount,commission_amount,status,payout_date,created_at,card:tontine_savings_cards(member:member_profiles(first_name,last_name))").eq("organization_id", organization.id).order("created_at", { ascending: false }),
-    insforge.from("disbursements").select("id,amount,disbursed_at,notes,beneficiary:member_profiles(first_name,last_name),solidarity_case:solidarity_cases(title,case_type)").eq("organization_id", organization.id).order("disbursed_at", { ascending: false })
+    insforge.from("disbursements").select("id,amount,disbursed_at,notes,beneficiary:member_profiles(first_name,last_name),solidarity_case:solidarity_cases(title,case_type)").eq("organization_id", organization.id).order("disbursed_at", { ascending: false }),
+    insforge.from("tontine_groups").select("id, name, contribution_amount").eq("organization_id", organization.id).in("status", ["active", "completed"]).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    insforge.from("tontine_cycles").select("id, cycle_number, expected_amount, status, notes, beneficiary:tontine_participants(display_name)").eq("organization_id", organization.id).in("status", ["collecting", "ready_to_pay", "planned"]).order("cycle_number", { ascending: false }).limit(1).maybeSingle()
   ]);
 
   const paidContributionsTotal = (paidContributionsRes.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount_paid || 0), 0);
@@ -183,11 +185,39 @@ export default async function DashboardPage() {
 
   const chartData = Object.entries(chartDataMap).map(([label, value]) => ({ label, value }));
 
-  const latestPayout = (tontinePayoutsRes.data ?? []).find((p: any) => p.status === "paid");
-  const dernierBeneficiaire = latestPayout?.beneficiary?.display_name || "Issouf";
-  const sommeEnCours = 25000;
-  const sommeRemise = 50000;
-  const totalGlobal = 75000;
+  const activeTontineGroup = activeTontineGroupRes.data;
+  const activeCycle = activeCycleRes.data;
+
+  const tontineGroupName = activeTontineGroup?.name || "Groupe Tontine";
+
+  let totalGlobal = 0;
+  let sommeEnCours = 0;
+  let sommeRemise = 0;
+  let dernierBeneficiaire = "Aucun";
+  let tontineNote = "Aucun cycle actif pour le moment.";
+  let projectionPercentage = 0;
+
+  if (activeCycle) {
+    totalGlobal = Number(activeCycle.expected_amount || 0);
+    const cycleCollections = (tontineCollectionsRes.data ?? []).filter((c: any) => c.cycle?.cycle_number === activeCycle.cycle_number);
+    sommeEnCours = cycleCollections.reduce((sum: number, c: any) => sum + Number(c.amount_paid || 0), 0);
+    
+    const cyclePayouts = (tontinePayoutsRes.data ?? []).filter((p: any) => p.cycle?.cycle_number === activeCycle.cycle_number);
+    sommeRemise = cyclePayouts.reduce((sum: number, p: any) => sum + Number(p.net_amount || 0), 0);
+
+    const latestPayout = (tontinePayoutsRes.data ?? []).find((p: any) => p.status === "paid");
+    dernierBeneficiaire = latestPayout?.beneficiary?.display_name || activeCycle.beneficiary?.display_name || "À définir";
+
+    tontineNote = activeCycle.notes || `Le tour de ce cycle est réservé à ${activeCycle.beneficiary?.display_name || 'un participant à définir'}.`;
+    projectionPercentage = totalGlobal > 0 ? Math.round((sommeEnCours / totalGlobal) * 100) : 0;
+  } else {
+    const latestPayout = (tontinePayoutsRes.data ?? []).find((p: any) => p.status === "paid");
+    if (latestPayout) {
+      dernierBeneficiaire = latestPayout.beneficiary?.display_name || "Aucun";
+      sommeRemise = Number(latestPayout.net_amount || 0);
+      tontineNote = `Dernier versement effectué à ${dernierBeneficiaire}.`;
+    }
+  }
 
   return (
     <main className="app-shell">
@@ -243,7 +273,7 @@ export default async function DashboardPage() {
               <p className="eyebrow">Aide mensuelle (Flexible)</p>
               <h2>État des encaissements et soutiens</h2>
             </div>
-            <span style={{ padding: '4px 12px', backgroundColor: 'var(--brand-subtle, #e0e7ff)', color: 'var(--brand, #4f46e5)', borderRadius: '999px', fontSize: '0.875rem', fontWeight: 500 }}>Groupe Elite</span>
+            <span style={{ padding: '4px 12px', backgroundColor: 'var(--brand-subtle, #e0e7ff)', color: 'var(--brand, #4f46e5)', borderRadius: '999px', fontSize: '0.875rem', fontWeight: 500 }}>{tontineGroupName}</span>
           </div>
           <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
@@ -276,17 +306,17 @@ export default async function DashboardPage() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <span style={{ fontWeight: 500 }}>Projection des encaissements (Mois en cours)</span>
-                <strong style={{ color: 'var(--brand)' }}>85%</strong>
+                <strong style={{ color: 'var(--brand)' }}>{projectionPercentage}%</strong>
               </div>
               <div style={{ width: '100%', backgroundColor: 'var(--border)', height: '12px', borderRadius: '999px', overflow: 'hidden' }}>
-                <div style={{ width: '85%', backgroundColor: 'var(--brand)', height: '100%', borderRadius: '999px', transition: 'width 1s ease-in-out' }}></div>
+                <div style={{ width: `${projectionPercentage}%`, backgroundColor: 'var(--brand)', height: '100%', borderRadius: '999px', transition: 'width 1s ease-in-out' }}></div>
               </div>
             </div>
 
             <div style={{ padding: '16px', backgroundColor: '#f0f9ff', borderRadius: '8px', fontSize: '0.95rem', color: '#0369a1', border: '1px solid #bae6fd', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
               <span style={{ fontSize: '1.2rem' }}>💡</span>
               <p style={{ margin: 0, lineHeight: 1.5 }}>
-                <strong>Note (Groupe Elite) :</strong> Le premier tour de mai a été remis à Issouf pour son soutien.
+                <strong>Note ({tontineGroupName}) :</strong> {tontineNote}
               </p>
             </div>
           </div>
