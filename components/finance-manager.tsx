@@ -46,10 +46,11 @@ function exportCSV(filename: string, rows: any[]) {
   link.click();
 }
 
-export function FinanceManager({ plans, members, contributions, payments, pendingPayments, cash, canManage, orgName = "notre organisation" }: { plans: any[]; members: any[]; contributions: any[]; payments: any[]; pendingPayments?: any[]; cash: any[]; canManage: boolean; orgName?: string }) {
+export function FinanceManager({ plans, members, contributions, payments, pendingPayments, cash, canManage, orgName = "notre organisation", orgType = "association" }: { plans: any[]; members: any[]; contributions: any[]; payments: any[]; pendingPayments?: any[]; cash: any[]; canManage: boolean; orgName?: string; orgType?: string }) {
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [editingPlan, setEditingPlan] = useState<any>(null);
 
   const balance = useMemo(() => cash.reduce((s, x) => s + (x.direction === 'in' ? Number(x.amount) : -Number(x.amount)), 0), [cash]);
   const overdueContributions = useMemo(() => contributions.filter(c => new Date(c.due_date) < new Date() && Number(c.amount_paid) < Number(c.amount_due)), [contributions]);
@@ -158,7 +159,7 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
                 <article className="panel">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <div>
-                      <p className="eyebrow">Cotisations</p>
+                      <p className="eyebrow">{orgType === 'ong' ? 'Dons & Cotisations' : orgType === 'parti_politique' ? 'Levées de fonds' : 'Cotisations'}</p>
                       <h2>Échéances récentes</h2>
                     </div>
                     <button onClick={handleExportContributions} className="button button-small">Export CSV</button>
@@ -207,20 +208,46 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
           {activeTab === "cotisations" && (
             <article className="panel">
               <p className="eyebrow">Gestion</p>
-              <h2>Plans de Cotisations</h2>
+              <h2>{orgType === 'ong' ? 'Appels aux dons & Projets' : orgType === 'parti_politique' ? 'Levées de fonds & Cotisations' : 'Plans de Cotisations'}</h2>
               <div className="finance-list">
                 {plans.length === 0 ? <p className="muted">Aucun plan défini.</p> : plans.map(p => (
                   <div key={p.id}>
                     <span>
-                      <b>{p.name}</b>
+                      <b>{p.name} {p.active === false ? "(Inactif)" : ""}</b>
                       <small>Fréquence : {p.frequency}</small>
                       {(p.start_date || p.end_date) && (
                         <small style={{display:'block'}}>
                           Période : {p.start_date ? new Date(p.start_date).toLocaleDateString('fr-FR') : '...'} au {p.end_date ? new Date(p.end_date).toLocaleDateString('fr-FR') : 'infini'}
                         </small>
                       )}
+                      {p.notes && <small style={{display:'block'}}>Notes: {p.notes}</small>}
                     </span>
-                    <b>{money(p.amount)}</b>
+                    <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'8px'}}>
+                      <b>{money(p.amount)}</b>
+                      <div style={{display:'flex', gap:'8px'}}>
+                        <button className="button button-small" onClick={() => setEditingPlan(p)}>Modifier</button>
+                        {p.active && <button className="button button-small" style={{borderColor:'var(--error, #e53935)', color:'var(--error, #e53935)'}} onClick={() => {
+                          if(confirm("Voulez-vous vraiment arrêter ce plan ?")) {
+                            const e = { preventDefault: () => {}, currentTarget: { elements: { action: { value: 'update_plan' }, planId: { value: p.id }, active: { value: 'false' } } } };
+                            // We construct a fake FormData event to re-use the submit handler
+                            const fd = new FormData();
+                            fd.append('planId', p.id);
+                            fd.append('active', 'false');
+                            const fakeForm = {
+                              preventDefault: () => {},
+                              currentTarget: {
+                                elements: {},
+                                reset: () => {}
+                              }
+                            } as any;
+                            // Inject formData behavior
+                            const orig = global.FormData;
+                            global.FormData = function() { return fd; } as any;
+                            submit(fakeForm, 'update_plan').finally(() => { global.FormData = orig; });
+                          }
+                        }}>Arrêter</button>}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -302,8 +329,8 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
               <>
                 <form className="panel compact-form" onSubmit={e => submit(e, 'plan')}>
                   <p className="eyebrow">Ajout</p>
-                  <h2>Créer un plan</h2>
-                  <input name="name" required placeholder="Ex. Cotisation mensuelle" />
+                  <h2>Créer un plan {orgType === 'ong' ? '(Dons/Cotisations)' : orgType === 'parti_politique' ? '(Levée de fonds)' : ''}</h2>
+                  <input name="name" required placeholder="Ex. Cotisation mensuelle / Fête de fin d'année" />
                   <input name="amount" required type="number" min="0" placeholder="Montant FCFA" />
                   <select name="frequency">
                     <option value="monthly">Mensuelle</option>
@@ -343,17 +370,41 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
             )}
 
             {activeTab === "encaissement" && (
-              <form className="panel compact-form" onSubmit={e => submit(e, 'payment')}>
-                <p className="eyebrow">Paiements</p>
-                <h2>Encaisser</h2>
-                <select name="contributionId" required>
-                  <option value="">Choisir une échéance</option>
-                  {contributions.filter(c => c.status !== 'paid').map(c => <option value={c.id} key={c.id}>{c.member?.first_name} {c.member?.last_name} — reste {money(c.amount_due - c.amount_paid)}</option>)}
-                </select>
-                <input required name="amount" type="number" min="1" placeholder="Montant reçu FCFA" />
-                <input name="provider" placeholder="Espèces, Wave, Orange…" />
-                <button disabled={busy} className="button button-dark">Confirmer le paiement</button>
-              </form>
+              <>
+                <form className="panel compact-form" onSubmit={e => submit(e, 'payment')}>
+                  <p className="eyebrow">Paiements</p>
+                  <h2>Encaisser une cotisation</h2>
+                  <select name="contributionId" required>
+                    <option value="">Choisir une échéance</option>
+                    {contributions.filter(c => c.status !== 'paid').map(c => <option value={c.id} key={c.id}>{c.member?.first_name} {c.member?.last_name} — reste {money(c.amount_due - c.amount_paid)}</option>)}
+                  </select>
+                  <input required name="amount" type="number" min="1" placeholder="Montant reçu FCFA" />
+                  <input name="provider" placeholder="Espèces, Wave, Orange…" />
+                  <button disabled={busy} className="button button-dark">Confirmer le paiement</button>
+                </form>
+
+                <form className="panel compact-form" onSubmit={e => submit(e, 'cash')}>
+                  <p className="eyebrow">Caisse</p>
+                  <h2>Entrée de fonds externe (Dons, Subventions)</h2>
+                  <input type="hidden" name="direction" value="in" />
+                  <input required name="category" placeholder="Catégorie (ex: Don, Subvention...)" />
+                  <input required name="amount" type="number" min="1" placeholder="Montant reçu FCFA" />
+                  <input name="notes" placeholder="Notes ou Référence (Optionnel)" />
+                  <button disabled={busy} className="button button-dark">Enregistrer l'entrée</button>
+                </form>
+
+                <form className="panel compact-form" onSubmit={e => submit(e, 'plan_disbursement')}>
+                  <p className="eyebrow">Décaissement</p>
+                  <h2>Reversement de plan</h2>
+                  <select name="planId" required>
+                    <option value="">Choisir le plan à reverser</option>
+                    {plans.map(p => <option value={p.id} key={p.id}>{p.name} {p.active === false ? '(Inactif)' : ''}</option>)}
+                  </select>
+                  <input required name="amount" type="number" min="1" placeholder="Montant à décaisser FCFA" />
+                  <input name="notes" placeholder="Notes (Bénéficiaire, Motif...)" />
+                  <button disabled={busy} className="button button-dark">Décaisser</button>
+                </form>
+              </>
             )}
           </div>
         )}
@@ -409,6 +460,40 @@ export function FinanceManager({ plans, members, contributions, payments, pendin
                 )}
               </section>
             </div>
+          </div>
+        </div>
+      )}
+
+      {editingPlan && (
+        <div className="modal-backdrop" onClick={() => setEditingPlan(null)}>
+          <div className="modal-content panel" onClick={e => e.stopPropagation()}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+              <div>
+                <p className="eyebrow">Modification</p>
+                <h2>Modifier le plan : {editingPlan.name}</h2>
+              </div>
+              <button onClick={() => setEditingPlan(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+            </header>
+            
+            <form className="compact-form" onSubmit={e => submit(e, 'update_plan').then(() => setEditingPlan(null))}>
+              <input type="hidden" name="planId" value={editingPlan.id} />
+              <input name="name" required placeholder="Nom du plan" defaultValue={editingPlan.name} />
+              <input name="amount" required type="number" min="0" placeholder="Montant FCFA" defaultValue={editingPlan.amount} />
+              <select name="frequency" defaultValue={editingPlan.frequency}>
+                <option value="one_off">Ponctuel (Une fois)</option>
+                <option value="monthly">Mensuelle</option>
+                <option value="weekly">Hebdomadaire</option>
+                <option value="quarterly">Trimestrielle</option>
+                <option value="yearly">Annuelle</option>
+              </select>
+              <label style={{ fontSize: '0.8rem', color: '#666' }}>Période de début</label>
+              <input name="startDate" type="date" defaultValue={editingPlan.start_date?.split('T')[0]} />
+              <label style={{ fontSize: '0.8rem', color: '#666' }}>Période de fin</label>
+              <input name="endDate" type="date" defaultValue={editingPlan.end_date?.split('T')[0]} />
+              <label style={{ fontSize: '0.8rem', color: '#666' }}>Notes / Informations</label>
+              <input name="notes" placeholder="Notes additionnelles" defaultValue={editingPlan.notes || ""} />
+              <button disabled={busy} className="button button-dark" style={{ marginTop: '1rem' }}>Enregistrer les modifications</button>
+            </form>
           </div>
         </div>
       )}

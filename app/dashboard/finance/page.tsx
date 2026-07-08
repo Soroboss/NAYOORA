@@ -8,7 +8,7 @@ export default async function FinancePage() {
   const org = membership.organization_id;
 
   const [plans, members, contributions, payments, pendingPayments, cash] = await Promise.all([
-    insforge.from('contribution_plans').select('id,name,amount,frequency,start_date,end_date').eq('organization_id', org).eq('active', true).order('created_at', { ascending: false }),
+    insforge.from('contribution_plans').select('id,name,amount,frequency,start_date,end_date,active,notes').eq('organization_id', org).order('created_at', { ascending: false }),
     insforge.from('member_profiles').select('id,first_name,last_name,phone').eq('organization_id', org).is('deleted_at', null).eq('status', 'active').order('last_name'),
     insforge.from('contributions').select('id,amount_due,amount_paid,due_date,status,member:member_profiles(first_name,last_name,phone),plan:contribution_plans(name)').eq('organization_id', org).order('due_date', { ascending: false }).limit(12),
     insforge.from('payments').select('id,amount,paid_at,provider,member_profile_id,member:member_profiles(first_name,last_name,phone)').eq('organization_id', org).eq('status', 'confirmed').order('paid_at', { ascending: false }).limit(8),
@@ -49,6 +49,7 @@ export default async function FinancePage() {
           cash={cash.data ?? []} 
           canManage={["organization_admin", "president", "tresorier"].includes(membership.role)} 
           orgName={(membership.organization as any)?.name}
+          orgType={(membership.organization as any)?.organization_type}
         />
       </section>
     </main>

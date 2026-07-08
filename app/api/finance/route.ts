@@ -32,6 +32,41 @@ export async function POST(request: Request) {
       return NextResponse.json({item: data}, {status: 201}); 
     }
 
+    if(body.action === "update_plan"){
+      if(!body.planId) throw new Error("Plan requis.");
+      const updates: any = {};
+      if(body.name !== undefined) updates.name = body.name;
+      if(body.amount !== undefined) updates.amount = Number(body.amount);
+      if(body.frequency !== undefined) updates.frequency = body.frequency;
+      if(body.active !== undefined) updates.active = body.active === "true" || body.active === true;
+      if(body.notes !== undefined) updates.notes = body.notes;
+      if(body.startDate !== undefined) updates.start_date = body.startDate || null;
+      if(body.endDate !== undefined) updates.end_date = body.endDate || null;
+      
+      const {error} = await insforge.from("contribution_plans").update(updates).eq("id", body.planId).eq("organization_id", org);
+      if(error) throw error;
+      return NextResponse.json({ok: true});
+    }
+
+    if(body.action === "plan_disbursement"){
+      if(!body.planId || Number(body.amount) <= 0) throw new Error("Plan et montant positif requis.");
+      const {data: cashAcc, error: cashError} = await insforge.from("cash_accounts").select("id").eq("organization_id", org).eq("active", true).order("created_at").limit(1).single();
+      if(cashError || !cashAcc) throw new Error("Aucun compte de caisse actif trouvé.");
+      
+      // Enregistrer d'abord la transaction de caisse
+      const {data: cashTx, error: txError} = await insforge.from("cash_transactions").insert({
+        organization_id: org, cash_account_id: cashAcc.id, direction: 'out', category: 'reversement_plan', amount: Number(body.amount), notes: body.notes || "Reversement", created_by: user.id
+      }).select().single();
+      if(txError) throw txError;
+      
+      // Enregistrer le reversement lié au plan
+      const {data, error} = await insforge.from("disbursements").insert({
+        organization_id: org, contribution_plan_id: body.planId, cash_transaction_id: cashTx.id, amount: Number(body.amount), notes: body.notes, approved_by: user.id
+      }).select().single();
+      if(error) throw error;
+      return NextResponse.json({item: data}, {status: 201});
+    }
+
     if(body.action === "contribution"){ 
       if(!body.memberId || !body.planId || !body.dueDate) throw new Error("Membre, plan et échéance requis."); 
       const {data: plan, error: planError} = await insforge.from("contribution_plans").select("amount").eq("id", body.planId).eq("organization_id", org).single(); 

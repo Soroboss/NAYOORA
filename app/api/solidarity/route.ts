@@ -24,6 +24,20 @@ export async function POST(request: Request) {
       if (error) throw error;
       return NextResponse.json({ item: data });
     }
+    if (body.action === "update_case") {
+      if (!body.caseId) throw new Error("Dossier requis.");
+      const updates: any = {};
+      if (body.title !== undefined) updates.title = body.title;
+      if (body.amount !== undefined) updates.requested_amount = Number(body.amount);
+      if (body.approved !== undefined) updates.approved_amount = Number(body.approved) || null;
+      if (body.notes !== undefined) updates.notes = body.notes;
+      if (body.status !== undefined) updates.status = body.status;
+      
+      const { error } = await insforge.from("solidarity_cases").update(updates).eq("id", body.caseId).eq("organization_id", organizationId);
+      if (error) throw error;
+      return NextResponse.json({ ok: true });
+    }
+    
     if (body.action === "contribution") {
       if (!body.caseId || Number(body.amount) <= 0) throw new Error("Dossier et montant requis.");
       const { data, error } = await insforge.from("solidarity_contributions").insert({ organization_id: organizationId, solidarity_case_id: body.caseId, member_profile_id: body.memberId || null, amount: Number(body.amount) }).select().single();

@@ -32,6 +32,7 @@ export function SolidarityManager({ members, cases, disbursements, canManage, or
   const [n, setN] = useState('');
   const [busy, setBusy] = useState(false);
   const [activeTab, setActiveTab] = useState("vue");
+  const [editingCase, setEditingCase] = useState<any>(null);
 
   const total = useMemo(() => disbursements.reduce((s, d) => s + Number(d.amount), 0), [disbursements]);
 
@@ -131,8 +132,27 @@ export function SolidarityManager({ members, cases, disbursements, canManage, or
                   </span>
                   <span>
                     <small>{c.member?.first_name} {c.member?.last_name} · {c.case_type} · {c.status}</small>
+                    {c.notes && <small style={{display:'block'}}>Notes: {c.notes}</small>}
                   </span>
-                  <b>{f(c.approved_amount || c.requested_amount || 0)}</b>
+                  <div style={{display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'8px'}}>
+                    <b>{f(c.approved_amount || c.requested_amount || 0)}</b>
+                    {canManage && (
+                      <div style={{display:'flex', gap:'8px'}}>
+                        <button className="button button-small" onClick={() => setEditingCase(c)}>Modifier</button>
+                        {c.status !== 'closed' && c.status !== 'disbursed' && c.status !== 'rejected' && <button className="button button-small" style={{borderColor:'var(--error, #e53935)', color:'var(--error, #e53935)'}} onClick={() => {
+                          if(confirm("Voulez-vous vraiment clôturer ce dossier ?")) {
+                            const fd = new FormData();
+                            fd.append('caseId', c.id);
+                            fd.append('status', 'closed');
+                            const fakeForm = { preventDefault: () => {}, currentTarget: { elements: {}, reset: () => {} } } as any;
+                            const orig = global.FormData;
+                            global.FormData = function() { return fd; } as any;
+                            sub(fakeForm, 'update_case').finally(() => { global.FormData = orig; });
+                          }
+                        }}>Clôturer</button>}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -219,6 +239,37 @@ export function SolidarityManager({ members, cases, disbursements, canManage, or
           </div>
         )}
       </div>
+
+      {editingCase && (
+        <div className="modal-backdrop" onClick={() => setEditingCase(null)}>
+          <div className="modal-content panel" onClick={e => e.stopPropagation()}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+              <div>
+                <p className="eyebrow">Modification</p>
+                <h2>Modifier le dossier : {editingCase.title}</h2>
+              </div>
+              <button onClick={() => setEditingCase(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+            </header>
+            
+            <form className="compact-form" onSubmit={e => sub(e, 'update_case').then(() => setEditingCase(null))}>
+              <input type="hidden" name="caseId" value={editingCase.id} />
+              <input name="title" required placeholder="Titre (ex: Aide médicale, Décès...)" defaultValue={editingCase.title} />
+              <input name="amount" required type="number" min="0" placeholder="Montant demandé" defaultValue={editingCase.requested_amount || 0} />
+              <input name="approved" type="number" min="0" placeholder="Montant approuvé (Optionnel)" defaultValue={editingCase.approved_amount || ""} />
+              <select name="status" defaultValue={editingCase.status}>
+                <option value="open">Ouvert / En collecte</option>
+                <option value="approved">Approuvé</option>
+                <option value="disbursed">Décaissé</option>
+                <option value="closed">Clôturé</option>
+                <option value="rejected">Rejeté</option>
+              </select>
+              <label style={{ fontSize: '0.8rem', color: '#666' }}>Notes / Informations</label>
+              <input name="notes" placeholder="Notes additionnelles" defaultValue={editingCase.notes || ""} />
+              <button disabled={busy} className="button button-dark" style={{ marginTop: '1rem' }}>Enregistrer les modifications</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
