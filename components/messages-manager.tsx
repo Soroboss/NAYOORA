@@ -1,5 +1,5 @@
 "use client";
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useEffect } from 'react';
 
 async function send(x: object) {
   const r = await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(x) });
@@ -8,13 +8,24 @@ async function send(x: object) {
   return d;
 }
 
-export function MessagesManager({ members, messages, templates = [], canManage }: { members: any[]; messages: any[]; templates?: any[]; canManage: boolean }) {
+export function MessagesManager({ members, messages, templates = [], debtorIds = [], canManage }: { members: any[]; messages: any[]; templates?: any[]; debtorIds?: string[]; canManage: boolean }) {
   const [n, setN] = useState('');
   const [busy, setBusy] = useState(false);
   const [ids, setIds] = useState<string[]>([]);
   const [body, setBody] = useState('');
   const [subject, setSubject] = useState('');
   const [activeTab, setActiveTab] = useState("vue");
+  const [targetFilter, setTargetFilter] = useState("manual");
+
+  useEffect(() => {
+    if (targetFilter === "all") {
+      setIds(members.map(m => m.id));
+    } else if (targetFilter === "debtors") {
+      setIds(members.filter(m => debtorIds.includes(m.id)).map(m => m.id));
+    } else {
+      setIds([]);
+    }
+  }, [targetFilter, members, debtorIds]);
 
   async function sub(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,6 +37,7 @@ export function MessagesManager({ members, messages, templates = [], canManage }
       setIds([]);
       setBody('');
       setSubject('');
+      setTargetFilter("manual");
       setActiveTab("vue");
     } catch (e) {
       setN(e instanceof Error ? e.message : 'Erreur');
@@ -51,8 +63,8 @@ export function MessagesManager({ members, messages, templates = [], canManage }
           <strong>{messages.length}</strong>
         </article>
         <article>
-          <p>Modèles disponibles</p>
-          <strong>{templates.length}</strong>
+          <p>Membres en retard</p>
+          <strong>{debtorIds.length}</strong>
         </article>
         <article>
           <p>Destinataires possibles</p>
@@ -93,12 +105,20 @@ export function MessagesManager({ members, messages, templates = [], canManage }
               <p className="eyebrow">Nouveau message</p>
               <h2>Composer</h2>
               
-              <select name="channel">
-                <option value="internal">Notification interne</option>
-                <option value="email">Email</option>
-                <option value="sms">SMS</option>
-                <option value="whatsapp">WhatsApp</option>
-              </select>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <select name="channel">
+                  <option value="internal">Notification interne</option>
+                  <option value="email">Email</option>
+                  <option value="sms">SMS</option>
+                  <option value="whatsapp">WhatsApp</option>
+                </select>
+                
+                <select value={targetFilter} onChange={(e) => setTargetFilter(e.target.value)}>
+                  <option value="manual">Sélection manuelle</option>
+                  <option value="all">Tous les membres ({members.length})</option>
+                  <option value="debtors">Membres en retard ({debtorIds.length})</option>
+                </select>
+              </div>
               
               {templates.length > 0 && (
                 <select onChange={e => applyTemplate(e.target.value)} defaultValue="">
@@ -108,9 +128,13 @@ export function MessagesManager({ members, messages, templates = [], canManage }
               )}
               
               <input name="subject" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Objet (optionnel pour SMS/WhatsApp)" />
-              <textarea name="body" value={body} onChange={e => setBody(e.target.value)} required placeholder="Votre message aux membres…" style={{ minHeight: "150px" }} />
+              <textarea name="body" value={body} onChange={e => setBody(e.target.value)} required placeholder="Votre message aux membres… (ex: Bonjour {{prenom}})" style={{ minHeight: "150px" }} />
               
-              <div className="member-picker" style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #d1d5db", borderRadius: "6px", padding: "8px" }}>
+              <p style={{ fontSize: "13px", color: "#6b7280" }}>
+                💡 <b>Astuce :</b> Vous pouvez utiliser les variables <code>{`{{prenom}}`}</code> et <code>{`{{nom}}`}</code> pour personnaliser votre message.
+              </p>
+
+              <div className="member-picker" style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #d1d5db", borderRadius: "6px", padding: "8px", opacity: targetFilter !== "manual" ? 0.6 : 1, pointerEvents: targetFilter !== "manual" ? "none" : "auto" }}>
                 {members.map(m => (
                   <label key={m.id} style={{ display: "block", marginBottom: "4px" }}>
                     <input type="checkbox" checked={ids.includes(m.id)} onChange={() => setIds(ids.includes(m.id) ? ids.filter(x => x !== m.id) : [...ids, m.id])} />
@@ -123,12 +147,11 @@ export function MessagesManager({ members, messages, templates = [], canManage }
             </form>
 
             <article className="panel channel-note">
-              <p className="eyebrow">Canaux</p>
-              <h2>Prêts au branchement</h2>
+              <p className="eyebrow">Aperçu du ciblage</p>
+              <h2>{ids.length} destinataires</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
-                <p><b>Interne</b> — disponible immédiatement dans l’espace membre.</p>
-                <p><b>Email</b> — mis en file, à raccorder à Resend ou Brevo.</p>
-                <p><b>SMS / WhatsApp</b> — mis en file, à raccorder à un fournisseur local (ex: Twilio).</p>
+                <p><b>Filtre actif :</b> {targetFilter === "all" ? "Tous les membres" : targetFilter === "debtors" ? "Membres en retard" : "Manuel"}</p>
+                <p><b>Canaux :</b> Assurez-vous d'avoir les coordonnées correctes pour le canal choisi (Email / Tel).</p>
               </div>
             </article>
           </>
