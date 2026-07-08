@@ -200,16 +200,16 @@ export default async function DashboardPage() {
   if (activeCycle) {
     totalGlobal = Number(activeCycle.expected_amount || 0);
     const cycleCollections = (tontineCollectionsRes.data ?? []).filter((c: any) => c.cycle?.cycle_number === activeCycle.cycle_number);
-    sommeEnCours = cycleCollections.reduce((sum: number, c: any) => sum + Number(c.amount_paid || 0), 0);
+    const sommeDejaEncaissee = cycleCollections.reduce((sum: number, c: any) => sum + Number(c.amount_paid || 0), 0);
     
-    const cyclePayouts = (tontinePayoutsRes.data ?? []).filter((p: any) => p.cycle?.cycle_number === activeCycle.cycle_number);
-    sommeRemise = cyclePayouts.reduce((sum: number, p: any) => sum + Number(p.net_amount || 0), 0);
-
+    sommeRemise = sommeDejaEncaissee; // Ce qui a été apporté/collecté
+    sommeEnCours = Math.max(0, totalGlobal - sommeDejaEncaissee); // Ce qui reste à encaisser
+    
     const latestPayout = (tontinePayoutsRes.data ?? []).find((p: any) => p.status === "paid");
     dernierBeneficiaire = latestPayout?.beneficiary?.display_name || activeCycle.beneficiary?.display_name || "À définir";
 
     tontineNote = activeCycle.notes || `Le tour de ce cycle est réservé à ${activeCycle.beneficiary?.display_name || 'un participant à définir'}.`;
-    projectionPercentage = totalGlobal > 0 ? Math.round((sommeEnCours / totalGlobal) * 100) : 0;
+    projectionPercentage = totalGlobal > 0 ? Math.round((sommeDejaEncaissee / totalGlobal) * 100) : 0;
   } else {
     const latestPayout = (tontinePayoutsRes.data ?? []).find((p: any) => p.status === "paid");
     if (latestPayout) {
