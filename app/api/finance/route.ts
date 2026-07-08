@@ -50,8 +50,12 @@ export async function POST(request: Request) {
 
     if(body.action === "plan_disbursement"){
       if(!body.planId || Number(body.amount) <= 0) throw new Error("Plan et montant positif requis.");
-      const {data: cashAcc, error: cashError} = await insforge.from("cash_accounts").select("id").eq("organization_id", org).eq("active", true).order("created_at").limit(1).single();
-      if(cashError || !cashAcc) throw new Error("Aucun compte de caisse actif trouvé.");
+      let {data: cashAcc, error: cashError} = await insforge.from("cash_accounts").select("id").eq("organization_id", org).eq("active", true).order("created_at").limit(1).single();
+      if(cashError || !cashAcc) {
+        const { data: newAcc, error: createError } = await insforge.from("cash_accounts").insert({ organization_id: org, name: "Caisse Principale", account_type: "cash", currency: "XOF" }).select("id").single();
+        if (createError || !newAcc) throw new Error("Impossible d'initialiser le compte de caisse.");
+        cashAcc = newAcc;
+      }
       
       // Enregistrer d'abord la transaction de caisse
       const {data: cashTx, error: txError} = await insforge.from("cash_transactions").insert({
@@ -117,7 +121,13 @@ export async function POST(request: Request) {
 
     if(body.action === "cash"){ 
       if(!body.category || Number(body.amount) <= 0) throw new Error("Catégorie et montant positif requis."); 
-      const {data, error} = await insforge.from("cash_transactions").insert({organization_id: org, direction: body.direction, category: body.category, amount: Number(body.amount), notes: body.notes || null, created_by: user.id}).select().single(); 
+      let {data: cashAcc, error: cashError} = await insforge.from("cash_accounts").select("id").eq("organization_id", org).eq("active", true).order("created_at").limit(1).single();
+      if(cashError || !cashAcc) {
+        const { data: newAcc, error: createError } = await insforge.from("cash_accounts").insert({ organization_id: org, name: "Caisse Principale", account_type: "cash", currency: "XOF" }).select("id").single();
+        if (createError || !newAcc) throw new Error("Impossible d'initialiser le compte de caisse.");
+        cashAcc = newAcc;
+      }
+      const {data, error} = await insforge.from("cash_transactions").insert({organization_id: org, cash_account_id: cashAcc.id, direction: body.direction, category: body.category, amount: Number(body.amount), notes: body.notes || null, created_by: user.id}).select().single(); 
       if(error) throw error; 
       return NextResponse.json({item: data}, {status: 201}); 
     }
