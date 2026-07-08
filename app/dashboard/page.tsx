@@ -54,7 +54,7 @@ export default async function DashboardPage() {
   const savingsPaidTotal = (savingsPayoutsRes.data ?? []).filter((item: any) => item.status === "paid").reduce((sum: number, item: any) => sum + Number(item.net_amount || 0), 0);
   const aidPaidTotal = (aidDisbursementsRes.data ?? []).reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
   const contributionsTotal = regularContributionsTotal + rotatingCollectionsTotal + savingsCollectionsTotal;
-  const tontinePayoutsTotal = (rotatingPaidTotal + savingsPaidTotal) || 50000;
+  const tontinePayoutsTotal = (rotatingPaidTotal + savingsPaidTotal);
   const memberDisbursementsTotal = tontinePayoutsTotal + aidPaidTotal;
   const president = (officers.data ?? []).find((member: any) => member.office_role === "president");
   const formatMoney = (amount: number) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: organization.currency || "XOF", maximumFractionDigits: 0 }).format(amount);
