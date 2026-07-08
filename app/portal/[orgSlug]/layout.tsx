@@ -14,14 +14,22 @@ export default async function PortalLayout(props: { children: React.ReactNode, p
   // Fetch organization details for the header
   const { data: org } = await insforge
     .from("organizations")
-    .select("name, logo_url, organization_type")
+    .select("id, name, logo_url, organization_type")
     .eq("slug", params.orgSlug)
     .single();
+
+  // Fetch active tontine to check if it's activated
+  const { data: activeTontine } = org ? await insforge
+    .from("tontine_groups")
+    .select("id")
+    .eq("organization_id", org.id)
+    .limit(1)
+    .maybeSingle() : { data: null };
 
   const orgName = org?.name || "Espace Membre";
   // The logo_url could be a full URL, a path, or null
   const logoUrl = org?.logo_url ? org.logo_url : "/nayoora-logo.png";
-  const hasTontine = org?.organization_type === "tontine" || org?.organization_type === "cooperative";
+  const hasTontine = org?.organization_type === "tontine" || !!activeTontine;
 
   return (
     <div className="portal-shell">
