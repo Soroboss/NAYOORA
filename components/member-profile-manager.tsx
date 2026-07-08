@@ -16,7 +16,7 @@ const officeRoles = [
 
 const roleLabel = (role: string) => officeRoles.find(([value]) => value === role)?.[1] ?? role;
 
-export function MemberProfileManager({ member, allMembers, elections, canManage, orgName }: { member: any; allMembers: any[]; elections: any[]; canManage: boolean; orgName?: string }) {
+export function MemberProfileManager({ member, allMembers, elections, canManage, orgName, orgLogo, cardSettings }: { member: any; allMembers: any[]; elections: any[]; canManage: boolean; orgName?: string; orgLogo?: string; cardSettings?: any }) {
   const router = useRouter();
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -188,7 +188,7 @@ export function MemberProfileManager({ member, allMembers, elections, canManage,
             <p className="eyebrow">Identification</p>
             <h2>Carte de membre</h2>
             <div style={{ marginTop: '1rem' }}>
-              <MemberCard member={member} orgName={orgName || "Organisation"} />
+              <MemberCard member={member} orgName={orgName || "Organisation"} orgLogo={orgLogo} cardSettings={cardSettings} />
             </div>
           </article>
         </div>
