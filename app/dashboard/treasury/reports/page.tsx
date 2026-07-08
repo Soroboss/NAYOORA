@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/insforge/server";
-import { TreasuryManager } from "@/components/treasury-manager";
+import { TreasuryReports } from "@/components/treasury-reports";
 
-export default async function TreasuryPage() {
+export default async function ReportsPage() {
   const s = await createClient();
   const { data: { user } } = await s.auth.getUser();
   if (!user) redirect('/login');
@@ -24,20 +24,20 @@ export default async function TreasuryPage() {
     s.from('cash_transactions')
       .select('id, direction, category, amount, notes, occurred_at, reference, cash_accounts(name)')
       .eq('organization_id', orgId)
-      .order('occurred_at', { ascending: false })
+      .order('occurred_at', { ascending: true }) // Ascending for ledger chronological order
   ]);
 
   return (
     <main className="app-shell">
-      <aside className="sidebar">
+      <aside className="sidebar print-hidden">
         <Link href="/dashboard" className="brand">
           <img src="/nayoora-logo.png" alt="" /> NAYOORA
         </Link>
         <div className="org-switch">
-          <span>💰</span>
+          <span>📊</span>
           <div>
             <b>{(m.organization as any)?.name}</b>
-            <small>Comptabilité</small>
+            <small>Rapports Financiers</small>
           </div>
         </div>
         <nav>
@@ -52,18 +52,9 @@ export default async function TreasuryPage() {
         </nav>
       </aside>
       <section className="dashboard">
-        <header className="dashboard-header">
-          <div>
-            <p className="eyebrow">Finances</p>
-            <h1>Trésorerie et Comptes</h1>
-            <p>Gérez vos comptes de caisse, banque et mobile money, et suivez toutes vos transactions.</p>
-          </div>
-        </header>
-        
-        <TreasuryManager 
-          accounts={accounts || []}
+        <TreasuryReports 
+          orgName={(m.organization as any)?.name || 'Organisation'}
           transactions={transactions || []}
-          canManage={["organization_admin", "president", "secretaire", "gestionnaire"].includes(m.role)}
         />
       </section>
     </main>

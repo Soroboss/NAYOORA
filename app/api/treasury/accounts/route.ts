@@ -12,18 +12,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
-    const payload = await request.json();
+    const { name, account_type, currency } = await request.json();
 
-    const { data, error } = await s.from("cash_transactions").insert({
+    const { data, error } = await s.from("cash_accounts").insert({
       organization_id: m.organization_id,
-      direction: payload.direction, // 'in' or 'out'
-      category: payload.category,
-      amount: payload.amount,
-      cash_account_id: payload.cash_account_id,
-      notes: payload.notes || "",
-      reference: payload.reference || "",
-      occurred_at: payload.occurred_at || new Date().toISOString(),
-      created_by: user.id
+      name,
+      account_type,
+      currency: currency || "XOF"
     }).select().single();
 
     if (error) throw error;

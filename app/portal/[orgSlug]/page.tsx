@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/insforge/server";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { Calendar, Mail, CreditCard, Download } from "lucide-react";
+import { Calendar, Mail, CreditCard, Download, User } from "lucide-react";
 
 export default async function PortalDashboard({ params }: { params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params;
