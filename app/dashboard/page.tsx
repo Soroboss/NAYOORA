@@ -273,7 +273,7 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        {(organization.organization_type === "tontine" || activeTontineGroup) && (
+        {(organization.organization_type === "tontine" && activeTontineGroup) && (
           <article className="panel" style={{ marginTop: '24px' }}>
           <div className="panel-heading">
             <div>
