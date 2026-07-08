@@ -210,6 +210,12 @@ export default async function DashboardPage() {
 
     tontineNote = activeCycle.notes || `Le tour de ce cycle est réservé à ${activeCycle.beneficiary?.display_name || 'un participant à définir'}.`;
     projectionPercentage = totalGlobal > 0 ? Math.round((sommeDejaEncaissee / totalGlobal) * 100) : 0;
+    
+    liveMetrics.splice(4, 0, {
+      label: "Avancement (Aide en cours)",
+      value: `${projectionPercentage}%`,
+      trend: `${formatMoney(sommeRemise)} collectés sur ${formatMoney(totalGlobal)}`
+    });
   } else {
     const latestPayout = (tontinePayoutsRes.data ?? []).find((p: any) => p.status === "paid");
     if (latestPayout) {
