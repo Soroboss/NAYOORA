@@ -273,7 +273,8 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        <article className="panel" style={{ marginTop: '24px' }}>
+        {(organization.organization_type === "tontine" || activeTontineGroup) && (
+          <article className="panel" style={{ marginTop: '24px' }}>
           <div className="panel-heading">
             <div>
               <p className="eyebrow">Aide mensuelle (Flexible)</p>
@@ -327,6 +328,7 @@ export default async function DashboardPage() {
             </div>
           </div>
         </article>
+        )}
 
         <div className="finance-lists" style={{ marginTop: "24px" }}>
           <article className="panel">
